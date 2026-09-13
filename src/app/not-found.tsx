@@ -19,6 +19,7 @@ export default function NotFound() {
         >
           ← {t("nf.back")}
         </Link>
+        <Link href="/cafes" className="ui-secondary mt-3">{t("nav.cafes")}</Link>
       </div>
       <p className="mt-6 text-sm font-medium text-espresso/40">404</p>
     </div>

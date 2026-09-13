@@ -11,10 +11,12 @@ interface CafeThumbProps {
   cafe: Cafe;
   emojiClassName?: string;
   sizes?: string;
+  preload?: boolean;
 }
 
 export default function CafeThumb({
   cafe,
+  preload = false,
   emojiClassName = "",
   sizes = "(max-width: 768px) 100vw, 33vw",
 }: CafeThumbProps) {
@@ -36,6 +38,7 @@ export default function CafeThumb({
       src={cafe.slug in photoCredits && cafe.photo === `/images/cafes/${cafe.slug}/main.jpg` ? `${cafe.photo}?v=20260910-real` : cafe.photo}
       onError={() => setFailedPhoto(cafe.photo ?? null)}
       alt={tr(cafe.name)}
+      preload={preload}
       fill
       sizes={sizes}
       className="object-cover"

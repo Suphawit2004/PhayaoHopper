@@ -9,6 +9,7 @@ export async function POST(request: Request) {
   try { input = await request.json(); } catch { return NextResponse.json({ error: "ข้อความไม่ถูกต้อง" }, { status: 400 }); }
   const query = typeof input === "object" && input !== null && "query" in input ? input.query : null;
   if (typeof query !== "string" || !query.trim() || query.length > 500) return NextResponse.json({ error: "พิมพ์คำถามไม่เกิน 500 ตัวอักษร" }, { status: 400 });
+  const lang = typeof input === "object" && input !== null && "lang" in input && input.lang === "en" ? "en" : "th";
   const cafes = await getCatalog();
   let matched = localRecommendations(cafes, query);
   let mode = "catalog";
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     }
   }
   return NextResponse.json({ mode,
-    message: matched.length ? "พบร้านที่เกี่ยวข้องในเมืองพะเยา ข้อมูลเวลาเปิดปิดตามที่บันทึกไว้ในระบบ" : "ยังไม่พบร้านที่ตรงกับคำถาม ฉันช่วยค้นหาคาเฟ่ในอำเภอเมืองพะเยาได้ ลองระบุชื่อร้าน หรือบอกว่าอยากทำงาน อ่านหนังสือ หรือพักผ่อน",
-    cafes: matched.map(c => ({ slug: c.slug, name: c.name.th, openTime: c.openTime, closeTime: c.closeTime, closedDays: c.closedDays, address: c.address.th }))
+    message: lang==="en" ? (matched.length ? "Matching cafes in Mueang Phayao. Hours are based on the current catalog." : "No matching cafe found. Try a cafe name or describe your needs, such as working, studying or relaxing.") : matched.length ? "พบร้านที่เกี่ยวข้องในเมืองพะเยา ข้อมูลเวลาเปิดปิดตามที่บันทึกไว้ในระบบ" : "ยังไม่พบร้านที่ตรงกับคำถาม ฉันช่วยค้นหาคาเฟ่ในอำเภอเมืองพะเยาได้ ลองระบุชื่อร้าน หรือบอกว่าอยากทำงาน อ่านหนังสือ หรือพักผ่อน",
+    cafes: matched.map(c => ({ slug: c.slug, name: c.name[lang], openTime: c.openTime, closeTime: c.closeTime, closedDays: c.closedDays, address: c.address[lang] }))
   });
 }

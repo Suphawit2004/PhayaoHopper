@@ -1,3 +1,4 @@
+import UiText from "@/i18n/UiText";
 import type { Metadata } from "next";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import AdminDashboard, { type AdminReport, type AdminReview, type AdminSuggestion } from "@/components/admin/AdminDashboard";
@@ -12,8 +13,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; tab?: string; filter?: string }> }) {
   const params = await searchParams;
+  const viewQuery = new URLSearchParams({tab:params.tab==="reviews"||params.tab==="reports"?params.tab:"suggestions",filter:params.filter==="all"?"all":"pending"}).toString();
   const page = Math.max(0, Math.min(10000, Math.floor(Number(params.page) || 0)));
   const sb = await getSupabaseServer();
   if (!sb) return <AdminDashboard mode="not-configured" />;
@@ -91,12 +93,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <>
     <div className="feature-page !max-w-7xl !px-4 sm:!px-6 !pb-0">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="feature-card"><p>ร้านที่เผยแพร่ / ร้านทั้งหมด</p><strong className="text-3xl">{catalog.error ? "—" : `${catalog.data?.filter(c => c.is_active).length} / ${cafes.length}`}</strong></div>
-        <div className="feature-card"><p>สมาชิกทั้งหมด</p><strong className="text-3xl">{profiles.error ? "—" : profiles.count}</strong></div>
-        <div className="feature-card"><p>คำขอรอดำเนินการทั้งหมด</p><strong className="text-3xl">{pendingS.error || pendingR.error ? "—" : (pendingS.count ?? 0) + (pendingR.count ?? 0)}</strong></div>
+        <div className="feature-card"><p><UiText text="ร้านที่เผยแพร่ / ร้านทั้งหมด"/></p><strong className="text-3xl">{catalog.error ? "—" : `${catalog.data?.filter(c => c.is_active).length} / ${cafes.length}`}</strong></div>
+        <div className="feature-card"><p><UiText text="สมาชิกทั้งหมด"/></p><strong className="text-3xl">{profiles.error ? "—" : profiles.count}</strong></div>
+        <div className="feature-card"><p><UiText text="คำขอรอดำเนินการทั้งหมด"/></p><strong className="text-3xl">{pendingS.error || pendingR.error ? "—" : (pendingS.count ?? 0) + (pendingR.count ?? 0)}</strong></div>
       </div>
-      <details className="feature-card"><summary className="cursor-pointer font-bold">จัดการข้อมูลและรูปภาพร้าน ({cafes.length})</summary><div className="grid gap-3 sm:grid-cols-2 mt-5">{cafes.map(cafe => <Link key={cafe.slug} href={`/owner/${cafe.slug}`} className="rounded-xl border border-[#eadfcd] p-4">{cafe.name.th} →</Link>)}</div></details>
-      {(suggestions.error || reports.error || reviews.error) && <p role="alert" className="mt-4 text-rose-700">ข้อมูลบางส่วนโหลดไม่สำเร็จ กรุณาโหลดหน้าใหม่</p>}
+      <details className="feature-card"><summary className="cursor-pointer font-bold"><UiText text="จัดการข้อมูลและรูปภาพร้าน ("/>{cafes.length})</summary><div className="grid gap-3 sm:grid-cols-2 mt-5">{cafes.map(cafe => <Link key={cafe.slug} href={`/owner/${cafe.slug}`} className="rounded-xl border border-[#eadfcd] p-4">{<UiText text={cafe.name.th} en={cafe.name.en}/>} →</Link>)}</div></details>
+      {(suggestions.error || reports.error || reviews.error) && <p role="alert" className="mt-4 text-rose-700"><UiText text="ข้อมูลบางส่วนโหลดไม่สำเร็จ กรุณาโหลดหน้าใหม่"/></p>}
     </div>
     <AdminDashboard
       mode="ready"
@@ -105,9 +107,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       reviews={reviewRows}
     />
     <nav className="feature-page !max-w-7xl !px-4 sm:!px-6 !pt-0 flex justify-between" aria-label="หน้ารายการแอดมิน">
-      {page > 0 ? <Link href={`/admin?page=${page - 1}`}>← หน้าก่อน</Link> : <span />}
-      <span>หน้า {page + 1} / {totalPages} · หมวดละ 50 รายการ</span>
-      {page + 1 < totalPages ? <Link href={`/admin?page=${page + 1}`}>หน้าถัดไป →</Link> : <span />}
+      {page > 0 ? <Link href={`/admin?page=${page - 1}&${viewQuery}`}><UiText text="← หน้าก่อน"/></Link> : <span />}
+      <span><UiText text="หน้า"/>{page + 1} / {totalPages} · <UiText text="หมวดละ 50 รายการ"/></span>
+      {page + 1 < totalPages ? <Link href={`/admin?page=${page + 1}&${viewQuery}`}><UiText text="หน้าถัดไป →"/></Link> : <span />}
     </nav>
     </>
   );

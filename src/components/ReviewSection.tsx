@@ -20,7 +20,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           aria-pressed={value === n}
           aria-label={t("form.rateNStars").replaceAll("{n}", String(n))}
           onClick={() => onChange(n)}
-          className={`transition hover:scale-110 ${n <= value ? "text-latte" : "text-[#a08a66]"}`}
+          className={`min-h-11 min-w-11 transition hover:scale-110 ${n <= value ? "text-latte" : "text-[#a08a66]"}`}
         >
           ★
         </button>
@@ -110,7 +110,7 @@ export default function ReviewSection({ slug, baseRating }: ReviewSectionProps) 
       });
       return;
     }
-    setReviews((prev) => [res.data, ...prev]);
+    setReviews((prev) => [res.data, ...prev].slice(0, 50));
     setComment("");
     setNotice({ ok: true, text: t("form.success") });
   }
@@ -128,11 +128,7 @@ export default function ReviewSection({ slug, baseRating }: ReviewSectionProps) 
     }
   }
 
-  const BASE_WEIGHT = 10;
-  const avg =
-    reviews.length > 0
-      ? (baseRating * BASE_WEIGHT + reviews.reduce((sum, r) => sum + r.rating, 0)) / (BASE_WEIGHT + reviews.length)
-      : baseRating;
+  const avg = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null;
 
   const locale = lang === "th" ? "th-TH" : "en-GB";
 
@@ -141,15 +137,15 @@ export default function ReviewSection({ slug, baseRating }: ReviewSectionProps) 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-espresso">💬 {t("reviews.title")}</h2>
         <span className="flex items-center gap-2">
-          <RatingStars value={avg} size="md" />
-          <strong className="text-sm text-coffee">{avg.toFixed(1)}</strong>
+          {avg !== null && <RatingStars value={avg} size="md" />}
+          <strong className="text-sm text-coffee">{avg?.toFixed(1) ?? "—"}</strong>
           <span className="text-xs font-medium text-espresso/70">
             {t("reviews.count").replaceAll("{n}", String(reviews.length))}
           </span>
         </span>
       </div>
-      {reviews.length === 0 && !loading && !loadError && (
-        <p className="mt-1 text-xs text-espresso/70">{t("reviews.baseNote")}</p>
+      {!loading && !loadError && (
+        <p className="mt-1 text-xs text-espresso/70">{lang === "th" ? `คะแนนจากรีวิวล่าสุดที่แสดง ${reviews.length} รายการ (สูงสุด 50) แยกจากคะแนนตั้งต้น ${baseRating.toFixed(1)}` : `Average of the ${reviews.length} latest reviews shown (up to 50), separate from the reference rating ${baseRating.toFixed(1)}`}</p>
       )}
 
       {!configured && (
@@ -229,7 +225,7 @@ export default function ReviewSection({ slug, baseRating }: ReviewSectionProps) 
       </form>
 
       <ul className="mt-5 space-y-3">
-        {loading && <li className="text-sm text-espresso/70">…</li>}
+        {loading && <li className="text-sm text-espresso/70" role="status">{lang === "th" ? "กำลังโหลดรีวิว…" : "Loading reviews…"}</li>}
         {!loading && !loadError && reviews.length === 0 && (
           <li className="rounded-xl border border-dashed border-[#e0d3ba] px-4 py-6 text-center text-sm text-espresso/70">
             {t("reviews.none")}
@@ -250,7 +246,7 @@ export default function ReviewSection({ slug, baseRating }: ReviewSectionProps) 
                 </time>
               </span>
             </div>
-            {r.comment && <p className="mt-2 text-sm leading-relaxed text-espresso/80">{r.comment}</p>}
+            {r.comment && (r.comment.length > 180 ? <details className="mt-2 break-words"><summary>{r.comment.slice(0, 120)}… <span className="underline">{lang === "th" ? "อ่านเพิ่มเติม" : "Read more"}</span></summary><p className="whitespace-pre-wrap">{r.comment}</p></details> : <p className="mt-2 break-words whitespace-pre-wrap">{r.comment}</p>)}
             {user && r.user_id === user.id && (
               <div className="mt-2 flex justify-end">
                 <button

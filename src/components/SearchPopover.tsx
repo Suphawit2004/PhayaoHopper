@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+import { useEffect, useRef } from "react";
 import {
   AREA_META,
   AREA_ORDER,
@@ -16,17 +18,20 @@ import { useSearch } from "./SearchProvider";
 
 interface SearchPopoverProps {
   open: boolean;
+  onClose: () => void;
 }
 
 const chipBase =
-  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition";
+  "rounded-chip inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition";
 const chipOff = `${chipBase} border border-[#e8dcc8] bg-white text-espresso/80 hover:border-latte hover:bg-sand/60`;
 const chipOn = `${chipBase} border-coffee bg-coffee text-cream`;
 
-export default function SearchPopover({ open }: SearchPopoverProps) {
-  const { t, tr } = useLang();
+export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
+  const { t, tr, lang } = useLang();
   const { filters, patch, reset } = useSearch();
 
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!open) return; const previous = document.body.style.overflow; document.body.style.overflow = "hidden"; panel.current?.focus(); return () => {document.body.style.overflow = previous;}; }, [open]);
   if (!open) return null;
 
   const toggleTag = (tag: CafeTag) =>
@@ -54,14 +59,17 @@ export default function SearchPopover({ open }: SearchPopoverProps) {
 
   const sectionTitle = "text-xs font-semibold uppercase tracking-wide text-espresso/70";
 
-  return (
-    <div
-      className="absolute left-0 top-full z-[1100] mt-2 max-h-[75vh] w-[min(92vw,26rem)] overflow-y-auto rounded-2xl border border-[#eee3d2] bg-white p-5 shadow-xl"
-      role="group"
+  return createPortal(
+    <div className="filter-overlay" onPointerDown={e=>{if(e.target===e.currentTarget)onClose();}}><div
+      className="filter-dialog"
+      ref={panel} tabIndex={-1}
+      onKeyDown={e => {if(e.key==="Escape"){e.preventDefault();onClose();} if(e.key==="Tab"){const els=panel.current?.querySelectorAll<HTMLElement>("button:not(:disabled),input,select,[href]");if(!els?.length)return;const first=els[0],last=els[els.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel.current)){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}
+      role="dialog" aria-modal="true"
       aria-label={t("filter.open")}
     >
+      <div className="flex justify-between items-center mb-4"><h2>{t("filter.open")}</h2><button className="ui-secondary" onClick={onClose}>{lang==="th"?"ปิด":"Close"}</button></div>
       <div>
-        <span className={sectionTitle}>{t("cafes.tagsLabel")}</span>
+        <span className={sectionTitle}>{t("cafes.tagsLabel")}</span><p className="text-sm">{lang==="th"?"ตรงอย่างน้อยหนึ่งข้อ":"Match any selected category"}</p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {TAG_ORDER.map((tag) => {
             const active = filters.tags.includes(tag);
@@ -81,7 +89,7 @@ export default function SearchPopover({ open }: SearchPopoverProps) {
       </div>
 
       <div className="mt-4">
-        <span className={sectionTitle}>{t("cafes.lifestyleLabel")}</span>
+        <span className={sectionTitle}>{t("cafes.lifestyleLabel")}</span><p className="text-sm">{lang==="th"?"ต้องมีครบทุกข้อที่เลือก":"Must include all selected facilities"}</p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {LIFESTYLE_ORDER.map((life) => {
             const active = filters.life.includes(life);
@@ -139,7 +147,7 @@ export default function SearchPopover({ open }: SearchPopoverProps) {
             const label =
               p === 0
                 ? t("cafes.priceAll")
-                : `${"฿".repeat(p)} ${t(p === 2 ? "cafes.priceMid" : "cafes.priceBudget")}`;
+                : t(p === 2 ? "cafes.priceMid" : "cafes.priceBudget");
             return (
               <button
                 key={p}
@@ -192,6 +200,7 @@ export default function SearchPopover({ open }: SearchPopoverProps) {
           </button>
         </div>
       )}
-    </div>
+      <button className="feature-button mt-4 w-full" onClick={onClose}>{lang==="th"?"ดูผลลัพธ์":"Show results"}</button>
+    </div></div>, document.body
   );
 }

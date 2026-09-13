@@ -25,6 +25,7 @@ export default function ActiveFilterChips() {
       onRemove: () => patch({ life: filters.life.filter((x) => x !== lf) }),
     })),
   ];
+  if (filters.query.trim()) chips.unshift({ id: "query", label: filters.query, onRemove: () => patch({ query: "" }) });
   if (filters.area) {
     chips.push({
       id: "area",
@@ -35,7 +36,7 @@ export default function ActiveFilterChips() {
   if (filters.maxPrice !== 0) {
     chips.push({
       id: "price",
-      label: `${"฿".repeat(filters.maxPrice)} ${t(
+      label: `${t(
         filters.maxPrice === 2 ? "cafes.priceMid" : "cafes.priceBudget"
       )}`,
       onRemove: () => patch({ maxPrice: 0 }),
@@ -59,16 +60,15 @@ export default function ActiveFilterChips() {
   if (chips.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5" role="list">
+    <div className="flex flex-wrap gap-1.5">
       {chips.map((chip) => (
         <button
           key={chip.id}
-          role="listitem"
           type="button"
           onClick={chip.onRemove}
           aria-label={`${chip.label} — ${t("filter.remove")}`}
           title={`${chip.label} — ${t("filter.remove")}`}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-coffee/30 bg-sand/50 py-1 pl-3 pr-2 text-xs font-semibold text-espresso transition hover:border-coffee hover:bg-sand"
+          className="rounded-chip group inline-flex items-center gap-1.5 rounded-full border border-coffee/30 bg-sand/50 py-1 pl-3 pr-2 text-xs font-semibold text-espresso transition hover:border-coffee hover:bg-sand"
         >
           {chip.label}
           <span className="text-espresso/40 group-hover:text-coffee" aria-hidden>

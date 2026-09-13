@@ -8,7 +8,7 @@ import { SearchProvider } from "@/components/SearchProvider";
 import Navbar from "@/components/Navbar";
 import { getCatalog } from "@/lib/catalog";
 import { CatalogProvider } from "@/components/CatalogProvider";
-import FeatureNav from "@/components/FeatureNav";
+
 import Footer from "@/components/Footer";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <CatalogProvider cafes={cafes}><FavoritesProvider>
               <SearchProvider>
                 <a href="#main-content" className="skip-link">ข้ามไปเนื้อหา / Skip to content</a>
-                <Navbar /><FeatureNav />
+                <Navbar />
                 <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
                 <Footer />
               </SearchProvider>

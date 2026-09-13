@@ -1,18 +1,20 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import PasswordLogin from "./PasswordLogin";
 
 function LoginFormInner() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const [remaining,setRemaining] = useState(0);
+  useEffect(()=>{if(remaining<=0)return;const timer=setTimeout(()=>setRemaining(n=>n-1),1000);return()=>clearTimeout(timer);},[remaining]);
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  const authError = searchParams.get("error") === "auth";
+
   const supabaseReady = getSupabaseBrowser() !== null;
 
   // Where to send the user after the auth callback. Same-origin paths only;
@@ -28,7 +30,7 @@ function LoginFormInner() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = getSupabaseBrowser();
-    if (!supabase || !email.trim()) return;
+    if (!supabase || !email.trim() || remaining>0) return;
     setStatus("sending");
     try {
     const { error } = await supabase.auth.signInWithOtp({
@@ -38,6 +40,7 @@ function LoginFormInner() {
       },
     });
     setStatus(error ? "error" : "sent");
+    if(!error)setRemaining(60);
     } catch { setStatus("error"); }
   };
 
@@ -45,7 +48,7 @@ function LoginFormInner() {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
         <p className="text-sm font-semibold text-emerald-800">{t("login.checkEmail")}</p>
-        <p className="mt-1 text-xs text-emerald-700/80">{email}</p>
+        <p className="mt-1 text-sm text-emerald-700/80">{email}</p><button className="ui-secondary mt-4" onClick={()=>setStatus("idle")}>{lang==="th"?"แก้ไขอีเมล":"Edit email"}</button><form onSubmit={submit}><button className="ui-secondary mt-3" disabled={remaining>0}>{remaining>0 ? `${lang==="th"?"ส่งใหม่ได้ใน":"Resend in"} ${remaining}s` : (lang==="th"?"ส่งลิงก์อีกครั้ง":"Resend link")}</button></form>
       </div>
     );
   }
@@ -73,18 +76,13 @@ function LoginFormInner() {
           {t("login.notConfigured")}
         </p>
       )}
-      {authError && status !== "error" && (
-        <p className="rounded-xl bg-rose-50 px-4 py-3 text-xs text-rose-700">
-          {t("login.authError")}
-        </p>
-      )}
       {status === "error" && (
         <p className="rounded-xl bg-rose-50 px-4 py-3 text-xs text-rose-700">{t("login.error")}</p>
       )}
 
       <button
         type="submit"
-        disabled={status === "sending" || !supabaseReady}
+        disabled={status === "sending" || !supabaseReady || remaining>0}
         className="rounded-full bg-coffee px-6 py-3 text-sm font-bold text-cream transition hover:bg-[#684a37] disabled:opacity-60"
       >
         {status === "sending" ? `⏳ ${t("login.sending")}` : `✉️ ${t("login.submit")}`}
@@ -112,7 +110,7 @@ export default function LoginView() {
         <Suspense fallback={<div className="h-40" aria-hidden />}>
           <AuthErrorNotice />
           <PasswordLogin />
-          <details className="mt-6 border-t border-[#eee3d2] pt-5"><summary className="cursor-pointer text-sm font-semibold">{t("login.submit")}</summary><div className="mt-4"><LoginFormInner /></div></details>
+          <details className="mt-6 border-t border-[#eee3d2] pt-5"><summary className="cursor-pointer text-sm font-semibold">{lang==="th"?"เข้าสู่ระบบด้วยลิงก์อีเมล ไม่ใช้รหัสผ่าน":"Sign in with an email link, without a password"}</summary><div className="mt-4"><LoginFormInner /></div></details>
           </Suspense>
       </div>
     </div>

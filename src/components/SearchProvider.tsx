@@ -60,7 +60,7 @@ function SearchSync() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (pathname !== "/cafes") return;
+    if (pathname !== "/cafes" && pathname !== "/map") return;
     const search = searchParams.toString();
     const incoming = parseFilters(`?${search}`);
     if (filtersToQuery(incoming) !== filtersToQuery(state)) {
@@ -76,9 +76,9 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   const patch = useCallback((p: Partial<FilterState>) => {
     const next = { ...state, ...p };
     commit(next);
-    if (window.location.pathname === "/cafes") {
+    if (window.location.pathname === "/cafes" || window.location.pathname === "/map") {
       const qs = filtersToQuery(next);
-      window.history.replaceState(null, "", qs ? `/cafes?${qs}` : "/cafes");
+      window.history.replaceState(null, "", qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
     }
   }, []);
 

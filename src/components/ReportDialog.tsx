@@ -18,11 +18,12 @@ type FieldId = (typeof FIELDS)[number]["id"];
 
 interface ReportDialogProps {
   slug: string;
+  cafeName?: string;
   open: boolean;
   onClose: () => void;
 }
 
-export default function ReportDialog({ slug, open, onClose }: ReportDialogProps) {
+export default function ReportDialog({ slug, cafeName, open, onClose }: ReportDialogProps) {
   const { t } = useLang();
   const supabaseReady = getSupabaseBrowser() !== null;
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -54,6 +55,7 @@ export default function ReportDialog({ slug, open, onClose }: ReportDialogProps)
   useEffect(() => {
     if (!open) return;
 
+    const previousOverflow=document.body.style.overflow; document.body.style.overflow="hidden";
     const dialog = dialogRef.current;
     if (!dialog) return;
 
@@ -81,6 +83,7 @@ export default function ReportDialog({ slug, open, onClose }: ReportDialogProps)
 
     dialog.addEventListener("keydown", handleKeyDown);
     return () => {
+      document.body.style.overflow=previousOverflow;
       dialog.removeEventListener("keydown", handleKeyDown);
     };
   }, [open, onClose]);
@@ -91,7 +94,7 @@ export default function ReportDialog({ slug, open, onClose }: ReportDialogProps)
   // discards the in-progress render and re-renders with fresh state before
   // committing anything.
   const [prevKey, setPrevKey] = useState<string | null>(null);
-  const sessionKey = open ? slug : null;
+  const sessionKey = slug;
   if (sessionKey !== prevKey) {
     setPrevKey(sessionKey);
     if (open) {
@@ -154,7 +157,7 @@ export default function ReportDialog({ slug, open, onClose }: ReportDialogProps)
       role="dialog"
       aria-modal="true"
       aria-label={t("report.title")}
-      className="fixed inset-0 z-[1000] flex items-end justify-center bg-espresso/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[1600] flex items-end justify-center bg-espresso/50 p-4 backdrop-blur-sm sm:items-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -166,7 +169,7 @@ export default function ReportDialog({ slug, open, onClose }: ReportDialogProps)
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-espresso">📝 {t("report.title")}</h2>
+            <h2 className="text-lg font-bold text-espresso">{t("report.title")}</h2>{cafeName && <p className="font-semibold">{cafeName}</p>}
             <p className="mt-1 text-xs leading-relaxed text-espresso/60">{t("report.desc")}</p>
           </div>
           <button
@@ -249,7 +252,7 @@ export default function ReportDialog({ slug, open, onClose }: ReportDialogProps)
                 maxLength={300}
                 value={suggested}
                 onChange={(e) => setSuggested(e.target.value)}
-                placeholder={t("report.suggestedPh")}
+                placeholder={field==="hours" ? "09:00–18:00" : field==="phone" ? "054-xxx-xxx" : t("report.suggestedPh")}
                 className={inputClass}
               />
             </div>

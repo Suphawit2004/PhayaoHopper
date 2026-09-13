@@ -1,4 +1,6 @@
 "use client";
+import Icon from "./Icon";
+import {useUi} from "@/i18n/UiText";
 import { useCatalog } from "@/components/CatalogProvider";
 
 import { useEffect, useState } from "react";
@@ -32,6 +34,7 @@ function avatarPathFromUrl(url: string): string | null {
 }
 
 export default function ProfileView() {
+  const ui=useUi();
   const CAFES = useCatalog();
   const { t, tr, lang } = useLang();
   const { user, loading, signOut, isOwner, isAdmin } = useAuth();
@@ -43,6 +46,8 @@ export default function ProfileView() {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const displayName = nameDraft ?? profile?.display_name ?? user?.email?.split("@")[0] ?? "";
 
+  const [reviewError,setReviewError] = useState(false);
+  const [reviewRetry,setReviewRetry] = useState(0);
   const [myReviews, setMyReviews] = useState<{ userId: string; rows: ReviewRow[] } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [accountError, setAccountError] = useState("");
@@ -54,19 +59,19 @@ export default function ProfileView() {
 
     const userId = user.id;
     let cancelled = false;
-    supabase
+    Promise.resolve(supabase
       .from("reviews")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        if (!cancelled) setMyReviews({ userId, rows: data ?? [] });
-      });
+      .limit(50))
+      .then(({ data, error }) => {
+        if (!cancelled) {setReviewError(!!error); if(!error) setMyReviews({ userId, rows: data ?? [] });}
+      }).catch(()=>{if(!cancelled)setReviewError(true);});
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user,reviewRetry]);
 
   // null ⇒ still loading for this user.
   const myReviewRows = user && myReviews?.userId === user.id ? myReviews.rows : null;
@@ -140,7 +145,7 @@ export default function ProfileView() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-md px-4 py-24 text-center text-sm text-espresso/60">⏳ …</div>
+      <div className="mx-auto max-w-md px-4 py-24 text-center text-sm text-espresso/60" role="status">{lang==="th"?ui("กำลังโหลดโปรไฟล์…"):"Loading profile…"}</div>
     );
   }
 
@@ -167,24 +172,26 @@ export default function ProfileView() {
     setSaveState(ok ? "saved" : "error");
   };
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16">
+    <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="text-center text-2xl font-bold text-espresso">👤 {t("profile.title")}</h1>
 
+      <nav className="profile-sections" aria-label={lang==="th"?ui("ส่วนต่าง ๆ ของโปรไฟล์"):"Profile sections"}><a href="#account">{lang==="th"?ui("บัญชี"):"Account"}</a><a href="#my-photos">{lang==="th"?ui("รูปที่โพสต์"):"My photos"}</a><a href="#my-reviews">{t("profile.myReviews")}</a><a href="#security">{lang==="th"?ui("ความปลอดภัย"):"Security"}</a></nav>
       {/* Account */}
-      <div className="mt-8 flex flex-col gap-5 rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
+      <div id="account" className="mt-8 flex flex-col gap-5 rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
         <div className="flex items-center gap-4">
           <label className="group relative cursor-pointer rounded-full focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-coffee">
             <input
               type="file"
               accept={AVATAR_TYPES.join(",")}
               disabled={avatarState === "uploading"}
-              aria-label={lang === "en" ? "Upload profile photo" : "อัปโหลดรูปโปรไฟล์"}
+              aria-label={lang === "en" ? "Upload profile photo" : ui("อัปโหลดรูปโปรไฟล์")}
               className="sr-only"
               onChange={(e) => {
                 replaceAvatar(e.target.files?.[0]);
                 e.target.value = "";
               }}
             />
+            <span className="block text-sm font-semibold mb-2">{lang==="th"?ui("เปลี่ยนรูป"):"Change photo"}</span>
             {profile?.avatar_url ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
@@ -221,6 +228,7 @@ export default function ProfileView() {
             </button>
           )}
         </div>
+        <p className="text-sm">{lang==="th"?ui("รูปโปรไฟล์: JPG, PNG หรือ WebP ไม่เกิน 5 MB"):"Profile photo: JPG, PNG or WebP, up to 5 MB"}</p>
         {(avatarState === "wrongType" || avatarState === "tooBig" || avatarState === "error") && (
           <p className="-mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-700">
             ⚠️{" "}
@@ -259,7 +267,7 @@ export default function ProfileView() {
                 ? `✓ ${t("profile.saved")}`
                 : t("profile.save")}
           </button>
-          {saveState === "error" && <p className="text-xs text-rose-700">{t("form.error")}</p>}
+          <p role="status" className={saveState==="error"?"text-rose-700":"text-emerald-800"}>{saveState==="saved"?t("profile.saved"):saveState==="error"?t("form.error"):""}</p>
         </form>
 
         <hr className="border-[#eee3d2]" />
@@ -269,18 +277,18 @@ export default function ProfileView() {
           onClick={async () => { try { await signOut(); } catch { setAccountError(t("form.error")); } }}
           className="self-start rounded-full border border-rose-200 px-5 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
         >
-          🚪 {t("profile.signOut")}
+          <Icon name="logout" /> {t("profile.signOut")}
         </button>
       </div>
 
       {accountError && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{accountError}</p>}
-      <nav aria-label="บริการสำหรับสมาชิก" className="mt-6 flex flex-wrap gap-3">
-        <Link href="/membership" className="feature-button">บัตรสมาชิก</Link>
-        {isOwner && <Link href="/owner" className="rounded-xl border border-[#d9c9ac] px-5 py-3">จัดการร้านของคุณ</Link>}
-        {isAdmin && <Link href="/admin" className="rounded-xl border border-[#d9c9ac] px-5 py-3">สำหรับผู้ดูแลระบบ</Link>}
+      <nav aria-label={ui("บริการสำหรับสมาชิก")} className="mt-6 flex flex-wrap gap-3">
+        <Link href="/membership" className="feature-button">{ui("บัตรสมาชิก")}</Link>
+        {isOwner && <Link href="/owner" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{ui("จัดการร้านของคุณ")}</Link>}
+        {isAdmin && <Link href="/admin" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{ui("สำหรับผู้ดูแลระบบ")}</Link>}
       </nav>
-      <MyPhotos />
-      <PasswordSettings />
+      <div id="my-photos"><MyPhotos /></div>
+      <details className="feature-card" id="security"><summary className="font-semibold">{lang==="th"?ui("รหัสผ่านและความปลอดภัย"):"Password and security"}</summary><PasswordSettings /></details>
       {/* Favorites summary */}
       <section className="mt-6 flex items-center justify-between rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
         <div>
@@ -298,10 +306,10 @@ export default function ProfileView() {
       </section>
 
       {/* My reviews */}
-      <section className="mt-6 rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
+      <section id="my-reviews" className="mt-6 rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
         <h2 className="text-sm font-bold text-espresso">💬 {t("profile.myReviews")}</h2>
-        {myReviewRows === null ? (
-          <p className="mt-3 text-sm text-espresso/60">⏳ …</p>
+        {reviewError ? <div role="alert"><p>{t("reviews.loadError")}</p><button className="ui-secondary" onClick={()=>{setReviewError(false);setReviewRetry(n=>n+1);}}>{t("reviews.retry")}</button></div> : myReviewRows === null ? (
+          <p className="mt-3 text-sm text-espresso/60" role="status">{lang==="th"?ui("กำลังโหลดรีวิวของคุณ…"):"Loading your reviews…"}</p>
         ) : myReviewRows.length === 0 ? (
           <p className="mt-3 text-sm text-espresso/60">{t("profile.myReviewsEmpty")}</p>
         ) : (

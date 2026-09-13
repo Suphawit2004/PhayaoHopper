@@ -2,6 +2,7 @@ import { AREA_ORDER, LIFESTYLE_ORDER, TAG_ORDER, type CafeArea, type CafeTag, ty
 
 export interface FilterState {
   query: string;
+  sort?: "relevance" | "rating" | "name";
   tags: CafeTag[];
   life: LifeStyleTag[];
   area: CafeArea | null;
@@ -24,6 +25,7 @@ export function filtersToQuery(f: FilterState): string {
   const params = new URLSearchParams();
   const q = f.query.trim();
   if (q) params.set("q", q);
+  if (f.sort && f.sort !== "relevance") params.set("sort", f.sort);
   if (f.tags.length > 0) params.set("tag", f.tags.join(","));
   if (f.life.length > 0) params.set("life", f.life.join(","));
   if (f.area) params.set("area", f.area);
@@ -50,6 +52,7 @@ export function parseFilters(search: string): FilterState {
   const params = new URLSearchParams(search);
   const areaRaw = params.get("area");
   return {
+    ...(params.get("sort") === "name" || params.get("sort") === "rating" ? { sort: params.get("sort") as "name" | "rating" } : {}),
     query: (params.get("q") ?? "").trim(),
     tags: csvParam(params, "tag", TAG_ORDER),
     life: csvParam(params, "life", LIFESTYLE_ORDER),

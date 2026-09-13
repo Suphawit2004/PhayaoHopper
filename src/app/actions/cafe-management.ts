@@ -100,8 +100,18 @@ export async function assignOwner(form: FormData) {
     const { sb, admin } = await manager(slug);
     if (!admin) throw new Error("เฉพาะผู้ดูแลระบบ");
     const id = text(form, "userId", 36);
+    if(id){const {data:profile,error:profileError}=await sb.from("profiles").select("id").eq("id",id).maybeSingle();if(profileError||!profile)throw Error("ไม่พบบัญชีสมาชิก");}
     const { error } = id ? await sb.from("cafe_owners").upsert({ cafe_slug: slug, user_id: id })
       : await sb.from("cafe_owners").delete().eq("cafe_slug", slug);
     if (error) throw new Error("กำหนดเจ้าของไม่สำเร็จ ตรวจรหัสสมาชิก");
   });
+}
+
+export async function setMenuAvailability(slug:string,id:string,available:boolean) {
+ return run(async()=>{const {sb}=await manager(slug);const {data,error}=await sb.from("menu_items").update({is_available:available}).eq("cafe_slug",slug).eq("id",id).select("id").single();if(error||!data)throw Error("บันทึกสถานะเมนูไม่สำเร็จ");});
+}
+export async function lookupOwner(slug:string,id:string):Promise<{ok:boolean;name?:string;id?:string}> {
+ try {const {sb,admin}=await manager(slug);if(!admin||! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return {ok:false};
+ const {data,error}=await sb.from("profiles").select("id,display_name").eq("id",id).maybeSingle();return data&&!error?{ok:true,id:data.id,name:data.display_name||"Member"}:{ok:false};
+ }catch{return {ok:false};}
 }

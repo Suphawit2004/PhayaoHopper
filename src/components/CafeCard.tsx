@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./ResultLink";
 import type { Cafe } from "@/data/cafes";
 import { useLang } from "@/i18n/LangProvider";
 import CafeThumb from "./CafeThumb";
@@ -11,12 +11,11 @@ import TagChip from "./TagChip";
 import FavoriteButton from "./FavoriteButton";
 
 export default function CafeCard({ cafe }: { cafe: Cafe }) {
-  const { tr } = useLang();
+  const { tr, t, lang } = useLang();
 
   return (
-    <Link
-      href={`/cafes/${cafe.slug}`}
-      className="cafe-card group flex flex-col overflow-hidden rounded-2xl border border-[#eee3d2] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    <article
+      className="cafe-card relative group flex flex-col overflow-hidden rounded-2xl border border-[#eee3d2] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative flex h-52 items-center justify-center overflow-hidden">
         <FavoriteButton slug={cafe.slug} variant="overlay" />
@@ -25,20 +24,17 @@ export default function CafeCard({ cafe }: { cafe: Cafe }) {
           emojiClassName="text-5xl drop-shadow-lg transition group-hover:scale-110"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        <span className="pointer-events-none absolute bottom-2 left-3 text-sm font-bold text-white/90 drop-shadow">
-          {tr(cafe.name)}
-        </span>
         <span className="absolute right-3 top-3 rounded-full bg-white/85 px-2 py-0.5 text-xs font-bold text-espresso">
-          {"฿".repeat(cafe.priceRange)}
+          {t(cafe.priceRange === 1 ? "cafes.priceBudget" : "cafes.priceMid")}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-espresso group-hover:text-coffee">{tr(cafe.name)}</h3>
+        <div className="flex flex-col items-start gap-2">
+          <h3 className="font-semibold text-espresso group-hover:text-coffee"><Link href={`/cafes/${cafe.slug}`} className="cafe-title-link line-clamp-2">{tr(cafe.name)}</Link></h3>
           <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-coffee">
             <RatingStars value={cafe.baseRating} />
-            {cafe.baseRating.toFixed(1)}
+            {cafe.baseRating.toFixed(1)} <span className="font-normal">{lang === "th" ? "คะแนนตั้งต้น" : "Reference rating"}</span>
           </span>
         </div>
 
@@ -55,6 +51,6 @@ export default function CafeCard({ cafe }: { cafe: Cafe }) {
           ))}
         </div>
       </div>
-    </Link>
+    </article>
   );
 }

@@ -10,7 +10,7 @@ interface FavoritesContextValue {
   slugs: string[];
   ready: boolean;
   has: (slug: string) => boolean;
-  toggle: (slug: string) => void;
+  toggle: (slug: string) => Promise<boolean>;
 }
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
@@ -90,7 +90,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   }, [userId, loading]);
 
   const toggle = useCallback(
-    (slug: string) => {
+    async (slug: string) => {
       const exists = slugs.includes(slug);
       const next = exists ? slugs.filter((s) => s !== slug) : [slug, ...slugs];
 
@@ -100,7 +100,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       const supabase = getSupabaseBrowser();
       if (!supabase || !user) {
         writeLocalFavs(next); // guest persistence
-        return;
+        return true;
       }
 
       // Roll back just this slug instead of restoring a stale snapshot, so a
@@ -112,22 +112,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         );
       };
 
-      if (exists) {
-        supabase
-          .from("favorites")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("cafe_slug", slug)
-          .then(({ error }) => {
-            if (error) rollback();
-          });
-      } else {
-        supabase
-          .from("favorites")
-          .upsert({ user_id: user.id, cafe_slug: slug })
-          .then(({ error }) => {
-            if (error) rollback();
-          });
+      try {
+        const { error } = exists
+          ? await supabase.from("favorites").delete().eq("user_id", user.id).eq("cafe_slug", slug)
+          : await supabase.from("favorites").upsert({ user_id: user.id, cafe_slug: slug });
+        if (error) { rollback(); return false; }
+        return true;
+      } catch {
+        rollback();
+        return false;
       }
     },
     [slugs, user]

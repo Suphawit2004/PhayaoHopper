@@ -16,7 +16,7 @@ export default function FeatureNav() {
   const { user, loading, isOwner, isAdmin } = useAuth();
   if (loading || !user) return null;
   const visibleLinks = links.filter(([href]) => href === "/owner" ? isOwner : href === "/admin" ? isAdmin : true);
-  return <nav aria-label={lang === "th" ? "บริการเพิ่มเติม" : "More services"} className="feature-nav">
+  return <nav aria-label={lang === "th" ? "บริการเพิ่มเติม" : "More services"} className="account-services">
     <div>{visibleLinks.map(([href, th, en]) => <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(href + "/") ? "page" : undefined}>{lang === "th" ? th : en}</Link>)}</div>
   </nav>;
 }

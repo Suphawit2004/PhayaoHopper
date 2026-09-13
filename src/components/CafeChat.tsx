@@ -1,21 +1,17 @@
 "use client";
-import { useState } from "react";
+import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
-type Reply = { message: string; mode: string; cafes: { slug: string; name: string; openTime: string; closeTime: string; closedDays: number[]; address: string }[] };
-export default function CafeChat() {
-  const [query, setQuery] = useState("");
-  const [turns, setTurns] = useState<{ question: string; reply: Reply }[]>([]);
-  const [pending, setPending] = useState(false), [error, setError] = useState("");
-  async function send(question: string) {
-    if (!question.trim() || pending) return; setPending(true); setError("");
-    try { const response = await fetch("/api/cafe-assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: question }), signal: AbortSignal.timeout(25000) });
-      if (!response.ok) throw Error(); const reply: Reply = await response.json();
-      setTurns(old => [...old.slice(-19), { question, reply }]); setQuery("");
-    } catch { setError("ส่งข้อความไม่สำเร็จ กรุณาลองใหม่"); } finally { setPending(false); }
-  }
-  return <div className="feature-page chat-page"><h1>วันนี้อยากไปคาเฟ่แบบไหน?</h1><p>ผู้ช่วยค้นหาร้านและเวลาเปิดปิดในอำเภอเมืองพะเยา</p>
-    <div className="flex flex-wrap gap-2 mt-5">{["คาเฟ่เงียบเหมาะอ่านหนังสือ", "อยากพักผ่อนฮีลใจ", "ร้านเปิดดึก"].map(q => <button className="rounded-full border border-[#d9c9ac] px-4 py-2 text-sm" key={q} disabled={pending} onClick={() => send(q)}>{q}</button>)}</div>
-    <div role="log" aria-live="polite" className="my-6 space-y-5">{turns.map((turn, index) => <div key={index}><p className="ml-8 rounded-2xl bg-[#6b4c38] p-4 text-white">{turn.question}</p><div className="feature-card"><p>{turn.reply.message}</p><p className="mt-2 text-xs text-coffee">{turn.reply.mode === "ai" ? "AI ช่วยค้นหา · รายละเอียดจากข้อมูลร้าน" : "ค้นหาจากข้อมูลร้านในระบบ"}</p><ul className="mt-4 space-y-4">{turn.reply.cafes.map(c => <li key={c.slug} className="border-t border-[#eadfcd] pt-3"><Link className="font-semibold underline" href={`/cafes/${c.slug}`}>{c.name} →</Link><p className="text-sm">{c.openTime} – {c.closeTime}{c.closedDays.length ? ` · หยุด${c.closedDays.map(d => ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"][d]).join(", ")}` : ""}</p><p className="text-sm">{c.address}</p></li>)}</ul></div></div>)}</div>
-    <form className="feature-form feature-card" onSubmit={e => { e.preventDefault(); void send(query); }}><label>คำถามของคุณ<textarea value={query} onChange={e => setQuery(e.target.value)} rows={3} maxLength={500} required placeholder="เช่น บ้านบานน์เปิดกี่โมง" disabled={pending} /></label><button disabled={pending} className="feature-button">{pending ? "กำลังค้นหา…" : "ส่งคำถาม"}</button><p role="status">{error}</p></form>
-  </div>;
+import {useLang} from "@/i18n/LangProvider";
+import {useCatalog} from "./CatalogProvider";
+import CafeThumb from "./CafeThumb";
+type Reply={message:string;mode:string;cafes:{slug:string;name:string;openTime:string;closeTime:string;closedDays:number[];address:string}[]};
+export default function CafeChat(){
+ const {lang,tr}=useLang();const cafes=useCatalog();const [query,setQuery]=useState("");const [turns,setTurns]=useState<{question:string;reply:Reply}[]>([]);const [pending,setPending]=useState(false),[error,setError]=useState(""),[failed,setFailed]=useState("");const log=useRef<HTMLDivElement>(null);
+ useEffect(()=>{log.current?.scrollTo({top:log.current.scrollHeight,behavior:"auto"});},[turns,pending]);
+ async function send(question:string){if(!question.trim()||pending)return;setPending(true);setError("");setFailed(question);try{const response=await fetch("/api/cafe-assistant",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:question,lang}),signal:AbortSignal.timeout(25000)});if(!response.ok)throw Error();const reply:Reply=await response.json();setTurns(old=>[...old.slice(-19),{question,reply}]);setQuery("");setFailed("");}catch{setError(lang==="th"?"ส่งไม่สำเร็จ คำถามของคุณยังอยู่ กดลองอีกครั้ง":"Could not send. Your question is saved below. Try again.");}finally{setPending(false);}}
+ const prompts=lang==="th"?["คาเฟ่เงียบเหมาะอ่านหนังสือ","อยากพักผ่อนฮีลใจ","ร้านเปิดดึก"]:["Quiet cafe for studying","A relaxing cafe","Open late"];
+ return <div className="feature-page chat-page"><div className="flex flex-wrap justify-between items-center gap-3"><h1>{lang==="th"?"วันนี้อยากไปคาเฟ่แบบไหน?":"What kind of cafe are you looking for?"}</h1>{turns.length>0&&<button className="ui-secondary" disabled={pending} onClick={()=>{setTurns([]);setQuery("");setError("");setFailed("");}}>{lang==="th"?"เริ่มค้นหาใหม่":"Start a new search"}</button>}</div><p>{lang==="th"?"ค้นหาร้านในอำเภอเมืองพะเยา":"Find cafes in Mueang Phayao district"}</p>
+ <div className="flex flex-wrap gap-2 mt-5">{prompts.map(q=><button className="ui-secondary" key={q} disabled={pending} onClick={()=>send(q)}>{q}</button>)}</div>
+ <div ref={log} role="log" aria-live="polite" aria-label={lang==="th"?"บทสนทนา":"Conversation"} className="chat-history my-6 space-y-5">{turns.map((turn,i)=><div key={i}><p className="ml-8 rounded-xl bg-[#285f60] p-4 text-white">{turn.question}</p><div className="feature-card"><p>{turn.reply.message}</p><ul className="mt-4 space-y-3">{turn.reply.cafes.map(c=>{const cafe=cafes.find(x=>x.slug===c.slug);return <li key={c.slug} className="border-t pt-3 flex gap-3">{cafe&&<span className="relative h-20 w-24 shrink-0 rounded-lg overflow-hidden"><CafeThumb cafe={cafe} sizes="96px"/></span>}<div><Link className="font-semibold underline" href={`/cafes/${c.slug}`}>{cafe?tr(cafe.name):c.name}</Link><p>{c.openTime}–{c.closeTime}</p><p>{cafe?tr(cafe.address):c.address}</p>{cafe&&<p className="text-sm">{tr(cafe.description)}</p>}</div></li>;})}</ul></div></div>)}{pending&&<p role="status">{lang==="th"?"กำลังค้นหา…":"Searching…"}</p>}</div>
+ <form className="feature-form feature-card chat-composer" onSubmit={e=>{e.preventDefault();void send(query);}}><label>{lang==="th"?"คำถามของคุณ":"Your question"}<textarea value={query} onChange={e=>setQuery(e.target.value)} rows={2} maxLength={500} required disabled={pending}/></label><button disabled={pending} className="feature-button">{pending?(lang==="th"?"กำลังค้นหา…":"Searching…"):(lang==="th"?"ส่งคำถาม":"Send question")}</button>{error&&<div role="alert"><p>{error}</p><button type="button" className="ui-secondary" disabled={pending} onClick={()=>send(failed)}>{lang==="th"?"ลองอีกครั้ง":"Retry"}</button></div>}</form></div>;
 }

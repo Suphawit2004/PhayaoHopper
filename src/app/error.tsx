@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { useLang } from "@/i18n/LangProvider";
 
@@ -30,7 +31,7 @@ export default function Error({
           className="mt-6 inline-block rounded-full bg-coffee px-6 py-2.5 text-sm font-semibold text-cream transition hover:bg-[#684a37]"
         >
           ↻ {t("err.retry")}
-        </button>
+        </button><Link href="/" className="ui-secondary mt-3">{t("nf.back")}</Link>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import dynamic from "next/dynamic";
@@ -40,13 +40,29 @@ const INITIAL_FORM: FormState = {
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
+const subscribeHydration = () => () => {};
 export default function SuggestView() {
-  const { t } = useLang();
+ const hydrated = useSyncExternalStore(subscribeHydration, () => true, () => false);
+ const {lang}=useLang();
+ return hydrated ? <SuggestionForm /> : <p role="status" className="feature-page">{lang==="th"?"กำลังโหลดแบบฟอร์ม…":"Loading form…"}</p>;
+}
+function readDraft() {
+ try { const saved=JSON.parse(sessionStorage.getItem("cafe-suggestion-draft")||"null");
+ const form={...INITIAL_FORM,...Object.fromEntries(Object.entries(saved?.form??{}).filter(([key,value])=>key in INITIAL_FORM&&typeof value==="string"))};
+ const coords:Array<number>|null=Array.isArray(saved?.coords)&&saved.coords.length===2&&saved.coords.every((n:unknown)=>typeof n==="number"&&Number.isFinite(n))?saved.coords:null;
+ return {form,coords:coords as [number,number]|null};
+ }catch{return {form:INITIAL_FORM,coords:null};}
+}
+function SuggestionForm() {
+  const { t, lang } = useLang();
   const { user } = useAuth();
   const supabaseReady = getSupabaseBrowser() !== null;
 
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const [coords, setCoords] = useState<[number, number] | null>(null);
+  const coordsRef = useRef<HTMLFieldSetElement>(null);
+  const [saved] = useState(readDraft);
+  const [coordDraft, setCoordDraft] = useState({lat:saved.coords?String(saved.coords[0]):"",lng:saved.coords?String(saved.coords[1]):""});
+  const [form, setForm] = useState<FormState>(saved.form);
+  const [coords, setCoords] = useState<[number, number] | null>(saved.coords);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<"tooBig" | "wrongType" | "upload" | null>(null);
@@ -55,6 +71,8 @@ export default function SuggestView() {
   const [showCoordError, setShowCoordError] = useState(false);
 
   const patch = (p: Partial<FormState>) => setForm((prev) => ({ ...prev, ...p }));
+
+  useEffect(() => { if(status !== "sent") {try {sessionStorage.setItem("cafe-suggestion-draft",JSON.stringify({form,coords}));}catch{}} }, [form,coords,status]);
 
   // Single owner of the blob-URL lifecycle: revoke whenever the preview is
   // replaced or cleared, and on unmount.
@@ -100,6 +118,7 @@ export default function SuggestView() {
     e.preventDefault();
     if (!coords) {
       setShowCoordError(true);
+      coordsRef.current?.scrollIntoView({block:"center"}); coordsRef.current?.focus();
       return;
     }
     const supabase = getSupabaseBrowser();
@@ -124,6 +143,7 @@ export default function SuggestView() {
 
     if (res.ok) {
       setStatus("sent");
+      try {sessionStorage.removeItem("cafe-suggestion-draft");} catch {}
       return;
     }
 
@@ -144,7 +164,7 @@ export default function SuggestView() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-10">
-          <p className="text-lg font-bold text-emerald-900">{t("suggest.success")}</p>
+          <p className="text-lg font-bold text-emerald-900">{t("suggest.success")}</p><p className="mt-3">{lang==="th"?"ผู้ดูแลจะตรวจข้อมูลก่อนเผยแพร่ร้าน":"An administrator will check the details before publishing the cafe."}</p><Link href="/cafes" className="ui-secondary mt-4">{t("nav.cafes")}</Link>
           <button
             type="button"
             onClick={resetAll}
@@ -174,6 +194,7 @@ export default function SuggestView() {
       )}
 
       <form onSubmit={submit} className="flex flex-col gap-5 rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-bold">{lang==="th"?"ข้อมูลหลัก":"Cafe details"}</h2><p>{lang==="th"?"จำเป็น: ชื่อร้านและพิกัด ช่องอื่นไม่บังคับ":"Required: cafe name and coordinates. Other fields are optional."}</p>
         <div>
           <label htmlFor="sg-name" className="block text-sm font-semibold text-espresso">
             {t("suggest.name")}
@@ -206,8 +227,10 @@ export default function SuggestView() {
           />
         </div>
 
-        <div>
-          <span className="block text-sm font-semibold text-espresso">{t("suggest.location")}</span>
+        <fieldset ref={coordsRef} tabIndex={-1} className="form-section">
+          <legend>{t("suggest.location")}</legend>
+          <div className="grid grid-cols-2 gap-3"><label>{lang==="th"?"ละติจูด":"Latitude"}<input type="number" step="any" min={19} max={20} value={coordDraft.lat} onChange={e=>setCoordDraft(v=>({...v,lat:e.target.value}))} className={inputClass}/></label><label>{lang==="th"?"ลองจิจูด":"Longitude"}<input type="number" step="any" min={99.6} max={100.2} value={coordDraft.lng} onChange={e=>setCoordDraft(v=>({...v,lng:e.target.value}))} className={inputClass}/></label></div>
+          <button type="button" className="ui-secondary mt-3" onClick={()=>{const lat=Number(coordDraft.lat),lng=Number(coordDraft.lng);if(coordDraft.lat&&coordDraft.lng&&lat>=19&&lat<=20&&lng>=99.6&&lng<=100.2){setCoords([lat,lng]);setShowCoordError(false);}else{setShowCoordError(true);coordsRef.current?.focus();}}}>{lang==="th"?"ใช้พิกัดที่กรอก":"Use these coordinates"}</button>
           <p className="mt-0.5 text-xs text-espresso/60">
             🖱️ {t("suggest.locationHint")}
             {coords && (
@@ -221,21 +244,22 @@ export default function SuggestView() {
               value={coords}
               onChange={(lat, lng) => {
                 setCoords([lat, lng]);
+                setCoordDraft({lat:String(lat),lng:String(lng)});
                 setShowCoordError(false);
               }}
               className="h-full w-full"
             />
           </div>
-          {showCoordError && !coords && (
+          {showCoordError && (
             <p className="mt-1.5 text-xs font-semibold text-rose-700">⚠️ {t("suggest.pickFirst")}</p>
           )}
-        </div>
+        </fieldset>
 
         <div>
           <span className="block text-sm font-semibold text-espresso">{t("suggest.photo")}</span>
           <p className="mt-0.5 text-xs text-espresso/60">{t("suggest.photoHint")}</p>
 
-          {!user ? <Link href="/login?next=/suggest" className="mt-3 inline-block underline">เข้าสู่ระบบก่อนแนบรูปภาพ</Link> : photoPreview ? (
+          {!user ? <Link href="/login?next=/suggest" className="mt-3 inline-block underline">{lang==="th"?"เข้าสู่ระบบเพื่อแนบรูป (บันทึกร่างแล้ว)":"Sign in to attach a photo (draft saved)"}</Link> : photoPreview ? (
             <div className="relative mt-2 overflow-hidden rounded-xl border border-[#e8dcc8]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photoPreview} alt="" className="max-h-56 w-full object-cover" />
@@ -247,24 +271,24 @@ export default function SuggestView() {
               >
                 ✕
               </button>
-              <label className="absolute bottom-2 right-2 cursor-pointer rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-coffee shadow transition hover:bg-white">
+              <label className="absolute bottom-2 right-2 cursor-pointer focus-within:ring-2 focus-within:ring-teal-700 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-coffee shadow transition hover:bg-white">
                 🔄 {t("suggest.photoChange")}
                 <input
                   type="file"
                   accept={PHOTO_TYPES.join(",")}
-                  className="hidden"
+                  className="sr-only"
                   onChange={(e) => pickPhoto(e.target.files?.[0])}
                 />
               </label>
             </div>
           ) : (
-            <label className="mt-2 flex cursor-pointer flex-col items-center gap-1 rounded-xl border-2 border-dashed border-[#d9c9ac] bg-sand/30 px-4 py-8 text-center transition hover:border-latte hover:bg-sand/50">
+            <label className="mt-2 flex focus-within:ring-2 focus-within:ring-teal-700 cursor-pointer flex-col items-center gap-1 rounded-xl border-2 border-dashed border-[#d9c9ac] bg-sand/30 px-4 py-8 text-center transition hover:border-latte hover:bg-sand/50">
               <span className="text-3xl" aria-hidden>📷</span>
               <span className="text-sm font-semibold text-coffee">{t("suggest.choosePhoto")}</span>
               <input
                 type="file"
                 accept={PHOTO_TYPES.join(",")}
-                className="hidden"
+                className="sr-only"
                 onChange={(e) => pickPhoto(e.target.files?.[0])}
               />
             </label>
@@ -281,6 +305,7 @@ export default function SuggestView() {
           )}
         </div>
 
+        <h2 className="form-section text-xl font-bold">{lang==="th"?"ข้อมูลเพิ่มเติม (ไม่บังคับ)":"Additional information (optional)"}</h2>
         <div>
           <span className="block text-sm font-semibold text-espresso">{t("suggest.hours")}</span>
           <div className="mt-1.5 flex items-center gap-2">

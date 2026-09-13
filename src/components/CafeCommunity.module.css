@@ -24,7 +24,7 @@
 .toolbar h3 { font-weight: 600; }
 .toolbar h3 span { margin-left: 8px; color: #596c65; font-size: 13px; font-weight: 400; }
 .toolbar button { padding: 8px 12px; border: 1px solid #dce7e1; border-radius: 8px; font-size: 13px; }
-.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 20px; }
 .photo { min-width: 0; overflow: hidden; border: 1px solid #dce7e1; border-radius: 12px; display: flex; flex-direction: column; }
 .imageWrap { position: relative; background: #eaf2f0; }
 .imageWrap img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }

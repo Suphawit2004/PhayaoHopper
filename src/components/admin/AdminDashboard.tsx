@@ -1,7 +1,9 @@
 "use client";
+import {useUi} from "@/i18n/UiText";
 import { useCatalog } from "@/components/CatalogProvider";
 
-import { useActionState, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import AdminMutation from "./AdminMutation";
 import styles from "./AdminDashboard.module.css";
 import Link from "next/link";
 import ActionForm from "@/components/ActionForm";
@@ -88,18 +90,20 @@ export default function AdminDashboard({
   reports?: AdminReport[];
   reviews?: AdminReview[];
 }) {
+  const ui=useUi();
   const CAFES = useCatalog();
   const { t, tr, lang } = useLang();
   const tk = (k: string) => t(k as DictKey);
-  const [tab, setTab] = useState<"suggestions" | "reports" | "reviews">("suggestions");
-
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const params = useSearchParams(); const router = useRouter();
+  const rawTab = params.get("tab"); const tab = rawTab==="reports" || rawTab==="reviews" ? rawTab : "suggestions";
+  const pendingOnly = params.get("filter") !== "all";
+  const changeView = (nextTab:string, pending:boolean) => router.replace(`/admin?page=${params.get("page") || "0"}&tab=${nextTab}&filter=${pending?"pending":"all"}`,{scroll:false});
   const copy = lang === "th" ? {
-    back: "กลับไปหน้าเว็บไซต์", workspace: "จัดการข้อมูลคาเฟ่", loaded: "รายการที่โหลดมา",
-    queue: "รอตรวจสอบ", recent: "รีวิวล่าสุด", all: "รายการทั้งหมด", pending: "แสดงเฉพาะที่รอตรวจสอบ",
-    manage: "เลือกหมวดที่ต้องการจัดการ", done: "ไม่มีรายการรอตรวจสอบในหมวดนี้",
-    suggestions: "ตรวจสอบข้อมูลร้าน ก่อนอนุมัติหรือส่งกลับ", reports: "ตรวจสอบคำขอแก้ไขข้อมูลจากผู้ใช้",
-    reviews: "ดูความคิดเห็นและจัดการรีวิวที่ไม่เหมาะสม",
+    back: ui("กลับไปหน้าเว็บไซต์"), workspace: ui("จัดการข้อมูลคาเฟ่"), loaded: ui("รายการที่โหลดมา"),
+    queue: ui("รอตรวจสอบ"), recent: ui("รีวิวล่าสุด"), all: ui("รายการทั้งหมด"), pending: ui("แสดงเฉพาะที่รอตรวจสอบ"),
+    manage: ui("เลือกหมวดที่ต้องการจัดการ"), done: ui("ไม่มีรายการรอตรวจสอบในหมวดนี้"),
+    suggestions: ui("ตรวจสอบข้อมูลร้าน ก่อนอนุมัติหรือส่งกลับ"), reports: ui("ตรวจสอบคำขอแก้ไขข้อมูลจากผู้ใช้"),
+    reviews: ui("ดูความคิดเห็นและจัดการรีวิวที่ไม่เหมาะสม"),
   } : {
     back: "Back to website", workspace: "Cafe management", loaded: "Loaded records",
     queue: "Awaiting review", recent: "Latest reviews", all: "All records", pending: "Show pending only",
@@ -107,24 +111,6 @@ export default function AdminDashboard({
     suggestions: "Review cafe details before approving or rejecting", reports: "Check corrections submitted by visitors",
     reviews: "Read feedback and moderate inappropriate reviews",
   };
-
-  // Action state for suggestion forms
-  const [approveState, approveAction, approvePending] = useActionState(suggestionFormAction, undefined);
-  const [rejectState, rejectAction, rejectPending] = useActionState(suggestionFormAction, undefined);
-  const [reopenState, reopenAction, reopenPending] = useActionState(suggestionFormAction, undefined);
-  const approveError = approveState?.ok === false ? approveState.error : null;
-  const rejectError = rejectState?.ok === false ? rejectState.error : null;
-  const reopenError = reopenState?.ok === false ? reopenState.error : null;
-
-  // Action state for report forms
-  const [resolveState, resolveAction, resolvePending] = useActionState(reportFormAction, undefined);
-  const [dismissState, dismissAction, dismissPending] = useActionState(reportFormAction, undefined);
-  const resolveError = resolveState?.ok === false ? resolveState.error : null;
-  const dismissError = dismissState?.ok === false ? dismissState.error : null;
-
-  // Action state for review deletion
-  const [deleteState, deleteAction, deletePending] = useActionState(deleteReviewFormAction, undefined);
-  const deleteError = deleteState?.ok === false ? deleteState.error : null;
 
   if (mode !== "ready") {
     return (
@@ -188,7 +174,7 @@ export default function AdminDashboard({
           <nav aria-label={t("admin.title")} className={styles.navigation}>
             {tabs.map(({ key, label, badge }) => (
               <button key={key} type="button" aria-pressed={tab === key}
-                onClick={() => { setTab(key); setPendingOnly(false); }}
+                onClick={() => { changeView(key,true); }}
                 className={tab === key ? styles.active : undefined}>
                 <span>{label}</span><span className={styles.count}>{key === "reviews" ? reviews.length : badge}</span>
               </button>
@@ -199,7 +185,7 @@ export default function AdminDashboard({
           <div className={styles.toolbar}>
             <div><h2>{tabs.find((item) => item.key === tab)?.label}</h2><p>{copy[tab]}</p></div>
             {tab !== "reviews" && <label className={styles.filter}>
-              <input type="checkbox" checked={pendingOnly} onChange={(e) => setPendingOnly(e.target.checked)} />
+              <input type="checkbox" checked={pendingOnly} onChange={(e) => changeView(tab,e.target.checked)} />
               {copy.pending}
             </label>}
           </div>
@@ -270,62 +256,46 @@ export default function AdminDashboard({
                   rel="noreferrer"
                   className="mt-3 inline-block text-sm text-coffee underline underline-offset-2 hover:text-espresso"
                 >
-                  📷 {t("admin.suggest.photo")} ↗
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.photoUrl} alt={s.name} className="max-h-48 max-w-full rounded-xl object-contain" />
+                  {t("admin.suggest.photo")}
                 </a>
               )}
 
-              {s.status !== "approved" && <details className="mt-4 rounded-xl border border-[#eadfcd] p-4"><summary className="cursor-pointer text-sm font-semibold">ตรวจและเติมข้อมูลก่อนเผยแพร่</summary><div className="mt-4"><ActionForm action={saveSuggestionDetails}>
+              {s.status !== "approved" && <p className="mt-3 text-sm">{lang==="th"?ui("ข้อมูลที่ยังขาด: "):"Missing information: "}{[!s.address&&(lang==="th"?ui("ที่อยู่"):"Address"),!s.openTime&&(lang==="th"?ui("เวลาเปิด"):"Opening time"),!s.closeTime&&(lang==="th"?ui("เวลาปิด"):"Closing time")].filter(Boolean).join(", ") || (lang==="th"?ui("ข้อมูลหลักครบแล้ว"):"Core details complete")}</p>}
+              {s.status !== "approved" && <details className="mt-4 rounded-xl border border-[#eadfcd] p-4"><summary className="cursor-pointer text-sm font-semibold">{ui("ตรวจและเติมข้อมูลก่อนเผยแพร่")}</summary><div className="mt-4"><ActionForm action={saveSuggestionDetails}>
                 <input type="hidden" name="id" value={s.id} />
-                <label>ชื่อร้าน<input name="name" defaultValue={s.name} maxLength={120} required /></label>
-                <label>ที่อยู่<input name="address" defaultValue={s.address ?? ""} maxLength={300} required /></label>
-                <div className="feature-grid"><label>เวลาเปิด<input type="time" name="openTime" defaultValue={s.openTime ?? ""} required /></label><label>เวลาปิด<input type="time" name="closeTime" defaultValue={s.closeTime ?? ""} required /></label></div>
+                <label>{ui("ชื่อร้าน")}<input name="name" defaultValue={s.name} maxLength={120} required /></label>
+                <label>{ui("ที่อยู่")}<input name="address" defaultValue={s.address ?? ""} maxLength={300} required /></label>
+                <div className="feature-grid"><label>{ui("เวลาเปิด")}<input type="time" name="openTime" defaultValue={s.openTime ?? ""} required /></label><label>{ui("เวลาปิด")}<input type="time" name="closeTime" defaultValue={s.closeTime ?? ""} required /></label></div>
               </ActionForm></div></details>}
               <div className={styles.actions}>
                 {s.status !== "approved" && (
-                  <form action={approveAction}>
+                  <AdminMutation action={suggestionFormAction} label={t("admin.approve")}>
                     <input type="hidden" name="id" value={s.id} />
                     <input type="hidden" name="status" value="approved" />
-                    <label className="mb-3 block text-xs"><input type="checkbox" name="inDistrict" required /> ตรวจแล้วว่าร้านอยู่ในอำเภอเมืองพะเยา</label>
-                    <button
-                      disabled={approvePending}
-                      className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                    >
-                      {approvePending ? "⏳" : "✓"} {t("admin.approve")}
-                    </button>
-                  </form>
+                    <label className="mb-3 block text-xs"><input type="checkbox" name="inDistrict" required />{ui("ตรวจแล้วว่าร้านอยู่ในอำเภอเมืองพะเยา")}</label>
+                    
+                  </AdminMutation>
                 )}
                 {s.status !== "rejected" && s.status !== "approved" && (
-                  <form action={rejectAction}>
+                  <AdminMutation action={suggestionFormAction} label={t("admin.reject")}>
                     <input type="hidden" name="id" value={s.id} />
                     <input type="hidden" name="status" value="rejected" />
-                    <button
-                      disabled={rejectPending}
-                      className="rounded-full border border-[#e8dcc8] px-4 py-1.5 text-sm font-semibold text-espresso/80 transition hover:bg-sand disabled:opacity-50"
-                    >
-                      {rejectPending ? "⏳" : "✕"} {t("admin.reject")}
-                    </button>
-                  </form>
+                    
+                  </AdminMutation>
                 )}
                 {(s.status === "rejected" || (s.status === "approved" && s.publishedSlug === null)) && (
-                  <form action={reopenAction}>
+                  <AdminMutation action={suggestionFormAction} label={t("admin.reopen")}>
                     <input type="hidden" name="id" value={s.id} />
                     <input type="hidden" name="status" value="pending" />
-                    <button
-                      disabled={reopenPending}
-                      className="rounded-full px-4 py-1.5 text-sm font-medium text-coffee underline-offset-2 hover:underline disabled:opacity-50"
-                    >
-                      {reopenPending ? "⏳" : "↺"} {t("admin.reopen")}
-                    </button>
-                  </form>
+                    
+                  </AdminMutation>
                 )}
-                {(approveError || rejectError || reopenError) && (
-                  <p className="text-xs text-rose-600">
-                    {approveError ?? rejectError ?? reopenError}
-                  </p>
-                )}
+                
               </div>
-              {s.status === "approved" && s.publishedSlug === null && <p className="mt-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">รายการนี้เคยอนุมัติในระบบเดิม แต่ยังไม่มีหน้าร้าน กดส่งกลับเพื่อตรวจสอบข้อมูลและอนุมัติให้เผยแพร่ได้</p>}
-              {s.publishedSlug && <Link className="mt-3 inline-block text-sm underline" href={`/owner/${s.publishedSlug}`}>จัดการร้านที่เผยแพร่ →</Link>}
+              {s.status === "approved" && s.publishedSlug === null && <p className="mt-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{ui("รายการนี้เคยอนุมัติในระบบเดิม แต่ยังไม่มีหน้าร้าน กดส่งกลับเพื่อตรวจสอบข้อมูลและอนุมัติให้เผยแพร่ได้")}</p>}
+              {s.publishedSlug && <Link className="mt-3 inline-block text-sm underline" href={`/owner/${s.publishedSlug}`}>{ui("จัดการร้านที่เผยแพร่ →")}</Link>}
             </article>
           ))}
         </section>
@@ -376,29 +346,17 @@ export default function AdminDashboard({
 
               {r.status === "pending" ? (
                 <div className={styles.actions}>
-                  <form action={resolveAction}>
+                  <AdminMutation action={reportFormAction} label={t("admin.resolve")}>
                     <input type="hidden" name="id" value={r.id} />
                     <input type="hidden" name="status" value="resolved" />
-                    <button
-                      disabled={resolvePending}
-                      className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                    >
-                      {resolvePending ? "⏳" : "✓"} {t("admin.resolve")}
-                    </button>
-                  </form>
-                  <form action={dismissAction}>
+                    
+                  </AdminMutation>
+                  <AdminMutation action={reportFormAction} label={t("admin.dismiss")}>
                     <input type="hidden" name="id" value={r.id} />
                     <input type="hidden" name="status" value="dismissed" />
-                    <button
-                      disabled={dismissPending}
-                      className="rounded-full border border-[#e8dcc8] px-4 py-1.5 text-sm font-semibold text-espresso/80 transition hover:bg-sand disabled:opacity-50"
-                    >
-                      {dismissPending ? "⏳" : "✕"} {t("admin.dismiss")}
-                    </button>
-                  </form>
-                  {(resolveError || dismissError) && (
-                    <p className="text-xs text-rose-600">{resolveError ?? dismissError}</p>
-                  )}
+                    
+                  </AdminMutation>
+                  
                 </div>
               ) : (
                 <p className="mt-4 text-xs text-espresso/40">{fmt(r.createdAt)}</p>
@@ -431,19 +389,11 @@ export default function AdminDashboard({
                 {t("admin.review.by").replace("{name}", rv.author_name)} · {fmt(rv.created_at)}
               </p>
               {rv.comment && <p className="mt-2 text-sm">💬 {rv.comment}</p>}
-              <form action={deleteAction} className={styles.actions}>
+              <AdminMutation action={deleteReviewFormAction} label={t("admin.delete")} confirm={t("admin.confirmDeleteReview")}>
                 <input type="hidden" name="id" value={rv.id} />
-                <button
-                  onClick={(e) => {
-                    if (!window.confirm(t("admin.confirmDeleteReview"))) e.preventDefault();
-                  }}
-                  disabled={deletePending}
-                  className="rounded-full border border-red-200 px-4 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-                >
-                  {deletePending ? "⏳" : "🗑"} {t("admin.delete")}
-                </button>
-                {deleteError && <p className="mt-1 text-xs text-rose-600">{deleteError}</p>}
-              </form>
+                
+                
+              </AdminMutation>
             </article>
           ))}
         </section>
