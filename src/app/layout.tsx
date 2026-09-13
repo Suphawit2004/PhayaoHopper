@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
+import "./lanna.css";
 import { LangProvider } from "@/i18n/LangProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { FavoritesProvider } from "@/components/FavoritesProvider";
@@ -21,14 +22,14 @@ const plexThai = IBM_Plex_Sans_Thai({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "เที่ยวไหนดี | Thiao Nai Dee — คาเฟ่เมืองพะเยา",
-    template: "%s | Thiao Nai Dee",
+    default: "PhayaoHopper | แอ่วพะเยา แวะคาเฟ่",
+    template: "%s | PhayaoHopper",
   },
   description:
     "รวมคาเฟ่น่านั่งในเมืองพะเยา ทั้งริมกว๊านถึงโซนมหาวิทยาลัย พร้อมพิกัด เวลาเปิด-ปิด เมนูแนะนำ และรีวิว A curated guide to cafes in Phayao from the lakefront to the university area, with map, reviews and filters.",
   openGraph: {
     type: "website",
-    siteName: "Thiao Nai Dee",
+    siteName: "PhayaoHopper",
     locale: "th_TH",
     alternateLocale: ["en_US"],
   },
