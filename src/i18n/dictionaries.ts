@@ -1,8 +1,8 @@
 import type { Lang } from "@/data/cafes";
 
 const th = {
-  "brand.name": "เที่ยวไหนดี",
-  "brand.sub": "Thiao Nai Dee",
+  "brand.name": "PhayaoHopper",
+  "brand.sub": "คาเฟ่เมืองพะเยา",
   "nav.home": "หน้าแรก",
   "nav.cafes": "คาเฟ่ทั้งหมด",
   "nav.map": "แผนที่",
@@ -55,8 +55,8 @@ const th = {
   "profile.avatarTypeError": "รองรับเฉพาะไฟล์ JPG, PNG, WEBP",
 
   "home.badge": "คาเฟ่เมืองพะเยา",
-  "home.heroTitle1": "เช้านี้… เที่ยวไหนดี?",
-  "home.heroTitle2": "ไปจิบกาแฟริมกว๊านกัน",
+  "home.heroTitle1": "แอ่วพะเยา",
+  "home.heroTitle2": "แวะจิบกาแฟร้านโปรด",
   "home.heroDesc":
     "รวมคาเฟ่น่านั่งในเมืองพะเยา พร้อมพิกัด เวลาเปิด-ปิด เมนูแนะนำ และรีวิวจากผู้ใช้ ช่วยให้คุณเลือกร้านได้ตรงใจในไม่กี่คลิก",
   "home.ctaExplore": "สำรวจคาเฟ่",
@@ -238,14 +238,14 @@ const th = {
 
   "about.title": "เกี่ยวกับโครงการ",
   "about.p1":
-    "“เที่ยวไหนดี” (Thiao Nai Dee) เกิดจากคำถามง่าย ๆ ที่คนพะเยาและนักท่องเที่ยวถามกันทุกวัน เราจึงรวบรวมคาเฟ่ที่น่าสนใจในเมืองพะเยามาไว้ที่เดียว พร้อมข้อมูลจริงทั้งเวลาเปิด-ปิด ช่วงราคา และจุดเด่นของแต่ละร้าน",
+    "PhayaoHopper ชวนแอ่วพะเยาผ่านคาเฟ่รอบเมือง ตั้งแต่ริมกว๊านไปจนถึงย่านมหาวิทยาลัย เรารวบรวมพิกัด เวลาเปิด-ปิด ช่วงราคา และจุดเด่นของแต่ละร้าน เพื่อให้คุณเลือกร้านที่เหมาะกับวันของคุณ",
   "about.p2":
     "ข้อมูลคาเฟ่ทั้งหมดคัดมาจากแหล่งสาธารณะ เช่น Google Maps, Wongnai และรีวิวจากผู้ใช้ ณ เดือนสิงหาคม 2569 โปรดตรวจสอบเวลาเปิด-ปิดกับร้านโดยตรงอีกครั้งก่อนเดินทาง",
   "about.p3":
     "รูปภาพในเว็บไซต์เป็นภาพ placeholder ชั่วคราว รอเปลี่ยนเป็นภาพจริงจากร้านในภายหลัง หากคุณเป็นเจ้าของร้านและต้องการปรับข้อมูล ติดต่อทีมงานได้เลย",
   "about.stackTitle": "เทคโนโลยีที่ใช้",
 
-  "footer.tagline": "รวมคาเฟ่ดี ๆ ในเมืองพะเยา — เที่ยวไหนดี ก็มีคำตอบ",
+  "footer.tagline": "PhayaoHopper คู่มือคาเฟ่สำหรับวันสบาย ๆ ในพะเยา",
   "footer.note": "เว็บไซต์ตัวอย่างเพื่อการเรียนรู้ · ข้อมูลอาจเปลี่ยนแปลง",
 
   "nf.title": "ไม่พบหน้านี้",
@@ -260,8 +260,8 @@ const th = {
 export type DictKey = keyof typeof th;
 
 const en: Record<DictKey, string> = {
-  "brand.name": "Thiao Nai Dee",
-  "brand.sub": "เที่ยวไหนดี",
+  "brand.name": "PhayaoHopper",
+  "brand.sub": "Phayao cafe guide",
   "nav.home": "Home",
   "nav.cafes": "All cafes",
   "nav.map": "Map",
@@ -315,8 +315,8 @@ const en: Record<DictKey, string> = {
   "profile.avatarTypeError": "Only JPG, PNG or WEBP files are supported",
 
   "home.badge": "Cafes in Phayao old town",
-  "home.heroTitle1": "Where should we go today?",
-  "home.heroTitle2": "Coffee by Kwan Phayao lake",
+  "home.heroTitle1": "A slower day in Phayao",
+  "home.heroTitle2": "A cafe worth stopping for",
   "home.heroDesc":
     "A curated guide to the best cafes across Phayao — with locations, opening hours, recommended menus and visitor reviews to help you pick the right spot in a few clicks.",
   "home.ctaExplore": "Explore cafes",
@@ -500,14 +500,14 @@ const en: Record<DictKey, string> = {
 
   "about.title": "About this project",
   "about.p1":
-    "“Thiao Nai Dee” started from a simple question Phayao locals and travellers ask every day: where should we go? We gathered interesting cafes across Phayao into one place with real information — opening hours, price range and what makes each shop special.",
+    "“PhayaoHopper” started from a simple question Phayao locals and travellers ask every day: where should we go? We gathered interesting cafes across Phayao into one place with real information — opening hours, price range and what makes each shop special.",
   "about.p2":
     "All cafe data was compiled in August 2026 from public sources such as Google Maps, Wongnai and user reviews. Please double-check opening hours with the shop before travelling.",
   "about.p3":
     "Images are temporary placeholders waiting to be replaced with real photos. If you own one of these cafes and want details updated, feel free to reach out.",
   "about.stackTitle": "Tech stack",
 
-  "footer.tagline": "Great cafes in central Phayao — Thiao Nai Dee has the answer",
+  "footer.tagline": "Great cafes in central Phayao — PhayaoHopper has the answer",
   "footer.note": "Demo website for learning purposes · Information may change",
 
   "nf.title": "Page not found",

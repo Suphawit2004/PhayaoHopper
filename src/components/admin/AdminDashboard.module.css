@@ -7,37 +7,37 @@
 .header h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 700; line-height: 1.4; }
 .header p, .toolbar p { margin-top: 6px; color: #716455; font-size: 14px; line-height: 1.7; }
 .backLink { display: inline-flex; gap: 12px; align-items: center; flex-shrink: 0; border: 1px solid #d9c9b5; padding: 10px 16px; border-radius: 8px; font-size: 14px; }
-.backLink:hover { background: #f0e7da; }
+.backLink:hover { background: #eee8dc; }
 .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 32px; border: 1px solid #e6dbc9; border-radius: 14px; background: #fff; overflow: hidden; }
 .summary > div { padding: 20px 28px; display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center; }
 .summary > div + div { border-left: 1px solid #e6dbc9; }
 .summary span { color: #594a3a; font-size: 14px; font-weight: 600; }
-.summary strong { grid-column: 2; grid-row: 1 / 3; color: #7c5a43; font-size: 36px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.summary strong { grid-column: 2; grid-row: 1 / 3; color: #923e3c; font-size: 36px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .summary small { color: #766650; font-size: 12px; }
 .workspace { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 32px; align-items: start; }
-.sidebar { position: sticky; top: 96px; padding: 22px 14px; background: #f0e7da; border-radius: 12px; }
+.sidebar { position: sticky; top: 96px; padding: 22px 14px; background: #eee8dc; border-radius: 12px; }
 .sidebar h2 { font-weight: 700; padding: 0 12px; font-size: 16px; }
 .sidebar > p { padding: 4px 12px 20px; color: #716455; font-size: 12px; }
 .navigation { display: flex; flex-direction: column; gap: 6px; }
 .navigation button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; padding: 13px 12px; border-radius: 8px; color: #594a3a; font-size: 14px; font-weight: 600; cursor: pointer; }
 .navigation button:hover { background: #e5d8c6; }
-.navigation button.active { background: #7c5a43; color: #fff; }
+.navigation button.active { background: #923e3c; color: #fff; }
 .count { min-width: 25px; padding: 2px 6px; border-radius: 5px; text-align: center; background: #fff9; color: #594a3a; font-size: 12px; font-variant-numeric: tabular-nums; }
 .active .count { background: #ffffff24; color: #fff; }
 .content { min-width: 0; }
 .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 0 0 20px; border-bottom: 1px solid #e6dbc9; }
 .toolbar h2 { font-weight: 700; font-size: 21px; }
 .filter { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #594a3a; cursor: pointer; min-height: 44px; }
-.filter input { width: 17px; height: 17px; accent-color: #7c5a43; }
+.filter input { width: 17px; height: 17px; accent-color: #923e3c; }
 .list { display: flex; flex-direction: column; gap: 20px; margin-top: 22px; }
 .card { min-width: 0; padding: 24px; border: 1px solid #e6dbc9; border-radius: 12px; background: #fff; overflow-wrap: anywhere; }
 .card h3 { font-size: 18px; line-height: 1.6; }
-.card dl { gap: 18px 28px; margin-top: 20px; padding: 20px 0; border-top: 1px solid #f0e7da; }
+.card dl { gap: 18px 28px; margin-top: 20px; padding: 20px 0; border-top: 1px solid #eee8dc; }
 .card dt { display: block; font-size: 12px; color: #716455; margin-bottom: 4px; }
-.card dd { display: block; line-height: 1.7; color: #33261a; }
+.card dd { display: block; line-height: 1.7; color: #243740; }
 .actions { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee3d2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .actions button { min-height: 42px; border-radius: 8px; padding: 9px 16px; }
-.dashboard :is(button, a, input):focus-visible { outline: 3px solid #7c5a43; outline-offset: 3px; }
+.dashboard :is(button, a, input):focus-visible { outline: 3px solid #923e3c; outline-offset: 3px; }
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 1fr; gap: 24px; }
   .sidebar { position: static; padding: 10px; }

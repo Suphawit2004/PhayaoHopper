@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Thiao Nai Dee — Phayao Cafe Guide";
+export const alt = "PhayaoHopper — Phayao Cafe Guide";
 export const size = {
   width: 1200,
   height: 630,
@@ -18,7 +18,7 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px 84px",
-          background: "linear-gradient(135deg, #33261a 0%, #4a3626 55%, #7c5a43 100%)",
+          background: "#203e4a",
           color: "#faf6ef",
         }}
       >
@@ -28,15 +28,15 @@ export default function OpengraphImage() {
               width: 64,
               height: 64,
               borderRadius: 18,
-              background: "#7c5a43",
-              border: "3px solid #c9a97e",
+              background: "#923e3c",
+              border: "3px solid #ddbf79",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: 34,
             }}
           >
-            ☕
+            ◇
           </div>
           <div
             style={{
@@ -52,7 +52,7 @@ export default function OpengraphImage() {
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", fontSize: 96, fontWeight: 700, lineHeight: 1.1 }}>
-            Thiao Nai Dee
+            PhayaoHopper
           </div>
           <div style={{ display: "flex", marginTop: 20, fontSize: 40, color: "#e8d9c0" }}>
             A curated cafe guide to Phayao

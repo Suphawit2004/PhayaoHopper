@@ -19,9 +19,7 @@ export default function HomeView() {
     <div>
       <section className="home-hero relative overflow-hidden text-cream">
         <div className="hero-inner mx-auto max-w-6xl px-4 py-14 md:py-20">
-          <div className="hero-copy"><span className="inline-flex items-center gap-1.5 rounded-full border border-cream/25 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide backdrop-blur">
-            📍 {t("home.badge")}
-          </span>
+          <div className="hero-copy"><p className="hero-location"><Icon name="pin" /> {t("home.badge")}</p>
           <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-tight md:text-5xl">
             {t("home.heroTitle1")}
             <br />
@@ -65,7 +63,7 @@ export default function HomeView() {
       <section className="mx-auto max-w-6xl px-4 py-14">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-2xl font-bold text-espresso">✨ {t("home.featured")}</h2>
+            <h2 className="text-2xl font-bold text-espresso">{t("home.featured")}</h2>
             <p className="mt-1 text-sm text-espresso/70">{lang==="th"?"เรียงตามคะแนนตั้งต้นของร้าน ข้อมูลคะแนนแยกจากรีวิวผู้ใช้":"Sorted by reference rating, separately from visitor reviews"}</p>
           </div>
           <Link href="/cafes" className="text-sm font-bold text-coffee underline-offset-4 hover:underline">
@@ -79,7 +77,7 @@ export default function HomeView() {
         </div>
       </section>
 
-      <section className="bg-sand/50 py-14">
+      <section className="home-categories bg-sand/50 py-14">
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="text-2xl font-bold text-espresso">{t("home.categories")}</h2>
           <p className="mt-1 text-sm text-espresso/60">{t("home.categoriesDesc")}</p>
@@ -88,7 +86,7 @@ export default function HomeView() {
               <Link
                 key={tag}
                 href={`/cafes?tag=${tag}`}
-                className="rounded-2xl border border-[#e8dcc8] bg-white p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-latte hover:shadow-md"
+                className="category-link border border-[#e8dcc8] bg-white p-5 text-center transition hover:border-latte"
               >
                 <span className="block text-4xl" aria-hidden>
                   {TAG_META[tag].emoji}
@@ -106,7 +104,7 @@ export default function HomeView() {
       <section className="mx-auto max-w-6xl px-4 py-14">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-2xl font-bold text-espresso">🗺️ {t("home.mapPreview")}</h2>
+            <h2 className="text-2xl font-bold text-espresso">{t("home.mapPreview")}</h2>
             <p className="mt-1 text-sm text-espresso/70">{t("home.mapPreviewDesc")}</p>
           </div>
           <Link href="/map" className="rounded-full bg-coffee px-5 py-2.5 text-sm font-semibold text-cream transition hover:bg-[#684a37]">
