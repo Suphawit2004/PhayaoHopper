@@ -3,6 +3,7 @@ import {useUi} from "@/i18n/UiText";
 import { useCatalog } from "@/components/CatalogProvider";
 
 import { useSearchParams, useRouter } from "next/navigation";
+import SuggestionPreview from "./SuggestionPreview";
 import AdminMutation from "./AdminMutation";
 import styles from "./AdminDashboard.module.css";
 import Link from "next/link";
@@ -84,8 +85,12 @@ export default function AdminDashboard({
   suggestions = [],
   reports = [],
   reviews = [],
+  queueCounts = { suggestions: null, reports: null, reviews: null },
+  loadError = false,
 }: {
   mode: Mode;
+  queueCounts?: { suggestions: number | null; reports: number | null; reviews: number | null };
+  loadError?: boolean;
   suggestions?: AdminSuggestion[];
   reports?: AdminReport[];
   reviews?: AdminReview[];
@@ -97,7 +102,7 @@ export default function AdminDashboard({
   const params = useSearchParams(); const router = useRouter();
   const rawTab = params.get("tab"); const tab = rawTab==="reports" || rawTab==="reviews" ? rawTab : "suggestions";
   const pendingOnly = params.get("filter") !== "all";
-  const changeView = (nextTab:string, pending:boolean) => router.replace(`/admin?page=${params.get("page") || "0"}&tab=${nextTab}&filter=${pending?"pending":"all"}`,{scroll:false});
+  const changeView = (nextTab:string, pending:boolean) => router.replace(`/admin?page=0&tab=${nextTab}&filter=${pending?"pending":"all"}`,{scroll:false});
   const copy = lang === "th" ? {
     back: ui("กลับไปหน้าเว็บไซต์"), workspace: ui("จัดการข้อมูลคาเฟ่"), loaded: ui("รายการที่โหลดมา"),
     queue: ui("รอตรวจสอบ"), recent: ui("รีวิวล่าสุด"), all: ui("รายการทั้งหมด"), pending: ui("แสดงเฉพาะที่รอตรวจสอบ"),
@@ -147,13 +152,13 @@ export default function AdminDashboard({
       timeZone: "Asia/Bangkok",
     });
 
-  const pendingSuggestions = suggestions.filter((s) => s.status === "pending").length;
-  const pendingReports = reports.filter((r) => r.status === "pending").length;
+  const pendingSuggestions = queueCounts.suggestions;
+  const pendingReports = queueCounts.reports;
 
   const tabs = [
     { key: "suggestions" as const, label: t("admin.tab.suggestions"), badge: pendingSuggestions },
     { key: "reports" as const, label: t("admin.tab.reports"), badge: pendingReports },
-    { key: "reviews" as const, label: t("admin.tab.reviews"), badge: 0 },
+    { key: "reviews" as const, label: t("admin.tab.reviews"), badge: queueCounts.reviews },
   ];
 
   return (
@@ -162,12 +167,19 @@ export default function AdminDashboard({
         <div><h1>{t("admin.title")}</h1><p>{t("admin.desc")}</p></div>
         <Link href="/" className={styles.backLink}>{copy.back} <span aria-hidden>↗</span></Link>
       </header>
-      <div className={styles.summary} aria-label={copy.loaded}>
-        <div><span>{t("admin.tab.suggestions")}</span><strong>{suggestions.length}</strong><small>{pendingSuggestions} {copy.queue}</small></div>
-        <div><span>{t("admin.tab.reports")}</span><strong>{reports.length}</strong><small>{pendingReports} {copy.queue}</small></div>
-        <div><span>{copy.recent}</span><strong>{reviews.length}</strong><small>{copy.loaded}</small></div>
-      </div>
-      <div className={styles.workspace}>
+      <section className={styles.queueSection} aria-label={lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}>
+        <h2>{lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}</h2>
+        <div className={styles.queueCards}>
+          {[
+            { key: "suggestions", count: pendingSuggestions, title: lang === "th" ? "ร้านรออนุมัติ" : "Cafes awaiting approval", hint: lang === "th" ? "ตรวจร้านเก่าที่รอก่อน" : "Oldest submissions first" },
+            { key: "reports", count: pendingReports, title: lang === "th" ? "รายงานข้อมูลผิด" : "Pending corrections", hint: lang === "th" ? "ตรวจและแก้ข้อมูลร้าน" : "Check and correct cafe details" },
+            { key: "reviews", count: queueCounts.reviews, title: lang === "th" ? "รีวิวที่ควรตรวจ" : "Reviews to look at", hint: lang === "th" ? "คะแนน 1–2 ดาว ไม่ใช่สถานะรออนุมัติ" : "1–2 stars, not an approval status" },
+          ].map(item => <Link key={item.key} href={`/admin?page=0&tab=${item.key}&filter=pending#admin-workspace`} className={styles.queueCard}>
+            <span>{item.title}</span><strong>{item.count ?? "—"}</strong><small>{item.count === null ? (lang === "th" ? "โหลดจำนวนไม่สำเร็จ" : "Count unavailable") : item.hint}</small><span className={styles.queueAction}>{lang === "th" ? "เปิดรายการ" : "Open queue"}</span>
+          </Link>)}
+        </div>
+      </section>
+      <div id="admin-workspace" className={styles.workspace}>
         <aside className={styles.sidebar}>
           <h2>{copy.workspace}</h2>
           <p>{copy.manage}</p>
@@ -176,7 +188,7 @@ export default function AdminDashboard({
               <button key={key} type="button" aria-pressed={tab === key}
                 onClick={() => { changeView(key,true); }}
                 className={tab === key ? styles.active : undefined}>
-                <span>{label}</span><span className={styles.count}>{key === "reviews" ? reviews.length : badge}</span>
+                <span>{label}</span><span className={styles.count}>{badge ?? "—"}</span>
               </button>
             ))}
           </nav>
@@ -184,12 +196,13 @@ export default function AdminDashboard({
         <div className={styles.content}>
           <div className={styles.toolbar}>
             <div><h2>{tabs.find((item) => item.key === tab)?.label}</h2><p>{copy[tab]}</p></div>
-            {tab !== "reviews" && <label className={styles.filter}>
+            {<label className={styles.filter}>
               <input type="checkbox" checked={pendingOnly} onChange={(e) => changeView(tab,e.target.checked)} />
-              {copy.pending}
+              {tab === "reviews" ? (lang === "th" ? "เฉพาะคะแนน 1–2 ดาว" : "Only 1–2 star reviews") : copy.pending}
             </label>}
           </div>
-      {tab === "suggestions" && (
+      {loadError && <p role="alert" className="status-message" data-error="true">{lang === "th" ? "โหลดรายการไม่สำเร็จ กรุณาลองใหม่" : "Could not load records. Please retry."} <button className="ui-secondary" onClick={() => router.refresh()}>{lang === "th" ? "ลองใหม่" : "Retry"}</button></p>}
+      {!loadError && tab === "suggestions" && (
         <section className={styles.list}>
           {suggestions.filter((s) => !pendingOnly || s.status === "pending").length === 0 && <EmptyRow label={pendingOnly ? copy.done : t("admin.empty.suggestions")} />}
           {suggestions.filter((s) => !pendingOnly || s.status === "pending").map((s) => (
@@ -271,12 +284,7 @@ export default function AdminDashboard({
               </ActionForm></div></details>}
               <div className={styles.actions}>
                 {s.status !== "approved" && (
-                  <AdminMutation action={suggestionFormAction} label={t("admin.approve")}>
-                    <input type="hidden" name="id" value={s.id} />
-                    <input type="hidden" name="status" value="approved" />
-                    <label className="mb-3 block text-xs"><input type="checkbox" name="inDistrict" required />{ui("ตรวจแล้วว่าร้านอยู่ในอำเภอเมืองพะเยา")}</label>
-                    
-                  </AdminMutation>
+                  <SuggestionPreview key={JSON.stringify(s)} suggestion={s} />
                 )}
                 {s.status !== "rejected" && s.status !== "approved" && (
                   <AdminMutation action={suggestionFormAction} label={t("admin.reject")}>
@@ -301,7 +309,7 @@ export default function AdminDashboard({
         </section>
       )}
 
-      {tab === "reports" && (
+      {!loadError && tab === "reports" && (
         <section className={styles.list}>
           {reports.filter((r) => !pendingOnly || r.status === "pending").length === 0 && <EmptyRow label={pendingOnly ? copy.done : t("admin.empty.reports")} />}
           {reports.filter((r) => !pendingOnly || r.status === "pending").map((r) => (
@@ -366,7 +374,7 @@ export default function AdminDashboard({
         </section>
       )}
 
-      {tab === "reviews" && (
+      {!loadError && tab === "reviews" && (
         <section className={styles.list}>
           {reviews.length === 0 && <EmptyRow label={t("admin.empty.reviews")} />}
           {reviews.map((rv) => (

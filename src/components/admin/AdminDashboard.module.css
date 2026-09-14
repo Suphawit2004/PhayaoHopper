@@ -3,6 +3,35 @@
   margin: 0 auto;
   padding: 40px 24px 64px;
 }
+.queueSection { margin-bottom: 32px; }
+.queueSection > h2 { font-size: 20px; font-weight: 600; margin-bottom: 14px; }
+.queueCards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.queueCard { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 22px; border: 1px solid #ddcfb7; border-top: 3px solid #923e3c; border-radius: 12px; background: #fff; }
+.queueCard:hover { border-color: #923e3c; background: #fffdf8; }
+.queueCard > span:first-child { font-size: 16px; font-weight: 600; }
+.queueCard strong { grid-column: 2; grid-row: 1 / 3; font-size: 36px; color: #923e3c; font-variant-numeric: tabular-nums; }
+.queueCard small { color: #59636a; font-size: 13px; }
+.queueAction { grid-column: 1 / -1; color: #203e4a; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
+.previewDialog { margin: auto; padding: 0; width: min(1100px, 94vw); max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; border: 1px solid #ddcfb7; border-radius: 16px; color: #243740; background: #faf8f3; }
+.previewDialog::backdrop { background: #102a36bc; }
+.previewHeader { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #ddd6c7; background: #fff; }
+.previewHeader h2 { font-size: 20px; font-weight: 700; }
+.previewHeader p { font-size: 14px; color: #52616a; }
+.previewHeader button { flex-shrink: 0; }
+.previewBody { padding: 24px; }
+.previewCafe { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.previewCafe h3 { font-size: 28px; font-weight: 700; margin-bottom: 12px; overflow-wrap: anywhere; }
+.previewCafe dl { display: grid; gap: 16px; }
+.previewPhoto { min-height: 240px; display: grid; place-content: center; position: relative; background: #eee8dc; border-radius: 12px; overflow: hidden; }
+.previewPhoto img { display: block; width: 100%; max-height: 450px; object-fit: contain; }
+.previewPhoto > p { padding: 28px; text-align: center; }
+.previewPhoto > a { padding: 10px; text-align: center; text-decoration: underline; }
+.previewChecklist { margin-top: 24px; padding: 24px; border: 1px solid #ddd6c7; border-radius: 12px; background: #fff; }
+.previewChecklist > h3 { font-size: 18px; font-weight: 700; }
+.previewChecklist > p { margin: 10px 0; font-size: 14px; }
+.checkRow { display: flex; align-items: start; gap: 10px; padding: 10px 0; line-height: 1.7; }
+.checkRow input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 4px; }
+@media (max-width: 700px) { .queueCards, .previewCafe { grid-template-columns: 1fr; } .queueCard { padding: 18px; } .previewHeader { flex-wrap: wrap; padding: 16px; } .previewBody, .previewChecklist { padding: 16px; } .previewDialog { width: 96vw; } }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
 .header h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 700; line-height: 1.4; }
 .header p, .toolbar p { margin-top: 6px; color: #716455; font-size: 14px; line-height: 1.7; }
