@@ -4,7 +4,7 @@ import { getSupabaseServer } from "@/lib/supabase-server";
 import type { MutationResult } from "./cafe-management";
 export type CommunityPhoto = { id: string; user_id: string; cafe_slug: string; caption: string; is_public: boolean; url: string };
 
-async function readPhotos(slug?: string): Promise<{ photos: CommunityPhoto[]; error?: string }> {
+async function readPhotos(slug?: string, photoId?: string): Promise<{ photos: CommunityPhoto[]; error?: string }> {
   const sb = await getSupabaseServer();
   if (!sb) return { photos: [], error: "ยังไม่ได้เชื่อมต่อระบบรูปภาพ" };
   let query = sb.from("cafe_photos").select("id, user_id, cafe_slug, path, caption, is_public");
@@ -16,14 +16,22 @@ async function readPhotos(slug?: string): Promise<{ photos: CommunityPhoto[]; er
   }
   const { data, error } = await query.order("created_at", { ascending: false }).limit(100);
   if (error) return { photos: [], error: "โหลดรูปไม่สำเร็จ กรุณาลองใหม่" };
-  const photos = await Promise.all((data ?? []).map(async row => {
+  const rows = data ?? [];
+  // Include a linked older photo without bypassing the cafe filter or the caller's RLS.
+  if (slug !== undefined && photoId && /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(photoId) && !rows.some(row => row.id === photoId)) {
+    const { data: linked, error: linkedError } = await sb.from("cafe_photos")
+      .select("id, user_id, cafe_slug, path, caption, is_public").eq("cafe_slug", slug).eq("id", photoId).maybeSingle();
+    if (linkedError) return { photos: [], error: "โหลดรูปไม่สำเร็จ กรุณาลองใหม่" };
+    if (linked) rows.unshift(linked);
+  }
+  const photos = await Promise.all(rows.map(async row => {
     const { data: signed } = await sb.storage.from("cafe-community").createSignedUrl(row.path, 60);
     return { id: row.id, user_id: row.user_id, cafe_slug: row.cafe_slug, caption: row.caption, is_public: row.is_public, url: signed?.signedUrl ?? "" };
   }));
   return { photos: photos.filter(p => p.url) };
 }
 
-export async function listPhotos(slug: string) { return readPhotos(slug); }
+export async function listPhotos(slug: string, photoId?: string) { return readPhotos(slug, photoId); }
 export async function listMyPhotos() { return readPhotos(); }
 
 export async function uploadPhoto(form: FormData): Promise<MutationResult> {
