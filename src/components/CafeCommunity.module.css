@@ -1,4 +1,16 @@
 .section { color: #253c46; }
+.libraryTools { margin-top: 24px; padding: 20px; background: #faf8f3; border-left: 3px solid #ddbf79; border-radius: 0 10px 10px 0; }
+.librarySummary { font-size: 14px; font-weight: 600; color: #203e4a; }
+.filters { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; margin-top: 14px; }
+.filters label { display: grid; gap: 6px; flex: 1 1 180px; min-width: 0; font-size: 13px; font-weight: 600; }
+.filters select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bcc8cc; border-radius: 8px; background: white; color: #203e4a; font: inherit; }
+.filters button { min-height: 44px; padding: 10px 12px; text-decoration: underline; text-underline-offset: 4px; font-size: 13px; }
+.filters select:focus-visible, .filters button:focus-visible { outline: 2px solid #203e4a; outline-offset: 3px; }
+.cafeName { display: block; font-size: 17px; line-height: 1.5; margin-bottom: 8px; }
+.photoStatus { display: block; margin-top: 12px; color: #596c65; line-height: 1.6; }
+.caption .cafeLink { display: inline-flex; align-items: center; min-height: 44px; margin: 8px 0 0; font-size: 13px; }
+.photo { scroll-margin-top: 110px; }
+.photo:target { outline: 3px solid #ddbf79; outline-offset: 4px; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
 .header h2 { font-size: clamp(22px, 3vw, 28px); font-weight: 700; line-height: 1.4; }
 .header p, .signIn p { margin-top: 6px; color: #596c65; font-size: 14px; }
