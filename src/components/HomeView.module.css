@@ -12,9 +12,20 @@
 .heroLinks { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 16px; }
 .heroLinks a { min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; text-decoration: underline; }
 .heroLinks a:hover { color: var(--lanna-red); }
-.lead { min-width: 0; }
+.slider { min-width: 0; padding: 10px; border: 1px solid var(--lanna-border); border-radius: 16px; background: #fff; }
+.slideTrack { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 9px; }
+.slideTrack::-webkit-scrollbar { display: none; }
+.lead { min-width: 0; flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; }
+.slideControls { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 6px 0; border-top: 1px solid var(--line); margin-top: 12px; }
+.slideControls > button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-size: 20px; }
+.slideControls > button:hover { background: var(--lanna-paper); }
+.slideDots { display: flex; }
+.slideDots button { width: 36px; height: 44px; display: grid; place-items: center; }
+.slideDots span { width: 7px; height: 7px; background: #9aabae; border-radius: 50%; }
+.slideDots button[aria-pressed=true] span { width: 20px; border-radius: 4px; background: var(--ink); }
+.slideCount { font-size: 13px; font-variant-numeric: tabular-nums; }
 .leadImage { position: relative; display: block; aspect-ratio: 6 / 5; overflow: hidden; border-radius: 4px; background: #e3e9e5; }
-.lead figcaption { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
+.lead figcaption { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; padding: 14px 10px 4px; }
 .lead figcaption a { font-size: 21px; font-weight: 600; }
 .lead figcaption a:hover { text-decoration: underline; }
 .lead figcaption span { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
@@ -23,7 +34,7 @@
 .browse h2 { font-size: 21px; font-weight: 600; }
 .browse header p, .catalogNote { color: var(--muted); font-size: 14px; }
 .categories { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 18px; }
-.categories a { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-height: 48px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.categories a { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 6px 10px; min-height: 60px; padding: 16px; border: 1px solid var(--lanna-border); border-radius: 12px; background: #fff; }
 .categories a:hover { border-color: var(--lanna-red); color: var(--lanna-red); }
 .categories strong { font-size: 17px; font-weight: 600; }
 .categories span { font-size: 13px; color: var(--muted); white-space: nowrap; }
@@ -32,7 +43,7 @@
 .sectionHeading h2, .mapSection h2 { font-size: clamp(26px, 3vw, 34px); font-weight: 600; line-height: 1.4; }
 .sectionHeading > p { color: var(--muted); font-size: 14px; margin-top: 10px; }
 .stories { display: grid; grid-template-columns: 1.12fr 1fr; gap: 32px 40px; margin-top: 28px; }
-.story { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); gap: 22px; align-items: start; min-width: 0; }
+.story { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); gap: 18px; align-items: start; min-width: 0; padding: 14px; background: #fff; border: 1px solid var(--lanna-border); border-radius: 14px; }
 .story:first-child { grid-row: span 2; display: block; }
 .storyImage { display: block; position: relative; aspect-ratio: 4 / 5; border-radius: 4px; overflow: hidden; background: #e3e9e5; }
 .story:first-child .storyImage { aspect-ratio: 3 / 2; }

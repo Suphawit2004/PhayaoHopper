@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRef, useState } from "react";
 import { useCatalog } from "./CatalogProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { TAG_META, TAG_ORDER, AREA_META } from "@/data/cafes";
@@ -14,7 +15,14 @@ export default function HomeView() {
   const cafes = useCatalog();
   const { t, tr, lang } = useLang();
   const featured = [...cafes].sort((a, b) => b.baseRating - a.baseRating).slice(0, 4);
-  const lead = featured[0];
+  const slideTrack = useRef<HTMLDivElement>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+  function showSlide(index: number) {
+    const track = slideTrack.current;
+    if (!track || !featured.length) return;
+    const next = (index + featured.length) % featured.length;
+    track.scrollTo({ left: next * track.clientWidth, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  }
   return <div className={styles.home}>
     <section className={styles.hero}>
       <div className={styles.intro}>
@@ -23,10 +31,23 @@ export default function HomeView() {
         <div className={styles.search}><CafeSearch /></div>
         <div className={styles.heroLinks}><Link href="/cafes">{t("home.ctaExplore")}</Link><Link href="/map">{t("home.ctaMap")}</Link></div>
       </div>
-      {lead && <figure className={styles.lead}>
-        <Link href={`/cafes/${lead.slug}`} className={styles.leadImage} aria-label={tr(lead.name)}><CafeThumb preload cafe={lead} sizes="(max-width: 760px) 100vw, 55vw" /></Link>
-        <figcaption><Link href={`/cafes/${lead.slug}`}>{tr(lead.name)}</Link><span>{lead.openTime} - {lead.closeTime}</span></figcaption>
-      </figure>}
+      {!!featured.length && <div className={styles.slider} role="region" aria-roledescription="carousel" aria-label={t("home.featured")}>
+        <div className={styles.slideTrack} ref={slideTrack} onScroll={e => {
+          const track = e.currentTarget;
+          setActiveSlide(Math.min(featured.length - 1, Math.max(0, Math.round(track.scrollLeft / track.clientWidth))));
+        }}>
+          {featured.map((cafe, index) => <figure className={styles.lead} key={cafe.slug} role="group" aria-roledescription="slide" aria-label={`${index + 1} / ${featured.length}`}>
+            <Link href={`/cafes/${cafe.slug}`} className={styles.leadImage} aria-label={tr(cafe.name)}><CafeThumb preload={index === 0} cafe={cafe} sizes="(max-width: 760px) 100vw, 55vw" /></Link>
+            <figcaption><Link href={`/cafes/${cafe.slug}`}>{tr(cafe.name)}</Link><span>{cafe.openTime} - {cafe.closeTime}</span></figcaption>
+          </figure>)}
+        </div>
+        {featured.length > 1 && <div className={styles.slideControls}>
+          <button type="button" onClick={() => showSlide(activeSlide - 1)} aria-label={lang === "th" ? "ร้านก่อนหน้า" : "Previous cafe"}>←</button>
+          <div className={styles.slideDots}>{featured.map((cafe, index) => <button key={cafe.slug} type="button" aria-label={`${lang === "th" ? "ดูร้าน" : "Show"} ${tr(cafe.name)}`} aria-pressed={index === activeSlide} onClick={() => showSlide(index)}><span /></button>)}</div>
+          <span className={styles.slideCount} aria-live="polite">{activeSlide + 1} / {featured.length}</span>
+          <button type="button" onClick={() => showSlide(activeSlide + 1)} aria-label={lang === "th" ? "ร้านถัดไป" : "Next cafe"}>→</button>
+        </div>}
+      </div>}
     </section>
     <section className={styles.browse}>
       <header><h2>{t("home.categories")}</h2><p>{t("home.categoriesDesc")}</p></header>
