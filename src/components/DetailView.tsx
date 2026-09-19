@@ -17,6 +17,7 @@ import TagChip from "./TagChip";
 import ReviewSection from "./ReviewSection";
 import MapBlock from "./map/MapBlock";
 import FavoriteButton from "./FavoriteButton";
+import VisitButton from "./VisitButton";
 import ReportDialog from "./ReportDialog";
 import CafeCommunity from "./CafeCommunity";
 import LiveMenu from "./LiveMenu";
@@ -69,6 +70,7 @@ export default function DetailView({ cafe }: { cafe: Cafe }) {
             </div>
           </div>
 
+          <VisitButton slug={cafe.slug} />
           <dl className="grid gap-3 rounded-2xl border border-[#eee3d2] bg-white p-5 text-sm shadow-sm">
             <div>
               <dt className="font-semibold text-espresso">🕒 {t("detail.hours")}</dt>

@@ -16,6 +16,7 @@ import { useLang } from "@/i18n/LangProvider";
 import RatingStars from "./RatingStars";
 import { MyPhotos } from "./CafeCommunity";
 import PasswordSettings from "./PasswordSettings";
+import VisitedCafes from "./VisitedCafes";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -288,6 +289,7 @@ export default function ProfileView() {
         {isAdmin && <Link href="/admin" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{ui("สำหรับผู้ดูแลระบบ")}</Link>}
       </nav>
       <div id="my-photos"><MyPhotos /></div>
+      <VisitedCafes compact />
       <details className="feature-card" id="security"><summary className="font-semibold">{lang==="th"?ui("รหัสผ่านและความปลอดภัย"):"Password and security"}</summary><PasswordSettings /></details>
       {/* Favorites summary */}
       <section className="mt-6 flex items-center justify-between rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
