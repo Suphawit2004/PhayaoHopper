@@ -21,6 +21,7 @@ beforeAll(async () => {
     insert into cafes values ('active-cafe',true),('hidden-cafe',false);
   `);
   await db.exec(readFileSync('supabase/migrations/20260919170131_cafe_visits.sql','utf8'));
+  await db.exec(readFileSync('supabase/migrations/20260920115529_cafe_visits_remove_own.sql','utf8'));
 }, 30000);
 afterAll(() => db.close());
 
@@ -49,10 +50,20 @@ describe("private cafe visit history", () => {
       await expect(db.exec(`insert into cafe_visits(user_id,cafe_slug) values ('${member}','${slug}')`)).rejects.toThrow();
     }
   });
-  it("does not permit changing ownership, timestamps, or deleting history", async () => {
+  it("does not permit changing ownership or timestamps", async () => {
     await asUser(member);
     await expect(db.exec(`update cafe_visits set user_id='${other}'`)).rejects.toThrow();
-    await expect(db.exec(`delete from cafe_visits`)).rejects.toThrow();
     await expect(db.exec(`insert into cafe_visits(user_id,cafe_slug,created_at) values ('${member}','active-cafe','2000-01-01') on conflict do nothing`)).rejects.toThrow();
+  });
+  it("only lets the owner remove a visit and save it again", async () => {
+    await asUser(other);
+    expect((await db.query(`delete from cafe_visits where user_id='${member}' returning cafe_slug`)).rows).toHaveLength(0);
+    await asUser('', 'anon');
+    await expect(db.exec('delete from cafe_visits')).rejects.toThrow();
+    await asUser(member);
+    expect((await db.query("delete from cafe_visits where cafe_slug='active-cafe' returning cafe_slug")).rows).toHaveLength(1);
+    expect((await db.query('select * from cafe_visits')).rows).toHaveLength(0);
+    await db.exec(`insert into cafe_visits(user_id,cafe_slug) values ('${member}','active-cafe')`);
+    expect((await db.query('select * from cafe_visits')).rows).toHaveLength(1);
   });
 });

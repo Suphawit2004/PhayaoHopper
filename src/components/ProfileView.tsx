@@ -176,7 +176,7 @@ export default function ProfileView() {
     <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="text-center text-2xl font-bold text-espresso">👤 {t("profile.title")}</h1>
 
-      <nav className="profile-sections" aria-label={lang==="th"?ui("ส่วนต่าง ๆ ของโปรไฟล์"):"Profile sections"}><a href="#account">{lang==="th"?ui("บัญชี"):"Account"}</a><a href="#my-photos">{lang==="th"?ui("รูปที่โพสต์"):"My photos"}</a><a href="#my-reviews">{t("profile.myReviews")}</a><a href="#security">{lang==="th"?ui("ความปลอดภัย"):"Security"}</a></nav>
+      <nav className="profile-sections" aria-label={lang==="th"?ui("ส่วนต่าง ๆ ของโปรไฟล์"):"Profile sections"}><a href="#account">{lang==="th"?ui("บัญชี"):"Account"}</a><a href="#visited">{lang==="th"?"เคยไปแล้ว":"Visited cafes"}</a><a href="#my-photos">{lang==="th"?ui("รูปที่โพสต์"):"My photos"}</a><a href="#my-reviews">{t("profile.myReviews")}</a><a href="#security">{lang==="th"?ui("ความปลอดภัย"):"Security"}</a></nav>
       {/* Account */}
       <div id="account" className="mt-8 flex flex-col gap-5 rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
         <div className="flex items-center gap-4">

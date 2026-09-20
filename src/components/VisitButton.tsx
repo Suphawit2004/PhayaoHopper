@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { saveVisit } from "@/lib/visits";
+import { saveVisit, removeVisit } from "@/lib/visits";
 
 export default function VisitButton({ slug }: { slug: string }) {
   const { user, loading } = useAuth();
@@ -17,7 +17,7 @@ export default function VisitButton({ slug }: { slug: string }) {
 }
 
 function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string; th: boolean }) {
-  const [state, setState] = useState<"loading" | "new" | "saved" | "saving" | "error">("loading");
+  const [state, setState] = useState<"loading" | "new" | "saved" | "saving" | "removing" | "error">("loading");
   const [message, setMessage] = useState("");
   const [retry, setRetry] = useState(0);
   const busy = useRef(false);
@@ -56,11 +56,31 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
     } finally { busy.current = false; }
   }
 
+  async function cancelVisit() {
+    if (busy.current || state !== "saved") return;
+    if (!window.confirm(th ? "ยกเลิกการบันทึกว่าคุณเคยไปร้านนี้แล้ว? คุณสามารถบันทึกใหม่ได้ภายหลัง" : "Remove this cafe from your visited history? You can save it again later.")) return;
+    busy.current = true;
+    setState("removing"); setMessage("");
+    try {
+      const client = getSupabaseBrowser();
+      if (!client) throw new Error("Unavailable");
+      await removeVisit(client, userId, slug);
+      setState("new");
+      setMessage(th ? "ยกเลิกแล้ว สามารถกดไปมาแล้วเพื่อบันทึกใหม่ได้" : "Visit removed. You can mark this cafe as visited again.");
+    } catch {
+      setState("saved");
+      setMessage(th ? "ยกเลิกไม่สำเร็จ กรุณาลองอีกครั้ง" : "Could not remove the visit. Please try again.");
+    } finally { busy.current = false; }
+  }
+
   return <div className="flex flex-col items-start gap-2">
     <div className="flex flex-wrap items-center gap-3">
       {state === "error" ? <button className="ui-secondary" onClick={() => { setState("loading"); setRetry(n => n + 1); }}>{th ? "โหลดประวัติไม่สำเร็จ · ลองอีกครั้ง" : "Could not load history · Retry"}</button> :
-        <button type="button" className={state === "saved" ? "ui-secondary" : "feature-button"} disabled={state !== "new"} aria-pressed={state === "saved"} onClick={markVisited}>
-          {state === "saved" ? (th ? "✓ เคยไปแล้ว" : "✓ Visited") : state === "loading" ? (th ? "กำลังโหลด…" : "Loading…") : state === "saving" ? (th ? "กำลังบันทึก…" : "Saving…") : (th ? "ไปมาแล้ว" : "I've been here")}
+        state === "saved" || state === "removing" ? <>
+          <span className="inline-flex items-center gap-2 rounded-lg border border-[#bdd3c7] bg-[#edf5ef] px-4 py-3 font-semibold text-[#28543e]"><span aria-hidden="true">✓</span>{th ? "เคยไปแล้ว" : "Visited"}</span>
+          <button type="button" className="ui-secondary text-sm" disabled={state === "removing"} onClick={cancelVisit}>{state === "removing" ? (th ? "กำลังยกเลิก…" : "Removing…") : (th ? "ยกเลิกเคยไปแล้ว" : "Remove visit")}</button>
+        </> : <button type="button" className="feature-button" disabled={state !== "new"} onClick={markVisited}>
+          {state === "loading" ? (th ? "กำลังโหลด…" : "Loading…") : state === "saving" ? (th ? "กำลังบันทึก…" : "Saving…") : (th ? "ไปมาแล้ว" : "I've been here")}
         </button>}
       {state === "saved" && <Link href="/visited" className="text-sm font-semibold underline underline-offset-4">{th ? "ดูร้านที่เคยไปแล้ว" : "View visited cafes"} →</Link>}
     </div>
