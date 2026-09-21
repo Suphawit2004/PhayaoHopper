@@ -43,7 +43,7 @@ npm run dev                  # http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable (anon) key |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL สำหรับ metadata/sitemap |
-| `OPENAI_API_KEY` / `OPENAI_MODEL` | ไม่บังคับ; ใช้เปิด AI ฝั่งเซิร์ฟเวอร์ ห้ามตั้งเป็น NEXT_PUBLIC |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | ไม่บังคับ; ใช้เปิด Gemini ฝั่งเซิร์ฟเวอร์ ห้ามตั้งเป็น NEXT_PUBLIC |
 
 ### ตั้งค่า Supabase
 
@@ -111,3 +111,11 @@ src/
 supabase/schema.sql # Bootstrap สำหรับฐานข้อมูลใหม่ ตามด้วย migrations ตามลำดับ
 pins.txt            # พิกัดร้านสำหรับ apply-pins script
 ```
+
+### Gemini cafe assistant
+
+Set `GEMINI_API_KEY` and `GEMINI_MODEL` in Vercel Environment Variables for each deployment environment, then redeploy. Use a Gemini model ID available to your Google AI Studio project that supports structured JSON output. Do not prefix either variable with `NEXT_PUBLIC_` or commit a key. The old OpenAI variables are no longer used.
+
+The server calls Google Gemini `generateContent` with approved cafe data. Signed-in accounts retain the database-enforced quota of 30 calls/day. Missing configuration, exhausted quota, timeout, blocked/truncated output, provider errors or invalid cafe references use catalogue search, visibly labelled in the chat. API credentials and live model access must be configured before real AI answers can be verified.
+
+API reference: https://ai.google.dev/api/generate-content
