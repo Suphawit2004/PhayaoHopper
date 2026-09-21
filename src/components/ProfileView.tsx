@@ -289,6 +289,7 @@ export default function ProfileView() {
         {isAdmin && <Link href="/admin" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{ui("สำหรับผู้ดูแลระบบ")}</Link>}
       </nav>
       <div id="my-photos"><MyPhotos /></div>
+      <Link href="/coupons" className="ui-secondary">{lang === "th" ? "คูปองของฉัน →" : "My coupons →"}</Link>
       <VisitedCafes compact />
       <details className="feature-card" id="security"><summary className="font-semibold">{lang==="th"?ui("รหัสผ่านและความปลอดภัย"):"Password and security"}</summary><PasswordSettings /></details>
       {/* Favorites summary */}

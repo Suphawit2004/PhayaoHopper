@@ -44,7 +44,9 @@ const subscribeHydration = () => () => {};
 export default function SuggestView() {
  const hydrated = useSyncExternalStore(subscribeHydration, () => true, () => false);
  const {lang}=useLang();
- return hydrated ? <SuggestionForm /> : <p role="status" className="feature-page">{lang==="th"?"กำลังโหลดแบบฟอร์ม…":"Loading form…"}</p>;
+ const {user,loading}=useAuth();
+ if(hydrated && !loading && !user) return <div className="feature-page"><h1>{lang==="th"?"แนะนำร้านใหม่":"Suggest a cafe"}</h1><p>{lang==="th"?"กรุณาเข้าสู่ระบบก่อนส่งคำแนะนำ":"Please sign in before suggesting a cafe."}</p><Link className="feature-button" href="/login?next=/suggest">{lang==="th"?"เข้าสู่ระบบ":"Sign in"}</Link></div>;
+ return hydrated && !loading ? <SuggestionForm key={user?.id} /> : <p role="status" className="feature-page">{lang==="th"?"กำลังโหลดแบบฟอร์ม…":"Loading form…"}</p>;
 }
 function readDraft() {
  try { const saved=JSON.parse(sessionStorage.getItem("cafe-suggestion-draft")||"null");

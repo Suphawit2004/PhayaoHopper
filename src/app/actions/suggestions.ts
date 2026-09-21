@@ -40,7 +40,8 @@ export async function submitSuggestion(input: {
   const sb = await getSupabaseServer();
   if (!sb) return { ok: false, error: "not_configured" };
 
-  if (input.photo?.size && !(await sb.auth.getUser()).data.user) return { ok: false, error: "not_authenticated" };
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return { ok: false, error: "not_authenticated" };
 
   // Rate limit by client IP (Supabase-backed durable limiter)
   const hdrs = await headers();
@@ -88,6 +89,7 @@ export async function submitSuggestion(input: {
   }
 
   const { error } = await sb.from("cafe_suggestions").insert({
+    user_id: user.id,
     name,
     address: optionalText(input.address, 300),
     lat: input.lat,

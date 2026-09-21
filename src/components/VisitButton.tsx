@@ -45,6 +45,7 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
       const client = getSupabaseBrowser();
       if (!client) throw new Error("Unavailable");
       await saveVisit(client, userId, slug);
+      window.dispatchEvent(new Event("cafe-visit-changed"));
       setState("saved");
       setMessage(th ? "บันทึกแล้ว ดูร้านนี้ได้ในหมวดเคยไปแล้ว" : "Saved to your visited cafes.");
     } catch (error) {
@@ -65,6 +66,7 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
       const client = getSupabaseBrowser();
       if (!client) throw new Error("Unavailable");
       await removeVisit(client, userId, slug);
+      window.dispatchEvent(new Event("cafe-visit-changed"));
       setState("new");
       setMessage(th ? "ยกเลิกแล้ว สามารถกดไปมาแล้วเพื่อบันทึกใหม่ได้" : "Visit removed. You can mark this cafe as visited again.");
     } catch {
