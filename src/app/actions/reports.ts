@@ -9,7 +9,7 @@ import { getCafe } from "@/lib/catalog";
 
 export type ReportResult =
   | { ok: true }
-  | { ok: false; error: "not_configured" | "rate_limited" | "invalid" | "failed" };
+  | { ok: false; error: "not_authenticated" | "not_configured" | "rate_limited" | "invalid" | "failed" };
 
 const FIELDS = new Set(["hours", "phone", "address", "location", "closed_days", "other"]);
 
@@ -27,6 +27,9 @@ export async function submitReport(input: {
 }): Promise<ReportResult> {
   const sb = await getSupabaseServer();
   if (!sb) return { ok: false, error: "not_configured" };
+
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return { ok: false, error: "not_authenticated" };
 
   // Rate limit by client IP (Supabase-backed durable limiter)
   const hdrs = await headers();
@@ -46,6 +49,7 @@ export async function submitReport(input: {
   if (!message || message.length > 500) return { ok: false, error: "invalid" };
 
   const { error } = await sb.from("data_reports").insert({
+    user_id: user.id,
     cafe_slug: slug,
     field: input.field,
     message,

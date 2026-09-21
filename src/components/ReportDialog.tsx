@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "./AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { submitReport } from "@/app/actions/reports";
@@ -24,7 +26,8 @@ interface ReportDialogProps {
 }
 
 export default function ReportDialog({ slug, cafeName, open, onClose }: ReportDialogProps) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const { user, loading } = useAuth();
   const supabaseReady = getSupabaseBrowser() !== null;
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -94,7 +97,7 @@ export default function ReportDialog({ slug, cafeName, open, onClose }: ReportDi
   // discards the in-progress render and re-renders with fresh state before
   // committing anything.
   const [prevKey, setPrevKey] = useState<string | null>(null);
-  const sessionKey = slug;
+  const sessionKey = `${slug}:${user?.id ?? "guest"}`;
   if (sessionKey !== prevKey) {
     setPrevKey(sessionKey);
     if (open) {
@@ -188,7 +191,7 @@ export default function ReportDialog({ slug, cafeName, open, onClose }: ReportDi
           </p>
         )}
 
-        {status === "sent" ? (
+        {loading ? <p role="status">…</p> : !user ? <div className="py-6"><p>{lang === "th" ? "กรุณาเข้าสู่ระบบก่อนแจ้งแก้ไขข้อมูลร้าน" : "Please sign in to report a correction."}</p><Link className="feature-button mt-4" href={`/login?next=${encodeURIComponent(`/cafes/${slug}`)}`}>{lang === "th" ? "เข้าสู่ระบบ" : "Sign in"}</Link></div> : status === "sent" ? (
           <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
             <p className="text-sm font-semibold text-emerald-800">{t("report.success")}</p>
             <button

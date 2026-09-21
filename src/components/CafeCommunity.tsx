@@ -42,8 +42,8 @@ function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
       try { const result = await (slug === undefined ? listMyPhotos() : listPhotos(slug, linkedPhotoId())); if (active) { setPhotos(result.photos); setMessage(result.error ?? ""); } }
       catch { if (active) setMessage(ui("โหลดรูปไม่สำเร็จ กรุณาลองใหม่")); }
     };
-    void load(); window.addEventListener("focus", load); window.addEventListener("hashchange", load); const timer = setInterval(load, 45000);
-    return () => { active = false; clearInterval(timer); window.removeEventListener("focus", load); window.removeEventListener("hashchange", load); };
+    void load(); window.addEventListener("focus", load); window.addEventListener("hashchange", load); window.addEventListener("cafe-photos-changed", load); const timer = setInterval(load, 45000);
+    return () => { active = false; clearInterval(timer); window.removeEventListener("focus", load); window.removeEventListener("hashchange", load); window.removeEventListener("cafe-photos-changed", load); };
   }, [slug, user?.id,ui]);
   useEffect(() => {
     if (!slug) return;
