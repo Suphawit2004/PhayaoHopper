@@ -88,7 +88,15 @@ export default function CafesExplorer() {
       </header>
 
       <FilterBar className="mb-3" />
-      <Link href="/chat" className="inline-block mb-4 text-sm font-semibold text-coffee underline">ให้ผู้ช่วยค้นหาร้านจากความต้องการ →</Link>
+      <div className="mb-4">
+        <Link
+          href="/chat"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sand/60 px-3.5 py-1.5 text-xs font-semibold text-coffee transition hover:bg-sand hover:text-espresso"
+        >
+          <span>✨</span>
+          <span>{t("cafes.assistantLink")}</span>
+        </Link>
+      </div>
 
       <p className="text-sm font-semibold text-espresso/70" aria-live="polite">
         {t("cafes.found").replaceAll("{n}", String(results.length))}

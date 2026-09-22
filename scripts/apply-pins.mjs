@@ -67,12 +67,29 @@ for (const f of readdirSync(PHOTOS_DIR)) {
 }
 
 for (const slug of Object.keys(CAFES)) {
-  const match = [...photoFiles.keys()].find((f) => f.startsWith(`${slug}.`));
-  if (match) {
-    overrides[slug] = { ...(overrides[slug] ?? {}), photo: `/images/cafes/${photoFiles.get(match)}` };
+  const flatMatch = [...photoFiles.keys()].find((f) => f.startsWith(`${slug}.`));
+  let subMatch = null;
+  const subDir = path.join(PHOTOS_DIR, slug);
+  if (existsSync(subDir) && statSync(subDir).isDirectory()) {
+    for (const f of readdirSync(subDir)) {
+      const dot = f.lastIndexOf(".");
+      if (dot !== -1 && PHOTO_EXTS.has(f.slice(dot).toLowerCase()) && f.toLowerCase().startsWith("main.")) {
+        subMatch = `${slug}/${f}`;
+        break;
+      }
+    }
+  }
+
+  if (subMatch) {
+    overrides[slug] = { ...(overrides[slug] ?? {}), photo: `/images/cafes/${subMatch}` };
+  } else if (flatMatch) {
+    overrides[slug] = { ...(overrides[slug] ?? {}), photo: `/images/cafes/${photoFiles.get(flatMatch)}` };
   } else if (overrides[slug]?.photo) {
-    delete overrides[slug].photo;
-    if (Object.keys(overrides[slug]).length === 0) delete overrides[slug];
+    const existingPath = path.join(ROOT, "public", overrides[slug].photo.replace(/^\//, ""));
+    if (!existsSync(existingPath)) {
+      delete overrides[slug].photo;
+      if (Object.keys(overrides[slug]).length === 0) delete overrides[slug];
+    }
   }
 }
 

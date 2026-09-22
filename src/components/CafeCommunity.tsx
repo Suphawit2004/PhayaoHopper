@@ -19,56 +19,156 @@ export function MyPhotos() {
 function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
   const { user, loading, isAdmin } = useAuth();
   const cafes = useCatalog();
-  const { tr } = useLang();
-  const [photos, setPhotos] = useState<CommunityPhoto[]>([]), [message, setMessage] = useState("กำลังโหลดรูป…");
+  const { t, tr } = useLang();
+  const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
+  const [message, setMessage] = useState(t("community.loading"));
+
   const refresh = useCallback(async () => {
-    try { const result = await (slug === undefined ? listMyPhotos() : listPhotos(slug)); setPhotos(result.photos); setMessage(result.error ?? ""); }
-    catch { setMessage("โหลดรูปไม่สำเร็จ กรุณาลองใหม่"); }
-  }, [slug]);
+    try {
+      const result = await (slug === undefined ? listMyPhotos() : listPhotos(slug));
+      setPhotos(result.photos);
+      setMessage(result.error ?? "");
+    } catch {
+      setMessage(t("community.loadFail"));
+    }
+  }, [slug, t]);
+
   useEffect(() => {
     let active = true;
     const load = async () => {
-      try { const result = await (slug === undefined ? listMyPhotos() : listPhotos(slug)); if (active) { setPhotos(result.photos); setMessage(result.error ?? ""); } }
-      catch { if (active) setMessage("โหลดรูปไม่สำเร็จ กรุณาลองใหม่"); }
+      try {
+        const result = await (slug === undefined ? listMyPhotos() : listPhotos(slug));
+        if (active) {
+          setPhotos(result.photos);
+          setMessage(result.error ?? "");
+        }
+      } catch {
+        if (active) setMessage(t("community.loadFail"));
+      }
     };
-    void load(); window.addEventListener("focus", load); const timer = setInterval(load, 45000);
-    return () => { active = false; clearInterval(timer); window.removeEventListener("focus", load); };
-  }, [slug, user?.id]);
-  return <section className={`feature-card ${styles.section}`}>
-    <header className={styles.header}>
-      <div><h2>{slug ? "ภาพจากผู้มาเยือน" : "รูปที่ฉันโพสต์"}</h2>
-        <p>{slug ? "แบ่งปันมุมโปรด เครื่องดื่ม และบรรยากาศของร้าน" : "เก็บภาพคาเฟ่ที่คุณแบ่งปันไว้ในที่เดียว"}</p></div>
-      {!slug && <Link href="/cafes" className="feature-button">เลือกร้านเพื่อเพิ่มรูป</Link>}
-    </header>
-    {slug && (loading ? <p role="status">กำลังตรวจสอบการเข้าสู่ระบบ…</p> : user ?
-      <PhotoComposer slug={slug} onUploaded={refresh} /> :
-      <div className={styles.signIn}><div><strong>มีมุมโปรดของร้านนี้ไหม?</strong><p>เข้าสู่ระบบเพื่อเพิ่มรูปและเก็บไว้ในโปรไฟล์ของคุณ</p></div>
-        <Link href={`/login?next=/cafes/${slug}`} className="feature-button">เข้าสู่ระบบเพื่อเพิ่มรูป</Link></div>)}
-    <div className={styles.toolbar}><h3>{slug ? "แกลเลอรีของร้าน" : "แกลเลอรีของฉัน"} <span>{photos.length} รูป</span></h3>
-      <button type="button" onClick={refresh}>รีเฟรชรูป</button></div>
-    {message && <p role="status" className={styles.notice}>{message}</p>}
-    <div className={styles.gallery}>{photos.map(photo => {
-      const cafe = cafes.find(c => c.slug === photo.cafe_slug);
-      const canManage = photo.user_id === user?.id || admin || isAdmin;
-      return <figure key={photo.id} className={styles.photo}>
-        <div className={styles.imageWrap}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photo.url} alt={photo.caption || "ภาพบรรยากาศร้านจากผู้ใช้"} loading="lazy" />
-          {canManage && <span className={photo.is_public ? styles.publicBadge : styles.privateBadge}>{photo.is_public ? "สาธารณะ" : "ส่วนตัว"}</span>}
+    void load();
+    window.addEventListener("focus", load);
+    const timer = setInterval(load, 45000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener("focus", load);
+    };
+  }, [slug, user?.id, t]);
+
+  return (
+    <section className={`feature-card ${styles.section}`}>
+      <header className={styles.header}>
+        <div>
+          <h2>{slug ? t("community.visitorsTitle") : t("community.myPhotosTitle")}</h2>
+          <p>{slug ? t("community.visitorsDesc") : t("community.myPhotosDesc")}</p>
         </div>
-        <figcaption className={styles.caption}>
-          {!slug && <Link href={`/cafes/${photo.cafe_slug}`}>{cafe ? tr(cafe.name) : "ดูหน้าคาเฟ่"}</Link>}
-          <p>{photo.caption || "ภาพบรรยากาศจากผู้มาเยือน"}</p>
-        </figcaption>
-        {canManage && <div className={styles.actions}>
-          <ActionForm label={photo.is_public ? "เก็บเป็นส่วนตัว" : "เผยแพร่"} action={async () => { const result = await changePhoto(photo.id, photo.is_public ? "private" : "public"); if (result.ok) await refresh(); return result; }}>{null}</ActionForm>
-          <div className={styles.deleteAction}><ActionForm label="ลบรูป" action={async () => { if (!window.confirm("ลบรูปนี้? รูปจะถูกนำออกจากหน้าร้านและโปรไฟล์")) return { ok: false, message: "ยกเลิกการลบ" }; const result = await changePhoto(photo.id, "delete"); if (result.ok) await refresh(); return result; }}>{null}</ActionForm></div>
-        </div>}
-      </figure>;
-    })}</div>
-    {!photos.length && !message && <div className={styles.empty}><strong>{slug ? "เป็นคนแรกที่แบ่งปันมุมโปรด" : "เริ่มเก็บความทรงจำจากคาเฟ่"}</strong><p>{slug ? "เพิ่มภาพของคุณผ่านแบบฟอร์มด้านบนได้เลย" : "เลือกร้านที่คุณไป แล้วเพิ่มรูปจากหน้าคาเฟ่ รูปจะมาอยู่ที่นี่ด้วย"}</p></div>}
-    <p className={styles.privacyNote}>รูปสาธารณะแสดงในหน้าร้านและโปรไฟล์ ส่วนรูปส่วนตัวเห็นได้เฉพาะคุณและผู้ดูแลระบบ</p>
-  </section>;
+        {!slug && (
+          <Link href="/cafes" className="feature-button">
+            {t("community.selectCafe")}
+          </Link>
+        )}
+      </header>
+      {slug &&
+        (loading ? (
+          <p role="status">{t("community.checkingAuth")}</p>
+        ) : user ? (
+          <PhotoComposer slug={slug} onUploaded={refresh} />
+        ) : (
+          <div className={styles.signIn}>
+            <div>
+              <strong>{t("community.askFavorite")}</strong>
+              <p>{t("community.askFavoriteDesc")}</p>
+            </div>
+            <Link href={`/login?next=/cafes/${slug}`} className="feature-button">
+              {t("community.signInToAdd")}
+            </Link>
+          </div>
+        ))}
+      <div className={styles.toolbar}>
+        <h3>
+          {slug ? t("community.galleryShop") : t("community.galleryMy")}{" "}
+          <span>{t("community.photosCount").replaceAll("{n}", String(photos.length))}</span>
+        </h3>
+        <button type="button" onClick={refresh}>
+          {t("community.refresh")}
+        </button>
+      </div>
+      {message && <p role="status" className={styles.notice}>{message}</p>}
+      <div className={styles.gallery}>
+        {photos.map((photo) => {
+          const cafe = cafes.find((c) => c.slug === photo.cafe_slug);
+          const canManage = photo.user_id === user?.id || admin || isAdmin;
+          return (
+            <figure key={photo.id} className={styles.photo}>
+              <div className={styles.imageWrap}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.url}
+                  alt={photo.caption || t("community.altDefault")}
+                  loading="lazy"
+                />
+                {canManage && (
+                  <span className={photo.is_public ? styles.publicBadge : styles.privateBadge}>
+                    {photo.is_public ? t("community.public") : t("community.private")}
+                  </span>
+                )}
+              </div>
+              <figcaption className={styles.caption}>
+                {!slug && (
+                  <Link href={`/cafes/${photo.cafe_slug}`}>
+                    {cafe ? tr(cafe.name) : t("community.viewCafe")}
+                  </Link>
+                )}
+                <p>{photo.caption || t("community.altDefault")}</p>
+              </figcaption>
+              {canManage && (
+                <div className={styles.actions}>
+                  <ActionForm
+                    label={photo.is_public ? "เก็บเป็นส่วนตัว" : "เผยแพร่"}
+                    action={async () => {
+                      const result = await changePhoto(photo.id, photo.is_public ? "private" : "public");
+                      if (result.ok) await refresh();
+                      return result;
+                    }}
+                  >
+                    {null}
+                  </ActionForm>
+                  <div className={styles.deleteAction}>
+                    <ActionForm
+                      label="ลบรูป"
+                      action={async () => {
+                        if (!window.confirm("ลบรูปนี้? รูปจะถูกนำออกจากหน้าร้านและโปรไฟล์"))
+                          return { ok: false, message: "ยกเลิกการลบ" };
+                        const result = await changePhoto(photo.id, "delete");
+                        if (result.ok) await refresh();
+                        return result;
+                      }}
+                    >
+                      {null}
+                    </ActionForm>
+                  </div>
+                </div>
+              )}
+            </figure>
+          );
+        })}
+      </div>
+      {!photos.length && !message && (
+        <div className={styles.empty}>
+          <strong>{slug ? "เป็นคนแรกที่แบ่งปันมุมโปรด" : "เริ่มเก็บความทรงจำจากคาเฟ่"}</strong>
+          <p>
+            {slug
+              ? "เพิ่มภาพของคุณผ่านแบบฟอร์มด้านบนได้เลย"
+              : "เลือกร้านที่คุณไป แล้วเพิ่มรูปจากหน้าคาเฟ่ รูปจะมาอยู่ที่นี่ด้วย"}
+          </p>
+        </div>
+      )}
+      <p className={styles.privacyNote}>
+        รูปสาธารณะแสดงในหน้าร้านและโปรไฟล์ ส่วนรูปส่วนตัวเห็นได้เฉพาะคุณและผู้ดูแลระบบ
+      </p>
+    </section>
+  );
 }
 
 function PhotoComposer({ slug, onUploaded }: { slug: string; onUploaded: () => Promise<void> }) {

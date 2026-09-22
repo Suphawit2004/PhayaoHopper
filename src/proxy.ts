@@ -27,7 +27,11 @@ export async function proxy(request: NextRequest) {
   });
 
   // Refresh expired auth tokens so server components see a valid session.
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    // Ignore auth refresh failure in middleware so pages don't crash
+  }
 
   return response;
 }

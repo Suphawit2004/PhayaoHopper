@@ -55,10 +55,13 @@ export default function OpenBadge({ cafe }: { cafe: Cafe }) {
   const status = getOpenStatus(cafe, new Date(ts));
   let cls = "bg-emerald-100 text-emerald-800";
   let label = `${t("status.open")} · ${cafe.closeTime}`;
-  if (!status.isOpenToday) {
+  if (status.isOpenNow) {
+    cls = "bg-emerald-100 text-emerald-800";
+    label = `${t("status.open")} · ${cafe.closeTime}`;
+  } else if (!status.isOpenToday) {
     cls = "bg-gray-200 text-gray-600";
     label = t("status.closedToday");
-  } else if (!status.isOpenNow) {
+  } else {
     cls = "bg-rose-100 text-rose-700";
     label = t("status.closedNow");
   }
