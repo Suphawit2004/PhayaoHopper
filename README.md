@@ -1,4 +1,4 @@
-# เที่ยวไหนดี — Thiao Nai Dee ☕
+# PhayaoHopper ☕
 
 รวมคาเฟ่น่านั่งในเมืองพะเยา ทั้งริมกว๊านถึงโซนมหาวิทยาลัย พร้อมพิกัด เวลาเปิด-ปิด เมนูแนะนำ แผนที่ และรีวิว
 A curated guide to cafes in Phayao, Thailand — with map, reviews, filters and fuzzy search.
