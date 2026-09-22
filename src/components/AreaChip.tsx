@@ -7,7 +7,7 @@ export default function AreaChip({ area }: { area: CafeArea }) {
   const { tr } = useLang();
   const meta = AREA_META[area];
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-sand px-2.5 py-1 text-xs font-medium text-coffee">
+    <span className="area-chip inline-flex items-center gap-1 rounded-full bg-sand px-2.5 py-1 text-xs font-medium text-coffee">
       <span aria-hidden>{meta.emoji}</span>
       {tr(meta.label)}
     </span>
