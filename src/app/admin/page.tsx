@@ -110,18 +110,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       reports={reportRows}
       reviews={reviewRows}
     />
-    <nav className="feature-page !max-w-7xl !px-4 sm:!px-6 !pt-0 flex justify-between" aria-label="หน้ารายการแอดมิน">
+    <nav className="feature-page admin-pagination !max-w-7xl !px-4 sm:!px-6 !pt-0 flex justify-between" aria-label="หน้ารายการแอดมิน">
       {page > 0 ? <Link href={`/admin?page=${page - 1}&${viewQuery}`}><UiText text="← หน้าก่อน"/></Link> : <span />}
       <span><UiText text="หน้า"/>{page + 1} / {totalPages} · <UiText text="สูงสุด 50 รายการต่อหน้า" en="Up to 50 items per page"/></span>
       {page + 1 < totalPages ? <Link href={`/admin?page=${page + 1}&${viewQuery}`}><UiText text="หน้าถัดไป →"/></Link> : <span />}
     </nav>
-    <div className="feature-page !max-w-7xl !px-4 sm:!px-6 !pb-0">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="feature-card"><p><UiText text="ร้านที่เผยแพร่ / ร้านทั้งหมด"/></p><strong className="text-3xl">{catalog.error ? "—" : `${catalog.data?.filter(c => c.is_active).length} / ${cafes.length}`}</strong></div>
-        <div className="feature-card"><p><UiText text="สมาชิกทั้งหมด"/></p><strong className="text-3xl">{profiles.error ? "—" : profiles.count}</strong></div>
-        <div className="feature-card"><p><UiText text="คำขอรอดำเนินการทั้งหมด"/></p><strong className="text-3xl">{pendingS.error || pendingR.error ? "—" : (pendingS.count ?? 0) + (pendingR.count ?? 0)}</strong></div>
+    <div className="feature-page admin-extras !max-w-7xl !px-4 sm:!px-6 !pb-0">
+      <div className="admin-metrics grid gap-4 sm:grid-cols-3">
+        <div className="feature-card admin-metric"><p><UiText text="ร้านที่เผยแพร่ / ร้านทั้งหมด"/></p><strong className="text-3xl">{catalog.error ? "—" : `${catalog.data?.filter(c => c.is_active).length} / ${cafes.length}`}</strong></div>
+        <div className="feature-card admin-metric"><p><UiText text="สมาชิกทั้งหมด"/></p><strong className="text-3xl">{profiles.error ? "—" : profiles.count}</strong></div>
+        <div className="feature-card admin-metric"><p><UiText text="คำขอรอดำเนินการทั้งหมด"/></p><strong className="text-3xl">{pendingS.error || pendingR.error ? "—" : (pendingS.count ?? 0) + (pendingR.count ?? 0)}</strong></div>
       </div>
-      <details className="feature-card"><summary className="cursor-pointer font-bold"><UiText text="จัดการข้อมูลและรูปภาพร้าน ("/>{cafes.length})</summary><div className="grid gap-3 sm:grid-cols-2 mt-5">{cafes.map(cafe => <Link key={cafe.slug} href={`/owner/${cafe.slug}`} className="rounded-xl border border-[#eadfcd] p-4">{<UiText text={cafe.name.th} en={cafe.name.en}/>} →</Link>)}</div></details>
+      <details className="feature-card admin-cafe-manager"><summary className="cursor-pointer font-bold"><UiText text="จัดการข้อมูลและรูปภาพร้าน ("/>{cafes.length})</summary><div className="admin-cafe-grid grid gap-3 sm:grid-cols-2 mt-5">{cafes.map(cafe => <Link key={cafe.slug} href={`/owner/${cafe.slug}`} className="admin-cafe-link rounded-xl border border-[#eadfcd] p-4">{<UiText text={cafe.name.th} en={cafe.name.en}/>} →</Link>)}</div></details>
       {(suggestions.error || reports.error || reviews.error) && <p role="alert" className="mt-4 text-rose-700"><UiText text="ข้อมูลบางส่วนโหลดไม่สำเร็จ กรุณาโหลดหน้าใหม่"/></p>}
     </div>
     </>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import "./lanna.css";
+import "./phayaohopper-ui.css";
 import { LangProvider } from "@/i18n/LangProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { FavoritesProvider } from "@/components/FavoritesProvider";

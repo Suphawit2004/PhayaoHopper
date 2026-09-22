@@ -88,3 +88,66 @@
   .card dl { gap: 14px; }
   .actions { gap: 8px; }
 }
+
+/* Admin workbench follows the same palette while keeping queue state easy to scan. */
+.dashboard { color: #243740; }
+.queueSection > h2 { color: #203e4a; }
+.queueCard { border-color: #ddd6c7; border-top-color: #923e3c; border-radius: 10px; }
+.queueCard:hover { border-color: #923e3c; background: #fffefa; }
+.queueCard strong { color: #923e3c; }
+.summary { border-color: #ddd6c7; border-radius: 12px; }
+.summary > div + div { border-color: #ddd6c7; }
+.summary span { color: #40545b; }
+.summary strong { color: #923e3c; }
+.sidebar { background: #eee8dc; border: 1px solid #ddd6c7; border-radius: 10px; }
+.navigation button { color: #324a53; }
+.navigation button:hover { background: #e5dccb; }
+.navigation button.active { background: #203e4a; color: #fffefa; }
+.card { border-color: #ddd6c7; border-radius: 10px; }
+.card dl { border-color: #e7e0d3; }
+.actions { border-color: #e7e0d3; }
+
+/* Desktop admin workbench: wider reading canvas, clear queue hierarchy, steady controls. */
+@media (min-width: 1200px) {
+  .dashboard { width: min(100%, 1720px); max-width: none; padding: 42px clamp(32px, 4vw, 68px) 76px; }
+  .header { margin-bottom: 36px; }
+  .header h1 { color: #203e4a; font-size: 34px; letter-spacing: -.025em; }
+  .header p { max-width: 72ch; }
+  .queueSection { margin-bottom: 40px; }
+  .queueSection > h2 { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 19px; }
+  .queueSection > h2::after { width: 52px; height: 2px; background: #ddbf79; content: ""; }
+  .queueCards { gap: 18px; }
+  .queueCard { min-height: 166px; grid-template-columns: minmax(0, 1fr) auto; align-content: start; gap: 8px 20px; padding: 22px 24px; border-top-width: 2px; box-shadow: 0 3px 12px rgb(32 62 74 / 4%); transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+  .queueCard:hover { box-shadow: 0 8px 22px rgb(32 62 74 / 9%); transform: translateY(-2px); }
+  .queueCard > span:first-child { align-self: center; color: #203e4a; }
+  .queueCard strong { font-size: 40px; line-height: 1.1; }
+  .queueCard small { align-self: start; }
+  .queueAction { align-self: end; margin-top: 8px; font-weight: 650; text-decoration: none; }
+  .workspace { grid-template-columns: 276px minmax(0, 1fr); gap: clamp(28px, 3vw, 48px); }
+  .sidebar { top: 28px; padding: 24px 16px; background: #f0ece2; box-shadow: 0 5px 18px rgb(32 62 74 / 4%); }
+  .sidebar h2 { color: #203e4a; font-size: 17px; }
+  .sidebar > p { padding-bottom: 18px; }
+  .navigation { gap: 8px; }
+  .navigation button { min-height: 50px; padding: 12px 14px; }
+  .navigation button.active { box-shadow: inset 3px 0 #ddbf79; }
+  .content { min-width: 0; }
+  .toolbar { align-items: center; padding-bottom: 18px; }
+  .toolbar h2 { color: #203e4a; font-size: 23px; }
+  .filter { padding: 8px 12px; border: 1px solid #ddd6c7; border-radius: 8px; background: #fffefa; }
+  .list { gap: 16px; margin-top: 18px; }
+  .card { padding: 26px 30px; box-shadow: 0 3px 14px rgb(32 62 74 / 4%); }
+  .card > div:first-child h3 { color: #203e4a; }
+  .card dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card details { border-color: #ddd6c7; background: #faf8f3; }
+  .card details > summary { color: #203e4a; }
+  .card details input { width: 100%; min-height: 42px; border: 1px solid #c9d0cd; border-radius: 8px; padding: 8px 10px; background: #fffefa; }
+  .card details label { display: grid; gap: 6px; margin-bottom: 12px; color: #40545b; font-size: 13px; font-weight: 600; }
+  .actions { justify-content: flex-start; }
+}
+
+.queueCard:focus-visible, .navigation button:focus-visible, .backLink:focus-visible { outline: 3px solid #203e4a; outline-offset: 3px; }
+.queueCard, .backLink { transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .queueCard, .backLink { transition: none; }
+  .queueCard:hover { transform: none; }
+}

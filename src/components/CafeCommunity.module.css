@@ -61,3 +61,19 @@
 .signIn { margin-top: 24px; padding: 20px; background: #f3f7f5; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 @media (max-width: 900px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .composeGrid, .gallery { grid-template-columns: minmax(0, 1fr); } .composer { padding: 16px; } .header { align-items: start; } .toolbar h3 span { display: block; margin-left: 0; } }
+
+/* Match public photo galleries and member uploads to the site's paper and lake palette. */
+.section { border-color: var(--lanna-border); background: #fffefa; }
+.libraryTools { border-left-color: var(--lanna-gold); border-radius: 0 8px 8px 0; background: #f2eee5; }
+.librarySummary, .caption a { color: var(--lanna-indigo); }
+.filters select, .fields textarea { border-color: #c7bcaa; border-radius: 8px; }
+.composer { border-color: var(--lanna-border); border-radius: 10px; background: #f2eee5; }
+.placeholder { border-color: #b6aa94; border-radius: 8px; }
+.picker input::file-selector-button { border-radius: 6px; background: #eee8dc; color: var(--lanna-indigo); }
+.visibility { border-color: var(--lanna-border); }
+.photo { border-color: var(--lanna-border); border-radius: 10px; background: #fffefa; }
+.imageWrap { background: #eee8dc; }
+.publicBadge { background: var(--lanna-indigo); color: #fffefa; }
+.privateBadge { border: 1px solid var(--lanna-border); color: #44545a; background: #fffefa; }
+.empty { border-color: #c9bda8; border-radius: 10px; background: #fffefa; }
+.signIn { border: 1px solid var(--lanna-border); border-radius: 10px; background: #f2eee5; }

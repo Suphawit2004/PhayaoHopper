@@ -203,7 +203,7 @@ function ReviewContent({ slug, baseRating, authLoading }: ReviewSectionProps & {
   const locale = lang === "th" ? "th-TH" : "en-GB";
 
   return (
-    <section className="rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
+    <section className="review-panel rounded-2xl border border-[#eee3d2] bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-espresso">💬 {t("reviews.title")}</h2>
         <span className="flex items-center gap-2">
@@ -240,7 +240,7 @@ function ReviewContent({ slug, baseRating, authLoading }: ReviewSectionProps & {
         </div>
       )}
 
-      {notice && <div role="status" className={`mt-4 text-sm ${notice.ok ? "text-emerald-800" : "text-rose-700"}`}>{notice.text}{notice.ok && <Link className="ml-3 underline" href="/coupons">{th ? "คูปองของฉัน →" : "My coupons →"}</Link>}</div>}
+      {notice && <div role="status" className={`review-notice mt-4 text-sm ${notice.ok ? "review-notice-success" : "review-notice-error"}`}>{notice.text}{notice.ok && <Link className="ml-3 underline" href="/coupons">{th ? "คูปองของฉัน →" : "My coupons →"}</Link>}</div>}
       {authLoading ? <p role="status" className="mt-5">…</p> : !user ? <div className="mt-5 border-y border-[#d8c9b7] py-5"><p>{th ? "เข้าสู่ระบบและบันทึกว่าเคยไปแล้ว เพื่อแบ่งปันรีวิว" : "Sign in and mark this cafe as visited to leave a review."}</p><Link className="ui-secondary mt-3" href={`/login?next=${encodeURIComponent(`/cafes/${slug}`)}`}>{th ? "เข้าสู่ระบบเพื่อรีวิว" : "Sign in to review"}</Link></div> : reviews.some(r=>r.user_id===user.id) ? <p className="mt-5">{th ? "คุณรีวิวร้านนี้แล้ว" : "You have reviewed this cafe."}</p> : visitError ? <button className="ui-secondary mt-5" onClick={()=>window.dispatchEvent(new Event("cafe-visit-changed"))}>{th ? "ตรวจประวัติไม่สำเร็จ · ลองใหม่" : "Could not check visit · Retry"}</button> : visited === null ? <p role="status" className="mt-5">{th?"กำลังตรวจประวัติ…":"Checking visit…"}</p> : !visited ? <p className="mt-5 border-y border-[#d8c9b7] py-5">{th ? "กด “ไปมาแล้ว” ที่ด้านบนของหน้าร้านก่อน จึงจะเขียนรีวิวได้" : "Use “I've been here” above before writing a review."}</p> : <form onSubmit={handleSubmit} className="mt-5 rounded-xl bg-cream p-4">
         <fieldset disabled={sending || locked} className="contents"><div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <label className="block">
@@ -294,7 +294,7 @@ function ReviewContent({ slug, baseRating, authLoading }: ReviewSectionProps & {
         </div>
       </form>}
 
-      <ul className="mt-5 space-y-3">
+      <ul className="review-list mt-5 space-y-3">
         {loading && <li className="text-sm text-espresso/70" role="status">{lang === "th" ? "กำลังโหลดรีวิว…" : "Loading reviews…"}</li>}
         {!loading && !loadError && reviews.length === 0 && (
           <li className="rounded-xl border border-dashed border-[#e0d3ba] px-4 py-6 text-center text-sm text-espresso/70">
@@ -302,7 +302,7 @@ function ReviewContent({ slug, baseRating, authLoading }: ReviewSectionProps & {
           </li>
         )}
         {reviews.map((r) => (
-          <li key={r.id} className="rounded-xl border border-[#eee3d2] bg-cream/50 p-4">
+          <li key={r.id} className="review-item rounded-xl border border-[#eee3d2] bg-cream/50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-bold text-espresso">{r.author_name}</span>
               <span className="flex items-center gap-2">

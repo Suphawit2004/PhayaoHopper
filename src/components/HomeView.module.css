@@ -82,3 +82,32 @@
   .map { height: 300px; }
 }
 @media (max-width: 420px) { .intro h1 { font-size: 40px; } .story { display: block; } .story:not(:first-child) .storyImage { aspect-ratio: 3 / 2; } .story:not(:first-child) .storyBody { padding-top: 14px; } .categories strong { font-size: 16px; } }
+
+/* Contemporary Lanna details: restrained textile lines, with the cafe photos as the focus. */
+.home { --line: var(--lanna-border); }
+.hero { gap: clamp(32px, 5vw, 68px); }
+.intro h1 { color: var(--lanna-indigo); letter-spacing: -.035em; }
+.intro h1 span { color: var(--lanna-red); }
+.slider { padding: 8px; border-color: var(--lanna-border); border-radius: 12px; box-shadow: 8px 8px 0 #203e4a0a; }
+.slideControls { border-color: var(--lanna-border); }
+.slideControls > button { border-color: var(--lanna-border); border-radius: 8px; }
+.slideControls > button:hover { border-color: var(--lanna-red); color: var(--lanna-red); }
+.leadImage { border-radius: 80px 80px 6px 6px; }
+.browse { position: relative; border-block-color: var(--lanna-border); }
+.browse::before { position: absolute; top: -1px; left: 0; width: 64px; height: 2px; background: var(--lanna-gold); content: ""; }
+.categories { gap: 12px 22px; }
+.categories a { min-height: 58px; border-radius: 4px 12px 4px 12px; transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease; }
+.categories a:hover { background: #f5efe2; }
+.recommendations { padding-block: 52px; }
+.story { border-radius: 12px 4px 12px 4px; }
+.storyImage { border-radius: 6px; }
+.allCafes { border-color: var(--lanna-indigo); border-radius: 8px; }
+.allCafes:hover { color: var(--lanna-red); background: #f5efe2; }
+.mapSection { border-color: var(--lanna-border); }
+.map { border-radius: 8px; border: 1px solid var(--lanna-border); }
+@media (max-width: 760px) {
+  .hero { padding-top: 26px; }
+  .leadImage { border-radius: 56px 56px 5px 5px; }
+  .slider { box-shadow: 4px 4px 0 #203e4a0a; }
+}
+@media (prefers-reduced-motion: reduce) { .categories a { transition: none; } }
