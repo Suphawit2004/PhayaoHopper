@@ -23,6 +23,8 @@ export async function POST(request: Request) {
     const quota = user && sb ? await sb.rpc("consume_assistant_quota") : null;
     fallbackReason = !user ? "sign_in_required" : "quota_unavailable";
     if (quota && !quota.error && quota.data === true) {
+      let failureStage = "request";
+      let upstreamStatus: number | undefined;
       try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
           method: "POST", signal: AbortSignal.timeout(15000),
@@ -33,16 +35,26 @@ export async function POST(request: Request) {
             generationConfig: { maxOutputTokens: 2048, responseMimeType: "application/json", responseJsonSchema: { type: "object", properties: { answer: { type: "string" }, slugs: { type: "array", items: { type: "string" } } }, required: ["answer", "slugs"], additionalProperties: false } }
           })
         });
+        upstreamStatus = response.status;
+        failureStage = "http";
         if (!response.ok) throw new Error("AI unavailable");
+        failureStage = "response_json";
         const data = await response.json();
         const candidate = data.candidates?.[0];
+        failureStage = "incomplete_response";
         if (candidate?.finishReason !== "STOP") throw new Error("Incomplete or blocked Gemini response");
+        failureStage = "answer_json";
         const output = candidate.content?.parts?.filter((part: { text?: unknown; thought?: boolean }) => !part.thought && typeof part.text === "string").map((part: { text: string }) => part.text).join("");
         const result = validatedAnswer(JSON.parse(output), cafes);
+        failureStage = "answer_validation";
         if (!result) throw new Error("Invalid model result");
         answer = result.answer;
         matched = result.slugs.map(slug => cafes.find(c => c.slug === slug)!); mode = "ai"; fallbackReason = "";
-      } catch { mode = "catalog-fallback"; fallbackReason = "unavailable"; }
+      } catch {
+        // Only fixed diagnostic codes: never log keys, prompts, or provider bodies.
+        console.warn("cafe-assistant Gemini fallback", { stage: failureStage, status: upstreamStatus });
+        mode = "catalog-fallback"; fallbackReason = "unavailable";
+      }
     }
   }
   return NextResponse.json({ mode, fallbackReason, provider: mode === "ai" ? "gemini" : null,
