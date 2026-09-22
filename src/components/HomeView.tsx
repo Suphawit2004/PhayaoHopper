@@ -26,10 +26,14 @@ export default function HomeView() {
   return <div className={styles.home}>
     <section className={styles.hero}>
       <div className={styles.intro}>
+        <p className={styles.eyebrow}><span aria-hidden="true" />{t("home.badge")}</p>
         <h1>{t("home.heroTitle1")}<span>{t("home.heroTitle2")}</span></h1>
         <p>{t("home.heroDesc")}</p>
         <div className={styles.search}><CafeSearch /></div>
-        <div className={styles.heroLinks}><Link href="/cafes">{t("home.ctaExplore")}</Link><Link href="/map">{t("home.ctaMap")}</Link></div>
+        <div className={styles.heroLinks}>
+          <Link className={styles.primaryLink} href="/cafes">{t("home.ctaExplore")}</Link>
+          <Link className={styles.secondaryLink} href="/map">{t("home.ctaMap")}</Link>
+        </div>
       </div>
       {!!featured.length && <div className={styles.slider} role="region" aria-roledescription="carousel" aria-label={t("home.featured")}>
         <div className={styles.slideTrack} ref={slideTrack} onScroll={e => {
@@ -38,7 +42,11 @@ export default function HomeView() {
         }}>
           {featured.map((cafe, index) => <figure className={styles.lead} key={cafe.slug} role="group" aria-roledescription="slide" aria-label={`${index + 1} / ${featured.length}`}>
             <Link href={`/cafes/${cafe.slug}`} className={styles.leadImage} aria-label={tr(cafe.name)}><CafeThumb preload={index === 0} cafe={cafe} sizes="(max-width: 760px) 100vw, 55vw" /></Link>
-            <figcaption><Link href={`/cafes/${cafe.slug}`}>{tr(cafe.name)}</Link><span>{cafe.openTime} - {cafe.closeTime}</span></figcaption>
+            <figcaption>
+              <span className={styles.slideEyebrow}>{lang === "th" ? "ร้านแนะนำ" : "FEATURED CAFE"}</span>
+              <Link href={`/cafes/${cafe.slug}`}>{tr(cafe.name)}</Link>
+              <span>{cafe.openTime} - {cafe.closeTime}</span>
+            </figcaption>
           </figure>)}
         </div>
         {featured.length > 1 && <div className={styles.slideControls}>
@@ -50,8 +58,8 @@ export default function HomeView() {
       </div>}
     </section>
     <section className={styles.browse}>
-      <header><h2>{t("home.categories")}</h2><p>{t("home.categoriesDesc")}</p></header>
-      <div className={styles.categories}>{TAG_ORDER.map(tag => <Link key={tag} href={`/cafes?tag=${tag}`}><strong>{tr(TAG_META[tag].label)}</strong><span>{cafes.filter(c => c.tags.includes(tag)).length} {t("home.cafesInTag")}</span></Link>)}</div>
+      <header><div><h2>{t("home.categories")}</h2><p>{t("home.categoriesDesc")}</p></div><Link className={styles.categoryAll} href="/cafes">{t("home.viewAll")}</Link></header>
+      <div className={styles.categories}>{TAG_ORDER.map((tag, index) => <Link key={tag} href={`/cafes?tag=${tag}`}><span className={styles.categoryIndex}>0{index + 1}</span><strong>{tr(TAG_META[tag].label)}</strong><span className={styles.categoryCount}>{cafes.filter(c => c.tags.includes(tag)).length} {t("home.cafesInTag")}</span><span className={styles.categoryArrow} aria-hidden="true">↗</span></Link>)}</div>
       <p className={styles.catalogNote}>{cafes.length} {t("home.stat1")} · {TAG_ORDER.length} {t("home.stat2")} · {t("home.stat3")}</p>
     </section>
     <section className={styles.recommendations}>

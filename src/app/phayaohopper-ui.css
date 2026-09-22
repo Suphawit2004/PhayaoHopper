@@ -105,7 +105,8 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 
 @media (max-width: 1000px) {
   .main-navigation.is-open { border-color: var(--ph-border); background: var(--ph-paper); }
-  .account-menu > div { background: transparent; }
+  .account-menu-panel { width: 100%; background: transparent !important; box-shadow: none !important; }
+  .account-menu .account-services > div { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 760px) {
   main > div.max-w-6xl > .mt-4.grid > div.relative { border-radius: 72px 72px 8px 8px; }
@@ -118,7 +119,7 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
   .map-results { gap: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .main-navigation > a, .account-menu > summary, .feature-button, .ui-secondary, .cafe-card { transition: none; }
+  .main-navigation > a, .account-menu > summary, .account-chevron, .feature-button, .ui-secondary, .cafe-card { transition: none; }
   .cafe-card:hover { transform: none; }
 }
 
@@ -135,6 +136,35 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .search-results .is-selected, .search-results a:hover { background: #edf1f2; color: var(--ph-ink); }
 .search-results > a { display: block; border-top: 1px solid var(--ph-border); color: var(--ph-ink); }
 .search-results > p { color: var(--ph-muted); }
+
+/* Compact navbar search: one pill with a distinct, icon-only submit button. */
+.nav-search { max-width: 340px; }
+.cafe-search-navbar form { gap: 0; min-height: 44px; padding: 3px; border-color: #85999d; border-radius: 999px; background: var(--ph-ink); }
+.cafe-search-navbar form:focus-within { border-color: var(--ph-gold); box-shadow: 0 0 0 3px rgb(221 191 121 / 22%); }
+.cafe-search-navbar input { min-height: 36px; padding-inline: 14px; border: 0; border-radius: 999px 0 0 999px; background: transparent; color: #fffefa; }
+.cafe-search-navbar input::placeholder { color: #d6dedc; }
+.cafe-search-navbar input:focus-visible { outline: none; }
+.cafe-search-navbar form button { display: grid; width: 44px; min-width: 44px; min-height: 36px; place-items: center; padding: 0; border-left: 1px solid rgb(255 254 250 / 20%); border-radius: 0 999px 999px 0; background: #18343f; color: #fffefa; }
+.cafe-search-navbar form button:hover { background: #122a33; }
+
+/* Account dropdown stays compact on desktop and becomes inline in mobile nav. */
+.account-menu > summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none; }
+.account-menu > summary::-webkit-details-marker { display: none; }
+.account-avatar { display: inline-grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid #d5c69e; border-radius: 50%; background: #eee8dc; color: var(--ph-ink); font-size: 14px; font-weight: 700; }
+.account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.account-chevron { width: 16px; height: 16px; transition: transform 160ms ease; }
+.account-menu[open] .account-chevron { transform: rotate(180deg); }
+.account-menu-panel { z-index: 30; width: min(350px, calc(100vw - 32px)); padding: 14px !important; border-radius: 12px !important; box-shadow: 0 16px 38px rgb(32 62 74 / 16%) !important; }
+.account-identity { display: flex; align-items: center; gap: 12px; padding: 4px 2px 14px; border-bottom: 1px solid var(--ph-border); }
+.account-avatar-large { width: 46px; height: 46px; font-size: 18px; }
+.account-identity-copy { display: grid; min-width: 0; gap: 3px; }
+.account-identity-copy strong { overflow: hidden; color: var(--ph-ink); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.account-identity-copy small { overflow: hidden; color: var(--ph-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu .account-profile-link { display: flex; align-items: center; justify-content: space-between; min-height: 42px; margin-block: 8px; border-radius: 7px; background: #eee8dc; color: var(--ph-ink); font-weight: 650; }
+.account-services { padding-top: 8px; border-top: 1px solid var(--ph-border); }
+.account-services > div { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.account-menu .account-services a { min-height: 38px; padding: 9px 8px; border-radius: 6px; font-size: 13px; }
+.account-menu .account-services a[aria-current="page"] { background: #edf1f2; color: var(--ph-red); }
 
 .explorer-controls { gap: 18px; }
 .search-visible { color: var(--ph-ink); font-size: 14px; }
