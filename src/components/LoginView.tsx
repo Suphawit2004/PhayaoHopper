@@ -20,10 +20,10 @@ function LoginFormInner() {
   // Where to send the user after the auth callback. Same-origin paths only;
   // /auth/callback enforces this too.
   const nextPath = searchParams.get("next");
-  const safeNext = nextPath && nextPath.startsWith("/") && !nextPath.startsWith("//") && !nextPath.includes("\\") ? nextPath : "/profile";
+  const safeNext = nextPath && nextPath.startsWith("/") && !nextPath.startsWith("//") && !nextPath.includes("\\") ? nextPath : "/";
   const callbackUrl = () => {
     const cb = new URL(`${window.location.origin}/auth/callback`);
-    if (safeNext !== "/profile") cb.searchParams.set("next", safeNext);
+    if (safeNext !== "/") cb.searchParams.set("next", safeNext);
     return cb.toString();
   };
 

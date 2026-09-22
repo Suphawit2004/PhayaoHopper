@@ -15,8 +15,8 @@ export default function PasswordLogin() {
       e.preventDefault(); const data = new FormData(e.currentTarget); const email = String(data.get("email")), password = String(data.get("password") ?? ""); setPending(true); setMessage("");
       try { const sb = getSupabaseBrowser(); if (!sb) throw Error();
         const raw = new URLSearchParams(window.location.search).get("next");
-        const next = raw?.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\") ? raw : "/profile";
-        const callback = `${window.location.origin}/auth/callback?next=${encodeURIComponent(mode === "reset" ? "/profile" : next)}`;
+        const next = raw?.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\") ? raw : "/";
+        const callback = `${window.location.origin}/auth/callback?next=${encodeURIComponent(mode === "reset" ? "/" : next)}`;
         if (mode === "reset") { const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: callback }); if (error) throw Error(); setMessage(ui("หากอีเมลนี้มีบัญชี ระบบจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่")); }
         else if (mode === "signup") { const { data: result, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: callback } }); if (error) throw Error(); if (result.session) window.location.assign(next); else setMessage(ui("กรุณาตรวจอีเมลเพื่อยืนยันบัญชี")); }
         else { const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) { setMessage(ui("อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือยังไม่ได้ยืนยันอีเมล")); return; } window.location.assign(next); }
