@@ -11,10 +11,12 @@ import FeatureNav from "./FeatureNav";
 import { useProfile } from "@/lib/use-profile";
 import Icon from "./Icon";
 import Image from "next/image";
+import ProfileDialog from "./ProfileDialog";
 export default function Navbar() {
   const { t, toggle, lang } = useLang(); const { user, loading } = useAuth(); const { slugs } = useFavorites(); const pathname = usePathname();
   const { profile } = useProfile();
   const [open,setOpen] = useState(false); const trigger = useRef<HTMLButtonElement>(null); const accountMenu = useRef<HTMLDetailsElement>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
@@ -40,6 +42,10 @@ export default function Navbar() {
   }, [open]);
   const links = [["/cafes", t("nav.cafes")], ["/map", t("nav.map")], ["/favorites", `${t("nav.favorites")}${slugs.length ? ` (${slugs.length})` : ""}`]];
   const close = () => setOpen(false);
+  const closeProfile = () => {
+    setProfileOpen(false);
+    accountMenu.current?.querySelector("summary")?.focus();
+  };
   const initials = (profile?.display_name || user?.email || "?").trim().slice(0, 1).toUpperCase();
 
   return (
@@ -80,8 +86,18 @@ export default function Navbar() {
                     <small>{user.email}</small>
                   </span>
                 </div>
-                <Link className="account-profile-link" href="/profile">
-                  {lang === "th" ? "ดูและแก้ไขโปรไฟล์" : "View and edit profile"}<span aria-hidden="true">↗</span>
+                <button className="account-profile-link" type="button" onClick={() => {
+                  setProfileOpen(true);
+                  accountMenu.current?.removeAttribute("open");
+                  close();
+                }}>
+                  {lang === "th" ? "จัดการโปรไฟล์" : "Manage profile"}<span aria-hidden="true">↗</span>
+                </button>
+                <Link className="account-favorites-link" href="/favorites" onClick={() => {
+                  accountMenu.current?.removeAttribute("open");
+                  close();
+                }}>
+                  {lang === "th" ? `ร้านโปรด${slugs.length ? ` (${slugs.length})` : ""}` : `Favorites${slugs.length ? ` (${slugs.length})` : ""}`}
                 </Link>
                 <FeatureNav />
               </div>
@@ -89,6 +105,7 @@ export default function Navbar() {
           ) : <Link href="/login" onClick={close}>{t("nav.login")}</Link>)}
         </nav>
       </div>
+      {user && profileOpen && <ProfileDialog onClose={closeProfile} />}
     </header>
   );
 }

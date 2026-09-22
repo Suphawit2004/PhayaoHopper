@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     nextParam!.startsWith("/") &&
     !nextParam!.startsWith("//") &&
     !nextParam!.includes("\\");
-  const next = isSafeRedirect ? nextParam! : "/profile";
+  const next = isSafeRedirect ? nextParam! : "/";
 
   if (code) {
     const supabase = await getSupabaseServer();

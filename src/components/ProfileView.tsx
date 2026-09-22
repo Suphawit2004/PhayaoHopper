@@ -34,7 +34,9 @@ function avatarPathFromUrl(url: string): string | null {
   return url.slice(i + marker.length).split("?")[0];
 }
 
-export default function ProfileView() {
+type ProfileViewProps = { inDialog?: boolean; onClose?: () => void };
+
+export default function ProfileView({ inDialog = false, onClose }: ProfileViewProps) {
   const ui=useUi();
   const CAFES = useCatalog();
   const { t, tr, lang } = useLang();
@@ -155,7 +157,7 @@ export default function ProfileView() {
       <div className="mx-auto max-w-md px-4 py-20 text-center">
         <h1 className="text-lg font-semibold text-espresso/80">🔒 {t("profile.notSignedIn")}</h1>
         <Link
-          href="/login?next=/profile"
+          href="/login?next=/"
           className="mt-5 inline-block rounded-full bg-coffee px-6 py-2.5 text-sm font-semibold text-cream transition hover:bg-[#684a37]"
         >
           {t("profile.signInCta")}
@@ -173,8 +175,14 @@ export default function ProfileView() {
     setSaveState(ok ? "saved" : "error");
   };
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-center text-2xl font-bold text-espresso">👤 {t("profile.title")}</h1>
+    <div className={inDialog ? "profile-dialog-content mx-auto max-w-4xl px-4 py-6" : "mx-auto max-w-4xl px-4 py-10"}>
+      <header className="profile-dialog-heading">
+        <div>
+          <h1 id={inDialog ? "profile-dialog-title" : undefined} className="text-2xl font-bold text-espresso">{t("profile.title")}</h1>
+          {inDialog && <p className="mt-1 text-sm text-espresso/65">{user.email}</p>}
+        </div>
+        {inDialog && <button type="button" className="profile-dialog-close" onClick={onClose} aria-label={lang === "th" ? "ปิดหน้าต่างโปรไฟล์" : "Close profile dialog"}>×</button>}
+      </header>
 
       <nav className="profile-sections" aria-label={lang==="th"?ui("ส่วนต่าง ๆ ของโปรไฟล์"):"Profile sections"}><a href="#account">{lang==="th"?ui("บัญชี"):"Account"}</a><a href="#visited">{lang==="th"?"เคยไปแล้ว":"Visited cafes"}</a><a href="#my-photos">{lang==="th"?ui("รูปที่โพสต์"):"My photos"}</a><a href="#my-reviews">{t("profile.myReviews")}</a><a href="#security">{lang==="th"?ui("ความปลอดภัย"):"Security"}</a></nav>
       {/* Account */}
