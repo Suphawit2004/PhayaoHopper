@@ -7,7 +7,7 @@ import { POST } from "./route";
 import { validatedAnswer } from "@/lib/cafe-assistant";
 const cafe = { slug: "test", name: { th: "ร้านทดสอบ", en: "Test Cafe" }, description: { th: "เงียบ", en: "Quiet" }, address: { th: "เมืองพะเยา", en: "Phayao" }, tags: ["work"], lifestyleTags: ["wifi"], openTime: "08:00", closeTime: "17:00", closedDays: [1] } as Cafe;
 beforeEach(() => { vi.clearAllMocks(); mock.catalog.mockResolvedValue([cafe]); vi.stubEnv("GEMINI_API_KEY", ""); vi.stubEnv("GEMINI_MODEL", ""); });
-afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const ask = () => POST(new Request("http://localhost/api/cafe-assistant", { method: "POST", body: JSON.stringify({ query: "Test Cafe opening hours", lang: "en" }) }));
 it("honestly returns the catalogue without a key and never calls Gemini", async () => {
   const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
@@ -56,4 +56,15 @@ it("does not use OpenAI configuration or send a key in the request URL", async (
   const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
   expect((await (await ask()).json()).mode).toBe("catalog");
   expect(fetcher).not.toHaveBeenCalled();
+});
+
+it("logs only stage and HTTP status without exposing provider bodies or secrets", async () => {
+  vi.stubEnv("GEMINI_API_KEY", "secret-test-key"); vi.stubEnv("GEMINI_MODEL", "configured-model");
+  mock.server.mockResolvedValue({ auth: { getUser: async () => ({ data: { user: { id: "member" } } }) }, rpc: async () => ({ data: true }) });
+  const body = vi.fn().mockResolvedValue({ error: { message: "sensitive provider body" } });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 429, json: body }));
+  const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+  expect((await (await ask()).json()).mode).toBe("catalog-fallback");
+  expect(warning).toHaveBeenCalledExactlyOnceWith("cafe-assistant Gemini fallback", { stage: "http", status: 429 });
+  expect(body).not.toHaveBeenCalled();
 });
