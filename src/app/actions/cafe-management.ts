@@ -27,6 +27,17 @@ function text(form: FormData, field: string, max = 500) {
   return String(form.get(field) ?? "").trim().slice(0, max);
 }
 
+function attributeValues(form: FormData, selectedField: string, customField: string): string[] {
+  const selected = form.getAll(selectedField).map(value => String(value));
+  const custom = String(form.get(customField) ?? "").split(/[\n,]/);
+  const values = [...selected, ...custom].map(value => value.trim()).filter(Boolean);
+  const unique = [...new Map(values.map(value => [value.toLocaleLowerCase(), value])).values()];
+  if (unique.length > 20 || unique.some(value => value.length > 60 || /[\u0000-\u001f\u007f]/.test(value))) {
+    throw new Error("เพิ่มได้ไม่เกิน 20 รายการ และแต่ละรายการยาวไม่เกิน 60 ตัวอักษร");
+  }
+  return unique;
+}
+
 async function uploadMedia(sb: NonNullable<Awaited<ReturnType<typeof getSupabaseServer>>>, slug: string, form: FormData) {
   const file = form.get("photo");
   if (!(file instanceof File) || !file.size) return undefined;
@@ -52,8 +63,8 @@ export async function saveCafe(form: FormData) {
       phone: text(form, "phone", 40), openTime: text(form, "openTime", 5), closeTime: text(form, "closeTime", 5),
       lat: admin ? Number(form.get("lat")) : current.lat, lng: admin ? Number(form.get("lng")) : current.lng,
       area: admin ? text(form, "area") as Cafe["area"] : current.area, priceRange: Number(form.get("priceRange")) as 1 | 2,
-      closedDays: form.getAll("closedDays").map(Number), tags: form.getAll("tags") as Cafe["tags"],
-      lifestyleTags: form.getAll("lifestyleTags") as Cafe["lifestyleTags"],
+      closedDays: form.getAll("closedDays").map(Number), tags: attributeValues(form, "tags", "newTags"),
+      lifestyleTags: attributeValues(form, "lifestyleTags", "newLifestyleTags"),
     };
     if (!data.name.th || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.openTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.closeTime)) throw new Error("กรุณาตรวจชื่อร้านและเวลาเปิดปิด");
     const media = await uploadMedia(sb, slug, form);

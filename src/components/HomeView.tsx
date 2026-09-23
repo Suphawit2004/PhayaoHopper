@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useCatalog } from "./CatalogProvider";
 import { useLang } from "@/i18n/LangProvider";
-import { TAG_META, TAG_ORDER, AREA_META } from "@/data/cafes";
+import { cafeTagMeta, TAG_META, TAG_ORDER, AREA_META } from "@/data/cafes";
 import CafeSearch from "./CafeSearch";
 import CafeThumb from "./CafeThumb";
 import FavoriteButton from "./FavoriteButton";
@@ -72,7 +72,7 @@ export default function HomeView() {
           <div className={styles.details}><OpenBadge cafe={cafe} /><span>{tr(AREA_META[cafe.area].label)}</span></div>
           <p className={styles.description}>{tr(cafe.description)}</p>
           <p className={styles.rating}>{cafe.baseRating.toFixed(1)} / 5 {lang === "th" ? "คะแนนตั้งต้น" : "Reference rating"}</p>
-          <div className={styles.tags}>{cafe.tags.map(tag => <Link key={tag} href={`/cafes?tag=${tag}`}>{tr(TAG_META[tag].label)}</Link>)}</div>
+          <div className={styles.tags}>{cafe.tags.map(tag => {const meta=cafeTagMeta(tag);return tag in TAG_META ? <Link key={tag} href={`/cafes?tag=${tag}`}>{tr(meta.label)}</Link> : <span key={tag}>{tr(meta.label)}</span>;})}</div>
         </div>
       </article>)}</div>
       <Link href="/cafes" className={styles.allCafes}>{t("home.viewAll")}</Link>
