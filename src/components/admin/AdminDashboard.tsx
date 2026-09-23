@@ -192,7 +192,7 @@ export default function AdminDashboard({
       </header>
       {overview && <section className={styles.overview} aria-label={copy.overview}>
         <div className={styles.sectionHeading}>
-          <div><span className={styles.eyebrow}>{copy.adminLabel}</span><h2>{copy.overview}</h2></div>
+          <h2>{copy.overview}</h2>
           <p>{copy.overviewHint}</p>
         </div>
         <div className={styles.summary}>
@@ -213,24 +213,10 @@ export default function AdminDashboard({
           </article>
         </div>
       </section>}
-      <section className={styles.queueSection} aria-label={lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}>
-        <div className={styles.sectionHeading}>
-          <div><span className={styles.eyebrow}>{lang === "th" ? "คิวตรวจสอบ" : "MODERATION QUEUES"}</span><h2>{lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}</h2></div>
-          <p>{lang === "th" ? "เลือกคิวเพื่อเริ่มตรวจสอบรายการ" : "Choose a queue to start reviewing records"}</p>
-        </div>
-        <div className={styles.queueCards}>
-          {[
-            { key: "suggestions", count: pendingSuggestions, title: lang === "th" ? "ร้านรออนุมัติ" : "Cafes awaiting approval", hint: lang === "th" ? "ตรวจร้านเก่าที่รอก่อน" : "Oldest submissions first" },
-            { key: "reports", count: pendingReports, title: lang === "th" ? "รายงานข้อมูลผิด" : "Pending corrections", hint: lang === "th" ? "ตรวจและแก้ข้อมูลร้าน" : "Check and correct cafe details" },
-            { key: "reviews", count: queueCounts.reviews, title: lang === "th" ? "รีวิวที่ควรตรวจ" : "Reviews to look at", hint: lang === "th" ? "คะแนน 1–2 ดาว ไม่ใช่สถานะรออนุมัติ" : "1–2 stars, not an approval status" },
-          ].map(item => <Link key={item.key} href={`/admin?page=0&tab=${item.key}&filter=pending#admin-workspace`} className={styles.queueCard}>
-            <span>{item.title}</span><strong>{item.count ?? "—"}</strong><small>{item.count === null ? (lang === "th" ? "โหลดจำนวนไม่สำเร็จ" : "Count unavailable") : item.hint}</small><span className={styles.queueAction}>{lang === "th" ? "เปิดรายการ" : "Open queue"}</span>
-          </Link>)}
-        </div>
-      </section>
       <div id="admin-workspace" className={styles.workspace}>
         <aside className={styles.sidebar}>
-          <h2>{copy.workspace}</h2>
+          <span className={styles.sidebarEyebrow}>{lang === "th" ? "คิวตรวจสอบ" : "MODERATION QUEUES"}</span>
+          <h2>{lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}</h2>
           <p>{copy.manage}</p>
           <nav aria-label={t("admin.title")} className={styles.navigation}>
             {tabs.map(({ key, label, badge }) => (
@@ -241,6 +227,9 @@ export default function AdminDashboard({
               </button>
             ))}
           </nav>
+          {cafeLinks.length > 0 && <a className={styles.cafeShortcut} href="#admin-cafes">
+            <span>{copy.cafes}</span><span aria-hidden="true">↘</span>
+          </a>}
         </aside>
         <div className={styles.content}>
           <div className={styles.toolbar}>
@@ -462,7 +451,7 @@ export default function AdminDashboard({
         <span>{copy.page} {pageInfo.page + 1} / {pageInfo.totalPages}<small>{copy.perPage}</small></span>
         {pageInfo.page + 1 < pageInfo.totalPages ? <Link href={`/admin?page=${pageInfo.page + 1}&tab=${tab}&filter=${pendingOnly ? "pending" : "all"}`}>{copy.next} →</Link> : <span />}
       </nav>}
-      {cafeLinks.length > 0 && <details className={styles.cafeManager}>
+      {cafeLinks.length > 0 && <details id="admin-cafes" className={styles.cafeManager}>
         <summary>{copy.cafes} <span>{cafeLinks.length}</span></summary>
         <div className={styles.cafeGrid}>{cafeLinks.map((cafe) => <Link key={cafe.slug} href={`/owner/${cafe.slug}`}>
           <span>{lang === "th" ? cafe.nameTh : cafe.nameEn}</span><span aria-hidden>↗</span>
