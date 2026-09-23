@@ -7,6 +7,7 @@ import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { uploadPhoto } from "@/app/actions/photos";
 import ActionForm from "./ActionForm";
+import { useFavorites } from "./FavoritesProvider";
 
 export default function VisitButton({ slug }: { slug: string }) {
   const { user, loading } = useAuth();
@@ -18,6 +19,7 @@ export default function VisitButton({ slug }: { slug: string }) {
 }
 
 function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string; th: boolean }) {
+  const { has } = useFavorites();
   const [state, setState] = useState<"loading" | "new" | "saved" | "error">("loading");
   const [message, setMessage] = useState("");
   const [retry, setRetry] = useState(0);
@@ -72,7 +74,7 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
             <p className="text-xs text-espresso/70">{th ? "JPG, PNG หรือ WebP ไม่เกิน 5 MB · รูปนี้เป็นสาธารณะ" : "JPG, PNG or WebP, up to 5 MB · This photo is public"}</p>
           </ActionForm>
         </div>}
-      {state === "saved" && <Link href="/visited" className="text-sm font-semibold underline underline-offset-4">{th ? "ดูร้านของฉัน" : "View my cafes"} →</Link>}
+      {state === "saved" && <Link href={has(slug) ? "/favorite-cafes" : "/visited"} className="text-sm font-semibold underline underline-offset-4">{has(slug) ? (th ? "ดูร้านโปรด" : "View favorites") : (th ? "ดูร้านที่เคยไป" : "View visited cafes")} →</Link>}
     </div>
     <p role="status" className="text-sm text-espresso/70">{message}</p>
   </div>;

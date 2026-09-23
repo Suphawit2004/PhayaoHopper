@@ -1,5 +1,5 @@
-import VisitedCafes from "@/components/VisitedCafes";
+import SavedCafesView from "@/components/SavedCafesView";
 
-export const metadata = { title: "ร้านของฉัน — My cafes", robots: { index: false, follow: false } };
+export const metadata = { title: "ร้านที่เคยไป — Visited cafes", robots: { index: false, follow: false } };
 
-export default function VisitedPage() { return <VisitedCafes />; }
+export default function VisitedPage() { return <SavedCafesView list="visited" />; }

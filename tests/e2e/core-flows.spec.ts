@@ -128,7 +128,7 @@ test("member must upload a valid photo to record a visit, then can review and se
     buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
-  await expect(page.getByRole("link", { name: "ดูร้านของฉัน" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ดูร้านที่เคยไป" })).toBeVisible();
   await expect(page.getByRole("list", { name: "แกลเลอรีของร้าน" }).getByRole("listitem")).toHaveCount(1, { timeout: 20_000 });
 
   const reviewForm = page.locator(".review-panel form");
@@ -156,7 +156,12 @@ test("a cafe moves between want-to-visit, favorites, and visited-only as its sta
   const favoriteButton = page.locator(".favorite-control");
   await favoriteButton.click();
   await expect(favoriteButton).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("ร้านของฉัน (1)");
+  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("คาเฟ่ที่บันทึกไว้ (1)");
+
+  await page.goto("/favorites");
+  await expect(page.locator(".cafe-card")).toHaveCount(1);
+  await expect(page.getByRole("navigation", { name: "หมวดคาเฟ่ที่บันทึกไว้" }).getByRole("link", { name: "ร้านที่อยากไป 1" })).toHaveAttribute("aria-current", "page");
+  await page.goto(cafePath);
 
   const visitForm = page.locator("form").filter({ has: page.locator('input[name="isPublic"][type="hidden"]') });
   await visitForm.locator('input[type="file"]').setInputFiles({
@@ -165,43 +170,58 @@ test("a cafe moves between want-to-visit, favorites, and visited-only as its sta
     buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
-  await expect(page.getByRole("link", { name: "ดูร้านของฉัน" })).toBeVisible();
-  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("ร้านของฉัน (1)");
+  await expect(page.getByRole("link", { name: "ดูร้านโปรด" })).toBeVisible();
+  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("คาเฟ่ที่บันทึกไว้ (1)");
 
   await page.goto("/visited");
-  const visited = page.locator("section[aria-labelledby='visited-list-heading']");
-  const favorites = page.locator("section[aria-labelledby='favorite-visited-heading']");
-  await expect(visited.locator(".cafe-card")).toHaveCount(0);
-  const wantToVisit = page.locator("section[aria-labelledby='want-to-go-heading']");
-  await expect(wantToVisit.locator(".cafe-card")).toHaveCount(0);
-  await expect(favorites.locator(".cafe-card")).toHaveCount(1);
-  await expect(favorites).toContainText("บ้านบานน์");
+  await expect(page.locator(".cafe-card")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "ร้านที่เคยไป" })).toBeVisible();
 
   await page.locator("details.account-menu summary").click();
   await expect(page.locator(".account-menu-panel")).toContainText("ร้านโปรด (1)");
+  await expect(page.locator('.account-menu-panel a[href="/favorite-cafes"]')).toBeVisible();
   await expect(page.locator(".account-menu-panel")).toContainText("ร้านที่อยากไป");
   await expect(page.locator(".account-menu-panel")).not.toContainText("ร้านที่อยากไป (1)");
   await page.goto("/favorites");
   await expect(page.locator(".cafe-card")).toHaveCount(0);
-  const listNavigation = page.getByRole("navigation", { name: "หมวดร้านของฉัน" });
-  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("ร้านของฉัน (1)");
+  const listNavigation = page.getByRole("navigation", { name: "หมวดคาเฟ่ที่บันทึกไว้" });
+  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("คาเฟ่ที่บันทึกไว้ (1)");
   await expect(listNavigation.getByRole("link", { name: "ร้านที่เคยไป 0" })).toBeVisible();
   await expect(listNavigation.getByRole("link", { name: "ร้านที่อยากไป 0" })).toHaveAttribute("aria-current", "page");
   await expect(listNavigation.getByRole("link", { name: "ร้านโปรด 1" })).toBeVisible();
   await listNavigation.getByRole("link", { name: "ร้านโปรด 1" }).click();
-  await expect(page).toHaveURL(/\/visited#favorite-visited$/);
-  await expect(page.locator("#favorite-visited .cafe-card")).toHaveCount(1);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/favorites");
-  const pageWidth = await page.locator("body").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
-  expect(pageWidth.scroll).toBeLessThanOrEqual(pageWidth.width);
+  await expect(page).toHaveURL(/\/favorite-cafes$/);
+  await expect(page.locator(".cafe-card")).toHaveCount(1);
+  await expect(page.getByRole("heading", { name: "ร้านโปรด" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "หมวดคาเฟ่ที่บันทึกไว้" }).getByRole("link", { name: "ร้านโปรด 1" })).toHaveAttribute("aria-current", "page");
+  await page.locator(".favorite-control").click();
+  await expect(page.locator(".cafe-card")).toHaveCount(0);
   await page.goto("/visited");
-  await favorites.locator(".favorite-control").click();
-  await expect(visited.locator(".cafe-card")).toHaveCount(1);
-  await expect(favorites.locator(".cafe-card")).toHaveCount(0);
-  await visited.locator(".favorite-control").click();
-  await expect(visited.locator(".cafe-card")).toHaveCount(0);
-  await expect(favorites.locator(".cafe-card")).toHaveCount(1);
+  await expect(page.locator(".cafe-card")).toHaveCount(1);
+  await page.locator(".favorite-control").click();
+  await expect(page.locator(".cafe-card")).toHaveCount(0);
+  await page.goto("/favorite-cafes");
+  await expect(page.locator(".cafe-card")).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/visited", "/favorites", "/favorite-cafes"]) {
+    await page.goto(path);
+    const pageWidth = await page.locator("body").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
+    expect(pageWidth.scroll).toBeLessThanOrEqual(pageWidth.width);
+    await expect(page.getByRole("navigation", { name: "หมวดคาเฟ่ที่บันทึกไว้" }).locator('a[aria-current="page"]')).toHaveAttribute("href", path);
+  }
+});
+
+test("guest want-to-visit cafes remain local while visit lists ask for sign-in", async ({ page }) => {
+  await page.goto(cafePath);
+  await page.locator(".favorite-control").click();
+  await page.goto("/favorites");
+  await expect(page.locator(".cafe-card")).toHaveCount(1);
+  await page.goto("/visited");
+  await expect(page.locator("main").getByRole("link", { name: "เข้าสู่ระบบ" })).toBeVisible();
+  await expect(page.locator(".cafe-card")).toHaveCount(0);
+  await page.goto("/favorite-cafes");
+  await expect(page.locator("main").getByRole("link", { name: "เข้าสู่ระบบ" })).toBeVisible();
+  await expect(page.locator(".cafe-card")).toHaveCount(0);
 });
 
 test("profile popup edits name and photo, sends password reset, removes membership card, and logs out", async ({ page }) => {

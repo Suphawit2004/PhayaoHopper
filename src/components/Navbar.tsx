@@ -52,7 +52,7 @@ export default function Navbar() {
     { href: "/chat", label: t("nav.assistant"), icon: "search" as const },
     { href: "/map", label: t("nav.map"), icon: "map" as const },
     { href: user ? "/visited" : "/favorites", label: user
-      ? `${lang === "th" ? "ร้านของฉัน" : "My cafes"}${myCafeCount ? ` (${myCafeCount})` : ""}`
+      ? `${lang === "th" ? "คาเฟ่ที่บันทึกไว้" : "Saved cafes"}${myCafeCount ? ` (${myCafeCount})` : ""}`
       : `${t("nav.favorites")}${wantedCount ? ` (${wantedCount})` : ""}`, icon: "heart" as const },
   ];
   const close = () => setOpen(false);
@@ -72,7 +72,7 @@ export default function Navbar() {
           {open ? (lang === "th" ? "ปิดเมนู" : "Close menu") : (lang === "th" ? "เมนู" : "Menu")}
         </button>
         <nav id="main-navigation" className={`main-navigation ${open ? "is-open" : ""}`} aria-label={t("nav.main")}>
-          {links.map(({ href, label, icon }) => <Link key={href} href={href} onClick={close} aria-current={pathname === href || pathname.startsWith(`${href}/`) || (user && href === "/visited" && pathname === "/favorites") ? "page" : undefined}>
+          {links.map(({ href, label, icon }) => <Link key={href} href={href} onClick={close} aria-current={pathname === href || pathname.startsWith(`${href}/`) || (user && href === "/visited" && (pathname === "/favorites" || pathname === "/favorite-cafes")) ? "page" : undefined}>
             <Icon name={icon} width={17} height={17} />
             <span>{label}</span>
           </Link>)}
@@ -92,13 +92,13 @@ export default function Navbar() {
                 }
               }}>
                 <AccountProfileActions user={user} profile={profile} signOut={signOut} />
-                <Link className="account-favorites-link" href="/visited#visited-only">
+                <Link className="account-favorites-link" href="/visited">
                   {lang === "th" ? `ร้านที่เคยไป${visitedOnlyCount ? ` (${visitedOnlyCount})` : ""}` : `Visited cafes${visitedOnlyCount ? ` (${visitedOnlyCount})` : ""}`}
                 </Link>
                 <Link className="account-favorites-link" href="/favorites">
                   {lang === "th" ? `ร้านที่อยากไป${wantedCount ? ` (${wantedCount})` : ""}` : `Want to visit${wantedCount ? ` (${wantedCount})` : ""}`}
                 </Link>
-                <Link className="account-favorites-link" href="/visited#favorite-visited">
+                <Link className="account-favorites-link" href="/favorite-cafes">
                   {lang === "th" ? `ร้านโปรด${favoriteVisitedCount ? ` (${favoriteVisitedCount})` : ""}` : `Favorites${favoriteVisitedCount ? ` (${favoriteVisitedCount})` : ""}`}
                 </Link>
                 <FeatureNav />
