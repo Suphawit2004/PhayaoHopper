@@ -245,5 +245,6 @@ test("administrator can open the moderation dashboard", async ({ page }) => {
   await page.locator(".password-login form button").last().click();
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "จัดการข้อมูล", exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "งานที่ควรจัดการ" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "งานที่ควรจัดการ" })).toBeVisible();
+  await expect(page.locator("#admin-workspace")).toBeVisible();
 });
