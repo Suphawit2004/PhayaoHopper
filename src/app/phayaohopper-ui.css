@@ -46,6 +46,36 @@ body { color: var(--ph-body); background: var(--ph-paper); }
 .feature-page .feature-card[class*="text-white"] > h2 { border-color: rgb(250 248 243 / 35%); color: #fffefa; }
 .feature-form input:not([type=checkbox]):not([type=radio]), .feature-form textarea, .feature-form select { border-color: #c7bcaa; border-radius: var(--ph-radius-small); background: var(--ph-surface); }
 .feature-form input:focus-visible, .feature-form textarea:focus-visible, .feature-form select:focus-visible { outline-color: var(--ph-ink); }
+.feature-form .cafe-tag-fieldset { display: grid; gap: 8px; }
+.feature-form .cafe-tag-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.feature-form .cafe-tag-chip {
+  position: relative;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 11px;
+  border: 1px solid #c7bcaa;
+  border-radius: 999px;
+  background: #fffefa;
+  color: var(--ph-ink);
+  cursor: pointer;
+  line-height: 1.25;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+.feature-form .cafe-tag-chip:hover { border-color: #9a7450; background: #f4efe5; }
+.feature-form .cafe-tag-chip:has(input:checked) { border-color: var(--ph-ink); background: var(--ph-ink); color: #fffefa; }
+.feature-form .cafe-tag-chip:has(input:focus-visible) { outline: 2px solid #9a7450; outline-offset: 2px; }
+.feature-form .cafe-tag-chip input[type=checkbox] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.feature-form .cafe-tag-add { display: grid; gap: 6px; margin-top: 4px; }
 .feature-button { border-radius: var(--ph-radius-small); background: var(--ph-ink); transition: background-color 160ms ease, transform 160ms ease; }
 .feature-button:hover:not(:disabled) { background: #162e38; }
 .feature-button:active:not(:disabled), .ui-secondary:active { transform: translateY(1px); }
