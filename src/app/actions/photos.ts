@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import type { MutationResult } from "./cafe-management";
+import { validateImageUpload } from "@/lib/image-upload-validation";
 export type CommunityPhoto = { id: string; user_id: string; cafe_slug: string; caption: string; is_public: boolean; review_id: string | null; url: string };
 
 async function readPhotos(slug?: string, photoId?: string, reviewIds?: string[]): Promise<{ photos: CommunityPhoto[]; error?: string }> {
@@ -42,12 +43,13 @@ export async function uploadPhoto(form: FormData): Promise<MutationResult> {
   if (!sb || !user) return { ok: false, message: "กรุณาเข้าสู่ระบบ" };
   const file = form.get("photo");
   const slug = String(form.get("slug") ?? "");
-  if (!(file instanceof File) || !file.size || file.size > 5242880 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) return { ok: false, message: "ใช้รูป JPG, PNG หรือ WebP ไม่เกิน 5 MB" };
+  if (!(file instanceof File)) return { ok: false, message: "ใช้รูป JPG, PNG หรือ WebP ไม่เกิน 5 MB" };
+  const image = await validateImageUpload(file);
+  if (!image) return { ok: false, message: "ไฟล์รูปไม่ถูกต้อง กรุณาใช้ JPG, PNG หรือ WebP ที่เปิดได้ ขนาดไม่เกิน 5 MB" };
   const { data: cafe } = await sb.from("cafes").select("slug").eq("slug", slug).eq("is_active", true).maybeSingle();
   if (!cafe) return { ok: false, message: "ไม่พบร้านที่เผยแพร่แล้ว" };
-  const ext = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
-  const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-  const { error: uploadError } = await sb.storage.from("cafe-community").upload(path, file, { contentType: file.type });
+  const path = `${user.id}/${crypto.randomUUID()}.${image.extension}`;
+  const { error: uploadError } = await sb.storage.from("cafe-community").upload(path, file, { contentType: image.contentType });
   if (uploadError) return { ok: false, message: "อัปโหลดไม่สำเร็จ กรุณาลองใหม่" };
   const { error } = await sb.from("cafe_photos").insert({ cafe_slug: slug, user_id: user.id, path,
     caption: String(form.get("caption") ?? "").trim().slice(0, 300), is_public: form.get("isPublic") === "on" });

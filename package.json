@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:db": "node scripts/test-feature-db.mjs",
     "cafes:pins": "node scripts/apply-pins.mjs",
     "sync-suggestions": "node scripts/sync-suggestions.mjs"
@@ -16,13 +17,14 @@
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.3",
     "leaflet": "^1.9.4",
-    "next": "16.3.2",
+    "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
