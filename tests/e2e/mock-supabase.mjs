@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "fixtures");
 const png = await readFile(resolve(root, "transparent.png"));
 const users = new Map();
+const userIds = new Map();
 const visits = new Set();
+const favorites = new Map();
 const reviews = [];
 const photos = [];
 const objects = new Map();
@@ -30,10 +32,11 @@ const server = createServer(async (req, res) => {
   if (url.pathname === "/health") return asJson(res, 200, { ok: true });
   if (url.pathname === "/auth/v1/token" && req.method === "POST") {
     const body = JSON.parse((await collect(req)).toString("utf8"));
-    const id = body.email?.startsWith("admin") ? "00000000-0000-4000-8000-000000000002" : "00000000-0000-4000-8000-000000000001";
+    const id = userIds.get(body.email) ?? (body.email?.startsWith("admin") ? "00000000-0000-4000-8000-000000000002" : body.email?.startsWith("member") ? "00000000-0000-4000-8000-000000000001" : "00000000-0000-4000-8000-000000000003");
+    userIds.set(body.email, id);
     if (id.endsWith("0002")) adminIds.add(id);
     const user = { id, aud: "authenticated", role: "authenticated", email: body.email, app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, created_at: new Date().toISOString() };
-    const token = id.endsWith("0002") ? "e2e-admin-token" : "e2e-member-token";
+    const token = `e2e-${id}`;
     users.set(token, user);
     return asJson(res, 200, { access_token: token, token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: `refresh-${token}`, user });
   }
@@ -88,12 +91,38 @@ const server = createServer(async (req, res) => {
   }
   if (table === "cafe_visits" && req.method === "GET") {
     const slug = url.searchParams.get("cafe_slug")?.slice(3);
-    return respondRows(req, res, slug && user && visits.has(`${user.id}:${slug}`) ? [{ cafe_slug: slug, created_at: new Date().toISOString() }] : []);
+    const rows = user ? [...visits]
+      .filter(key => key.startsWith(`${user.id}:`))
+      .map(key => key.slice(user.id.length + 1))
+      .filter(cafeSlug => !slug || cafeSlug === slug)
+      .map(cafe_slug => ({ cafe_slug, created_at: new Date().toISOString() })) : [];
+    return respondRows(req, res, rows);
   }
   if (table === "cafe_visits" && (req.method === "POST" || req.method === "DELETE")) {
     if (req.method === "POST") return asJson(res, 403, { code: "42501", message: "Photo required" });
     const slug = url.searchParams.get("cafe_slug")?.slice(3);
     if (req.method === "DELETE" && user && slug) visits.delete(`${user.id}:${slug}`);
+    res.writeHead(204); return res.end();
+  }
+  if (table === "favorites" && req.method === "GET") {
+    const rows = [...favorites.values()].filter(row => user && row.user_id === user.id && filter(url, "user_id", user.id));
+    return respondRows(req, res, rows);
+  }
+  if (table === "favorites" && req.method === "POST") {
+    const body = JSON.parse((await collect(req)).toString("utf8"));
+    const rows = Array.isArray(body) ? body : [body];
+    if (!user || rows.some(row => row.user_id !== user.id)) return asJson(res, 403, { code: "42501", message: "Favorite owner mismatch" });
+    const saved = rows.map(row => {
+      const key = `${row.user_id}:${row.cafe_slug}`;
+      const entry = favorites.get(key) ?? { ...row, created_at: new Date().toISOString() };
+      favorites.set(key, entry);
+      return entry;
+    });
+    return respondRows(req, res, saved);
+  }
+  if (table === "favorites" && req.method === "DELETE") {
+    const slug = url.searchParams.get("cafe_slug")?.slice(3);
+    if (user && slug) favorites.delete(`${user.id}:${slug}`);
     res.writeHead(204); return res.end();
   }
   if (table === "cafe_photos" && req.method === "GET") {

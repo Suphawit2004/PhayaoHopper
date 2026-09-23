@@ -47,8 +47,7 @@ function VisitList({ userId, compact }: { userId: string; compact: boolean }) {
   }, [userId, retry]);
   if (error) return <div role="alert"><p>{th ? "โหลดประวัติไม่สำเร็จ" : "Could not load visits."}</p><button className="ui-secondary mt-3" onClick={() => { setError(false); setRetry(n => n + 1); }}>{th ? "ลองอีกครั้ง" : "Retry"}</button></div>;
   if (!rows) return <p role="status">{th ? "กำลังโหลดประวัติ…" : "Loading visits…"}</p>;
-  const visitedSlugs = new Set(rows.map(row => row.cafe_slug));
-  const wanted = favoriteSlugs.filter(slug => !visitedSlugs.has(slug))
+  const wanted = favoriteSlugs
     .map(slug => cafes.find(cafe => cafe.slug === slug))
     .filter((cafe): cafe is (typeof cafes)[number] => Boolean(cafe));
   return <>
@@ -71,7 +70,7 @@ function VisitList({ userId, compact }: { userId: string; compact: boolean }) {
     <section aria-labelledby="want-to-go-heading">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><h2 id="want-to-go-heading" className="text-xl font-bold">{th ? "ร้านที่อยากไป" : "Want to visit"}</h2>
-          <p className="mt-1 text-sm text-espresso/65">{th ? "ร้านที่กดหัวใจไว้และยังไม่ได้บันทึกว่าเคยไป" : "Favorite cafes you have not marked as visited yet."}</p></div>
+          <p className="mt-1 text-sm text-espresso/65">{th ? "ร้านที่กดหัวใจไว้ จะแสดงที่นี่แม้เคยไปแล้ว" : "Cafes saved with the heart appear here, even if you have visited them."}</p></div>
         <Link href="/cafes" className="ui-secondary">{th ? "เพิ่มร้านที่อยากไป" : "Add a cafe"} →</Link>
       </div>
       {wanted.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{wanted.map(cafe => <CafeCard key={cafe.slug} cafe={cafe} />)}</div> :

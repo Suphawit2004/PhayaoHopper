@@ -30,7 +30,7 @@ test("member must upload a valid photo to record a visit, then can review and se
     buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
-  await expect(page.getByRole("link", { name: "ดูร้านที่เคยไปแล้ว" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ดูร้านโปรด" })).toBeVisible();
   await expect(page.getByRole("list", { name: "แกลเลอรีของร้าน" }).getByRole("listitem")).toHaveCount(1, { timeout: 20_000 });
 
   const reviewForm = page.locator(".review-panel form");
@@ -51,6 +51,30 @@ test("member must upload a valid photo to record a visit, then can review and se
   const gallery = page.getByRole("list", { name: "แกลเลอรีของฉัน" });
   await expect(gallery.getByRole("listitem")).toHaveCount(2, { timeout: 20_000 });
   await expect(gallery.locator("img").first()).toBeVisible();
+});
+
+test("a favorited cafe remains in the want-to-visit list after recording a visit", async ({ page }) => {
+  await signIn(page, "wishlist-e2e@example.test");
+  const favoriteButton = page.locator(".favorite-control");
+  await favoriteButton.click();
+  await expect(favoriteButton).toHaveAttribute("aria-pressed", "true");
+
+  const visitForm = page.locator("form").filter({ has: page.locator('input[name="isPublic"][type="hidden"]') });
+  await visitForm.locator('input[type="file"]').setInputFiles({
+    name: "visit.png",
+    mimeType: "image/png",
+    buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
+  });
+  await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
+  await expect(page.getByRole("link", { name: "ดูร้านโปรด" })).toBeVisible();
+
+  await page.goto("/visited");
+  const wantToVisit = page.locator("section[aria-labelledby='want-to-go-heading']");
+  await expect(wantToVisit.locator(".cafe-card")).toHaveCount(1);
+  await expect(wantToVisit).toContainText("บ้านบานน์");
+
+  await page.locator("details.account-menu summary").click();
+  await expect(page.locator(".account-menu-panel")).toContainText("ร้านที่อยากไป (1)");
 });
 
 test("administrator can open the moderation dashboard", async ({ page }) => {
