@@ -128,7 +128,7 @@ test("member must upload a valid photo to record a visit, then can review and se
     buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
-  await expect(page.getByRole("link", { name: "ดูร้านโปรด" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ดูร้านของฉัน" })).toBeVisible();
   await expect(page.getByRole("list", { name: "แกลเลอรีของร้าน" }).getByRole("listitem")).toHaveCount(1, { timeout: 20_000 });
 
   const reviewForm = page.locator(".review-panel form");
@@ -151,7 +151,7 @@ test("member must upload a valid photo to record a visit, then can review and se
   await expect(gallery.locator("img").first()).toBeVisible();
 });
 
-test("a visited cafe moves out of the want-to-visit list after recording a visit", async ({ page }) => {
+test("a cafe moves between want-to-visit, favorites, and visited-only as its states change", async ({ page }) => {
   await signIn(page, "wishlist-e2e@example.test");
   const favoriteButton = page.locator(".favorite-control");
   await favoriteButton.click();
@@ -165,21 +165,31 @@ test("a visited cafe moves out of the want-to-visit list after recording a visit
     buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
-  await expect(page.getByRole("link", { name: "ดูร้านโปรด" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ดูร้านของฉัน" })).toBeVisible();
   await expect(page.locator('.main-navigation > a[href="/favorites"]')).not.toContainText("(1)");
 
   await page.goto("/visited");
   const visited = page.locator("section[aria-labelledby='visited-list-heading']");
-  await expect(visited.locator(".cafe-card")).toHaveCount(1);
-  await expect(visited).toContainText("บ้านบานน์");
+  const favorites = page.locator("section[aria-labelledby='favorite-visited-heading']");
+  await expect(visited.locator(".cafe-card")).toHaveCount(0);
   const wantToVisit = page.locator("section[aria-labelledby='want-to-go-heading']");
   await expect(wantToVisit.locator(".cafe-card")).toHaveCount(0);
+  await expect(favorites.locator(".cafe-card")).toHaveCount(1);
+  await expect(favorites).toContainText("บ้านบานน์");
 
   await page.locator("details.account-menu summary").click();
+  await expect(page.locator(".account-menu-panel")).toContainText("ร้านโปรด (1)");
   await expect(page.locator(".account-menu-panel")).toContainText("ร้านที่อยากไป");
   await expect(page.locator(".account-menu-panel")).not.toContainText("ร้านที่อยากไป (1)");
   await page.goto("/favorites");
   await expect(page.locator(".cafe-card")).toHaveCount(0);
+  await page.goto("/visited");
+  await favorites.locator(".favorite-control").click();
+  await expect(visited.locator(".cafe-card")).toHaveCount(1);
+  await expect(favorites.locator(".cafe-card")).toHaveCount(0);
+  await visited.locator(".favorite-control").click();
+  await expect(visited.locator(".cafe-card")).toHaveCount(0);
+  await expect(favorites.locator(".cafe-card")).toHaveCount(1);
 });
 
 test("profile popup edits name and photo, sends password reset, removes membership card, and logs out", async ({ page }) => {

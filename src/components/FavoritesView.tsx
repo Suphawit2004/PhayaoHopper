@@ -50,7 +50,7 @@ export default function FavoritesView() {
         <div className="rounded-2xl border border-dashed border-[#d9c9ac] bg-white/60 px-6 py-16 text-center">
           <p className="text-lg font-semibold text-espresso/80">{t("fav.empty")}</p>
           <p className="mt-1 text-sm text-espresso/70">{user && slugs.length > 0
-            ? (lang === "th" ? "ร้านที่กดหัวใจไว้และเคยไปแล้วอยู่ในรายการร้านโปรด" : "Your heart-saved visited cafes are in Places to revisit.")
+            ? <>{lang === "th" ? "ร้านที่กดหัวใจไว้และเคยไปแล้วอยู่ใน" : "Your heart-saved visited cafes are in "}<Link href="/visited#favorite-visited" className="font-semibold underline underline-offset-2">{lang === "th" ? "ร้านโปรด" : "Favorites"}</Link></>
             : t("fav.emptyHint")}</p>
           <Link
             href="/cafes"

@@ -13,8 +13,10 @@ import { useProfile } from "@/lib/use-profile";
 import Icon from "./Icon";
 import Image from "next/image";
 export default function Navbar() {
-  const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady } = useFavorites(); const pathname = usePathname();
+  const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady, slugs, visits } = useFavorites(); const pathname = usePathname();
   const wantedCount = wantedReady ? wantedSlugs.length : 0;
+  const visitedOnlyCount = visits?.filter(row => !slugs.includes(row.cafe_slug)).length ?? 0;
+  const favoriteVisitedCount = visits?.filter(row => slugs.includes(row.cafe_slug)).length ?? 0;
   const { profile } = useProfile();
   const [open,setOpen] = useState(false); const trigger = useRef<HTMLButtonElement>(null); const accountMenu = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -87,11 +89,14 @@ export default function Navbar() {
                 }
               }}>
                 <AccountProfileActions user={user} profile={profile} signOut={signOut} />
-                <Link className="account-favorites-link" href="/visited">
-                  {lang === "th" ? "ร้านโปรด" : "Places to revisit"}
+                <Link className="account-favorites-link" href="/visited#visited-only">
+                  {lang === "th" ? `ร้านที่เคยไป${visitedOnlyCount ? ` (${visitedOnlyCount})` : ""}` : `Visited cafes${visitedOnlyCount ? ` (${visitedOnlyCount})` : ""}`}
                 </Link>
                 <Link className="account-favorites-link" href="/favorites">
                   {lang === "th" ? `ร้านที่อยากไป${wantedCount ? ` (${wantedCount})` : ""}` : `Want to visit${wantedCount ? ` (${wantedCount})` : ""}`}
+                </Link>
+                <Link className="account-favorites-link" href="/visited#favorite-visited">
+                  {lang === "th" ? `ร้านโปรด${favoriteVisitedCount ? ` (${favoriteVisitedCount})` : ""}` : `Favorites${favoriteVisitedCount ? ` (${favoriteVisitedCount})` : ""}`}
                 </Link>
                 <FeatureNav />
               </div>
