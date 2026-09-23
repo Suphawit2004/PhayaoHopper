@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
@@ -9,6 +9,7 @@ import { updateMyProfile } from "@/app/actions/profile";
 import { useUi } from "@/i18n/UiText";
 import type { User } from "@supabase/supabase-js";
 import type { ProfileRow } from "@/lib/types";
+import Icon from "./Icon";
 
 export default function AccountProfileActions({
   user: accountUser,
@@ -21,30 +22,30 @@ export default function AccountProfileActions({
 }) {
   const ui = useUi();
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
+  const avatarInput = useRef<HTMLInputElement>(null);
+  const previewUrl = useRef<string | null>(null);
+  const [nameEditing, setNameEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
-  const previewUrl = useRef<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState("");
+  const currentName = profile?.display_name || accountUser.email?.split("@")[0] || ui("สมาชิก");
+  const shownAvatar = preview || profile?.avatar_url || null;
 
   useEffect(() => () => {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
   }, []);
 
-  function selectAvatar(file: File | null) {
+  function setAvatarPreview(file: File | null) {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
     previewUrl.current = file ? URL.createObjectURL(file) : null;
     setPreview(previewUrl.current);
   }
 
-  const shownAvatar = preview || profile?.avatar_url || null;
-
-  async function saveProfile(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function persistProfile(formData: FormData, successMessage: string, pendingMessage: string) {
     setPending(true);
-    setMessage("");
-    const formData = new FormData(event.currentTarget);
+    setMessage(pendingMessage);
     try {
       const result = await updateMyProfile(formData);
       if (!result.ok) {
@@ -56,16 +57,56 @@ export default function AccountProfileActions({
           database_error: ui("บันทึกโปรไฟล์ไม่สำเร็จ กรุณาลองใหม่"),
         };
         setMessage(errors[result.reason]);
-        return;
+        return false;
       }
       window.dispatchEvent(new CustomEvent("profile-updated", { detail: { userId: accountUser.id, profile: result.profile } }));
-      selectAvatar(null);
-      setEditing(false);
-      setMessage(ui("บันทึกข้อมูลโปรไฟล์แล้ว"));
+      setAvatarPreview(null);
+      setNameEditing(false);
+      setMessage(successMessage);
+      return true;
     } catch {
       setMessage(ui("บันทึกโปรไฟล์ไม่สำเร็จ กรุณาลองใหม่"));
+      return false;
     } finally {
       setPending(false);
+    }
+  }
+
+  async function saveDisplayName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData();
+    formData.set("displayName", displayName);
+    await persistProfile(formData, ui("บันทึกข้อมูลโปรไฟล์แล้ว"), ui("กำลังบันทึก…"));
+  }
+
+  async function changeAvatar(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage(ui("รูปใหญ่เกินไป (สูงสุด 5MB)"));
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setMessage(ui("รองรับเฉพาะไฟล์ JPG, PNG, WEBP"));
+      return;
+    }
+
+    setAvatarPreview(file);
+    const formData = new FormData();
+    formData.set("displayName", currentName);
+    formData.set("avatar", file);
+    await persistProfile(formData, ui("อัปเดตรูปโปรไฟล์แล้ว"), ui("กำลังอัปโหลดรูปโปรไฟล์…"));
+  }
+
+  async function copyMemberId() {
+    try {
+      await navigator.clipboard.writeText(accountUser.id);
+      setCopied(true);
+      setMessage(ui("คัดลอกรหัสสมาชิกแล้ว"));
+    } catch {
+      setCopied(false);
+      setMessage(ui("คัดลอกรหัสไม่สำเร็จ กรุณาลองใหม่"));
     }
   }
 
@@ -106,70 +147,81 @@ export default function AccountProfileActions({
 
   return (
     <section className="account-profile-actions" aria-label={ui("ตั้งค่าบัญชี")}>
-      {!editing ? (
+      <input
+        ref={avatarInput}
+        className="sr-only"
+        type="file"
+        name="avatar"
+        accept="image/jpeg,image/png,image/webp"
+        aria-label={ui("เลือกรูปโปรไฟล์ใหม่")}
+        tabIndex={-1}
+        onChange={changeAvatar}
+      />
+      <div className="account-identity">
         <button
-          className="account-action-link"
+          className="account-avatar account-avatar-large account-avatar-edit-button"
           type="button"
-          onClick={() => {
-            setDisplayName(profile?.display_name || accountUser.email?.split("@")[0] || "");
-            selectAvatar(null);
-            setMessage("");
-            setEditing(true);
-          }}
+          aria-label={ui("เปลี่ยนรูปโปรไฟล์")}
+          title={ui("เปลี่ยนรูปโปรไฟล์")}
+          disabled={pending}
+          onClick={() => avatarInput.current?.click()}
         >
-          {ui("แก้ไขชื่อและรูปโปรไฟล์")}
+          {shownAvatar ? <Image src={shownAvatar} alt="" width={48} height={48} unoptimized /> : <span aria-hidden="true">{currentName.trim().slice(0, 1).toUpperCase()}</span>}
+          <span className="account-avatar-edit-indicator" aria-hidden="true"><Icon name="edit" width={13} height={13} /></span>
         </button>
-      ) : (
-        <form className="account-profile-form" onSubmit={saveProfile}>
-          <h2>{ui("แก้ไขโปรไฟล์")}</h2>
-          <label>
-            <span>{ui("ชื่อที่แสดง")}</span>
-            <input
-              name="displayName"
-              value={displayName}
-              maxLength={60}
-              onChange={event => setDisplayName(event.target.value)}
-              autoComplete="nickname"
-              autoFocus
-              required
-              disabled={pending}
-            />
-          </label>
-          <label>
-            <span>{ui("รูปโปรไฟล์ · JPG, PNG หรือ WebP ไม่เกิน 5 MB")}</span>
-            <input
-              name="avatar"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              disabled={pending}
-              onChange={event => {
-                const file = event.target.files?.[0] ?? null;
-                if (file && file.size > 5 * 1024 * 1024) {
-                  event.target.value = "";
-                  selectAvatar(null);
-                  setMessage(ui("รูปใหญ่เกินไป (สูงสุด 5MB)"));
-                } else if (file && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-                  event.target.value = "";
-                  selectAvatar(null);
-                  setMessage(ui("รองรับเฉพาะไฟล์ JPG, PNG, WEBP"));
-                } else {
-                  setMessage("");
-                  selectAvatar(file);
-                }
-              }}
-            />
-          </label>
-          {shownAvatar && <Image className="account-avatar-preview" src={shownAvatar} alt={ui("ตัวอย่างรูปโปรไฟล์")} width={64} height={64} unoptimized />}
-          <div className="account-profile-form-actions">
-            <button className="feature-button" type="submit" disabled={pending}>
-              {pending ? ui("กำลังบันทึก…") : ui("บันทึกโปรไฟล์")}
-            </button>
-            <button className="ui-secondary" type="button" disabled={pending} onClick={() => { setEditing(false); selectAvatar(null); setMessage(""); }}>
-              {ui("ยกเลิก")}
-            </button>
+        <div className="account-identity-copy">
+          {!nameEditing ? (
+            <div className="account-name-display">
+              <strong>{currentName}</strong>
+              <button
+                className="account-icon-button account-name-edit-button"
+                type="button"
+                aria-label={ui("แก้ไขชื่อ")}
+                title={ui("แก้ไขชื่อ")}
+                disabled={pending}
+                onClick={() => { setDisplayName(currentName); setMessage(""); setNameEditing(true); }}
+              >
+                <Icon name="edit" width={16} height={16} />
+              </button>
+            </div>
+          ) : (
+            <form className="account-name-edit-form" onSubmit={saveDisplayName}>
+              <label className="sr-only" htmlFor="account-display-name">{ui("ชื่อที่แสดง")}</label>
+              <input
+                id="account-display-name"
+                name="displayName"
+                value={displayName}
+                maxLength={60}
+                autoComplete="nickname"
+                autoFocus
+                required
+                disabled={pending}
+                onChange={event => setDisplayName(event.target.value)}
+              />
+              <div className="account-name-edit-actions">
+                <button className="account-inline-save" type="submit" disabled={pending}>{pending ? ui("กำลังบันทึก…") : ui("บันทึก")}</button>
+                <button className="account-inline-cancel" type="button" disabled={pending} onClick={() => { setNameEditing(false); setMessage(""); }}>{ui("ยกเลิก")}</button>
+              </div>
+            </form>
+          )}
+          <small>{accountUser.email}</small>
+          <div className="account-member-id">
+            <span className="account-member-id-label">{ui("รหัสสมาชิก")}</span>
+            <div className="account-member-id-value">
+              <code>{accountUser.id}</code>
+              <button
+                className="account-icon-button account-copy-button"
+                type="button"
+                aria-label={copied ? ui("คัดลอกรหัสสมาชิกแล้ว") : ui("คัดลอกรหัสสมาชิก")}
+                title={copied ? ui("คัดลอกรหัสสมาชิกแล้ว") : ui("คัดลอกรหัสสมาชิก")}
+                onClick={copyMemberId}
+              >
+                <Icon name={copied ? "check" : "copy"} width={17} height={17} />
+              </button>
+            </div>
           </div>
-        </form>
-      )}
+        </div>
+      </div>
 
       <div className="account-security-actions">
         <button className="account-action-link" type="button" onClick={sendPasswordReset} disabled={pending}>

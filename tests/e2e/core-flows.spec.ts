@@ -78,26 +78,42 @@ test("a favorited cafe remains in the want-to-visit list after recording a visit
 });
 
 test("profile popup edits name and photo, sends password reset, removes membership card, and logs out", async ({ page }) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/login?next=%2F");
   await page.locator(".password-login input[name=email]").fill("profile-e2e@example.test");
   await page.locator(".password-login input[name=password]").fill("demo-password");
   await page.locator(".password-login form button").last().click();
   await expect(page).toHaveURL(/\/$/);
 
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "เมนู" }).click();
   await page.locator("details.account-menu summary").click();
   const panel = page.locator(".account-menu-panel");
+  const panelBounds = await panel.boundingBox();
+  expect(panelBounds).not.toBeNull();
+  expect(panelBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(panelBounds!.x + panelBounds!.width).toBeLessThanOrEqual(390);
   await expect(panel.locator(".account-services")).not.toContainText("บัตรสมาชิก");
-  await panel.getByRole("button", { name: "แก้ไขชื่อและรูปโปรไฟล์" }).click();
+  await expect(panel.locator(".account-member-id code")).toHaveText("00000000-0000-4000-8000-000000000003");
+  await panel.getByRole("button", { name: "คัดลอกรหัสสมาชิก" }).click();
+  await expect(panel.getByRole("status")).toContainText("คัดลอกรหัสสมาชิกแล้ว");
+  await panel.getByRole("button", { name: "แก้ไขชื่อ" }).click();
   await panel.locator('input[name="displayName"]').fill("สมาชิกทดสอบ Phayao");
-  await panel.locator('input[name="avatar"]').setInputFiles({ name: "fake.png", mimeType: "image/png", buffer: Buffer.from("not a PNG") });
-  await panel.getByRole("button", { name: "บันทึกโปรไฟล์" }).click();
+  await panel.getByRole("button", { name: "บันทึก", exact: true }).click();
+  await expect(panel.locator(".account-identity-copy strong")).toHaveText("สมาชิกทดสอบ Phayao", { timeout: 20_000 });
+
+  const avatarChooser = page.waitForEvent("filechooser");
+  await panel.getByRole("button", { name: "เปลี่ยนรูปโปรไฟล์" }).click();
+  await (await avatarChooser).setFiles({ name: "fake.png", mimeType: "image/png", buffer: Buffer.from("not a PNG") });
   await expect(panel.getByRole("status")).toContainText("รูปไม่ถูกต้อง");
-  await panel.locator('input[name="avatar"]').setInputFiles({
+  const validAvatarChooser = page.waitForEvent("filechooser");
+  await panel.getByRole("button", { name: "เปลี่ยนรูปโปรไฟล์" }).click();
+  await (await validAvatarChooser).setFiles({
     name: "avatar.png",
     mimeType: "image/png",
     buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
   });
-  await panel.getByRole("button", { name: "บันทึกโปรไฟล์" }).click();
+  await expect(panel.getByRole("status")).toContainText("อัปเดตรูปโปรไฟล์แล้ว", { timeout: 20_000 });
   await expect(panel.locator(".account-identity-copy strong")).toHaveText("สมาชิกทดสอบ Phayao", { timeout: 20_000 });
   await expect(panel.locator(".account-identity .account-avatar img")).toBeVisible();
 
@@ -109,6 +125,7 @@ test("profile popup edits name and photo, sends password reset, removes membersh
   await expect(page.locator('input[name="password"]')).toBeVisible();
 
   await page.goto("/");
+  await page.getByRole("button", { name: "เมนู" }).click();
   await page.locator("details.account-menu summary").click();
   const reopenedPanel = page.locator(".account-menu-panel");
   await expect(reopenedPanel.locator(".account-identity-copy strong")).toHaveText("สมาชิกทดสอบ Phayao");
