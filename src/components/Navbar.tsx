@@ -28,6 +28,10 @@ export default function Navbar() {
       }
     };
     const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (open && !document.getElementById("main-navigation")?.contains(target) && !trigger.current?.contains(target)) {
+        setOpen(false);
+      }
       if (accountMenu.current?.open && !accountMenu.current.contains(event.target as Node)) {
         accountMenu.current.open = false;
       }
@@ -39,7 +43,11 @@ export default function Navbar() {
       document.removeEventListener("pointerdown", onPointerDown);
     };
   }, [open]);
-  const links = [["/cafes", t("nav.cafes")], ["/map", t("nav.map")], ["/favorites", `${t("nav.favorites")}${slugs.length ? ` (${slugs.length})` : ""}`]];
+  const links = [
+    { href: "/cafes", label: t("nav.cafes"), icon: "coffee" as const },
+    { href: "/map", label: t("nav.map"), icon: "map" as const },
+    { href: "/favorites", label: `${t("nav.favorites")}${slugs.length ? ` (${slugs.length})` : ""}`, icon: "heart" as const },
+  ];
   const close = () => setOpen(false);
   const initials = (profile?.display_name || user?.email || "?").trim().slice(0, 1).toUpperCase();
 
@@ -53,10 +61,14 @@ export default function Navbar() {
         <div className="nav-search"><CafeSearch variant="navbar" /></div>
         <button className="ui-secondary language-toggle" onClick={toggle}>{t("lang.switchTo")}</button>
         <button ref={trigger} className="ui-secondary nav-toggle" aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}>
+          <Icon name={open ? "close" : "menu"} width={18} height={18} />
           {open ? (lang === "th" ? "ปิดเมนู" : "Close menu") : (lang === "th" ? "เมนู" : "Menu")}
         </button>
         <nav id="main-navigation" className={`main-navigation ${open ? "is-open" : ""}`} aria-label={t("nav.main")}>
-          {links.map(([href, label]) => <Link key={href} href={href} onClick={close} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
+          {links.map(({ href, label, icon }) => <Link key={href} href={href} onClick={close} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>
+            <Icon name={icon} width={17} height={17} />
+            <span>{label}</span>
+          </Link>)}
           {!loading && (user ? (
             <details ref={accountMenu} className="account-menu">
               <summary aria-label={lang === "th" ? "เปิดเมนูโปรไฟล์" : "Open profile menu"}>

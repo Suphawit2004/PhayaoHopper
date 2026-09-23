@@ -3,6 +3,50 @@ import { resolve } from "node:path";
 
 const cafePath = "/cafes/baan-baann";
 
+test("navbar keeps search within reach on mobile and marks the active section", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(cafePath);
+
+  const search = page.locator(".nav-search input");
+  await expect(search).toBeVisible();
+  await search.fill("บ้านบานน์");
+  await expect(page.locator(".search-results")).toContainText("บ้านบานน์");
+  await search.fill("");
+
+  await page.getByRole("button", { name: "เมนู" }).click();
+  const navigation = page.locator(".main-navigation");
+  await expect(navigation).toBeVisible();
+  await expect(navigation.locator('a[href="/cafes"]')).toHaveAttribute("aria-current", "page");
+  const headerBounds = await page.locator(".nav-main").evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(headerBounds.scrollWidth).toBeLessThanOrEqual(headerBounds.clientWidth);
+  const menuButton = page.getByRole("button", { name: "เมนู" });
+  const menuButtonBounds = await menuButton.evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(menuButtonBounds.scrollWidth).toBeLessThanOrEqual(menuButtonBounds.clientWidth);
+  await page.keyboard.press("Escape");
+  await expect(navigation).toBeHidden();
+  await page.getByRole("button", { name: "เมนู" }).click();
+  await search.click();
+  await expect(navigation).toBeHidden();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(navigation).toBeVisible();
+  await expect(page.getByRole("button", { name: "เมนู" })).toBeHidden();
+  await expect(search).toBeVisible();
+
+  await page.setViewportSize({ width: 320, height: 700 });
+  const narrowHeader = await page.locator(".nav-main").evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(narrowHeader.scrollWidth).toBeLessThanOrEqual(narrowHeader.clientWidth);
+});
+
 async function signIn(page: import("@playwright/test").Page, email: string) {
   await page.goto(`/login?next=${encodeURIComponent(cafePath)}`);
   await page.locator(".password-login input[name=email]").fill(email);
