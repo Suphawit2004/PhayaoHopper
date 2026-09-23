@@ -10,11 +10,11 @@ import CafeCard from "./CafeCard";
 
 export default function FavoritesView() {
   const CAFES = useCatalog();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { user } = useAuth();
-  const { slugs, ready } = useFavorites();
+  const { slugs, wantedSlugs, wantedReady, visitsError, retryVisits } = useFavorites();
 
-  const cafes = slugs
+  const cafes = wantedSlugs
     .map((slug) => CAFES.find((c) => c.slug === slug))
     .filter((c): c is (typeof CAFES)[number] => Boolean(c));
 
@@ -27,7 +27,7 @@ export default function FavoritesView() {
         </p>
       </header>
 
-      {!user && ready && slugs.length > 0 && (
+      {!user && wantedReady && slugs.length > 0 && (
         <p className="mb-5 rounded-xl bg-sand/60 px-4 py-3 text-sm text-espresso/80">
           🔑 {t("fav.guestNote")}{" "}
           <Link
@@ -39,12 +39,19 @@ export default function FavoritesView() {
         </p>
       )}
 
-      {!ready ? (
+      {visitsError ? (
+        <div role="alert" className="rounded-xl border border-[#d9c9ac] bg-white/60 px-6 py-8 text-center">
+          <p>{lang === "th" ? "โหลดประวัติร้านที่เคยไปไม่สำเร็จ" : "Could not load your visited cafes."}</p>
+          <button type="button" className="ui-secondary mt-4" onClick={retryVisits}>{lang === "th" ? "ลองอีกครั้ง" : "Retry"}</button>
+        </div>
+      ) : !wantedReady ? (
         <div className="py-24 text-center text-sm text-espresso/60">⏳ …</div>
       ) : cafes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#d9c9ac] bg-white/60 px-6 py-16 text-center">
           <p className="text-lg font-semibold text-espresso/80">{t("fav.empty")}</p>
-          <p className="mt-1 text-sm text-espresso/70">{t("fav.emptyHint")}</p>
+          <p className="mt-1 text-sm text-espresso/70">{user && slugs.length > 0
+            ? (lang === "th" ? "ร้านที่กดหัวใจไว้และเคยไปแล้วอยู่ในรายการร้านโปรด" : "Your heart-saved visited cafes are in Places to revisit.")
+            : t("fav.emptyHint")}</p>
           <Link
             href="/cafes"
             className="mt-5 inline-block rounded-full bg-coffee px-6 py-2.5 text-sm font-semibold text-cream transition hover:bg-[#684a37]"

@@ -115,6 +115,8 @@ main > div.max-w-4xl > h1::after { left: 50%; transform: translateX(-50%); }
 /* Cafe catalogue and detail pages keep photography prominent and key facts easy to scan. */
 .cafe-card { border-color: var(--ph-border); border-radius: var(--ph-radius); background: var(--ph-surface); box-shadow: 0 3px 12px rgb(32 62 74 / 4%); transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
 .cafe-card:hover { border-color: #b78e70; box-shadow: 0 9px 24px rgb(32 62 74 / 9%); transform: translateY(-2px); }
+.visited-cafe-entry { display: flex; flex-direction: column; }
+.visited-cafe-entry > .cafe-card { flex: 1; }
 .map-results { gap: 24px; }
 .map-list article { border-color: var(--ph-border); border-radius: var(--ph-radius); background: var(--ph-surface); }
 .map-list article.is-selected { outline-color: var(--ph-red); }

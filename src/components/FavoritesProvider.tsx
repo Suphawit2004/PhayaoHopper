@@ -4,16 +4,24 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { readLocalFavs, writeLocalFavs, reconcileFavorites } from "@/lib/favorites";
+import { loadVisits, type CafeVisit } from "@/lib/visits";
 import { useAuth } from "./AuthProvider";
 
 interface FavoritesContextValue {
   slugs: string[];
   ready: boolean;
+  wantedSlugs: string[];
+  wantedReady: boolean;
+  visits: CafeVisit[] | null;
+  visitsError: boolean;
+  retryVisits: () => void;
   has: (slug: string) => boolean;
   toggle: (slug: string) => Promise<boolean>;
 }
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
+const EMPTY_SLUGS: string[] = [];
+const EMPTY_VISITS: CafeVisit[] = [];
 
 interface FavRow {
   cafe_slug: string;
@@ -24,6 +32,10 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const userId = user?.id ?? null;
   const [slugs, setSlugs] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
+  const [favoriteOwner, setFavoriteOwner] = useState<string | null | undefined>(undefined);
+  const [visitState, setVisitState] = useState<{ userId: string | null; rows: CafeVisit[] | null; error: boolean }>({ userId: null, rows: null, error: false });
+  const [visitRetry, setVisitRetry] = useState(0);
+  const retryVisits = useCallback(() => setVisitRetry(value => value + 1), []);
 
   // Load favourites whenever the auth state settles.
   // Keyed on user.id (not the user object) so token refreshes don't refetch.
@@ -31,13 +43,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     if (loading) return;
 
     let cancelled = false;
-
     async function sync(nextUserId: string | null) {
       const supabase = getSupabaseBrowser();
 
       // Guest mode (or DB not configured): localStorage only.
       if (!supabase || !nextUserId) {
         setSlugs(readLocalFavs());
+        setFavoriteOwner(nextUserId);
         setReady(true);
         return;
       }
@@ -73,6 +85,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       } else {
         setSlugs(reconcileFavorites(local, data.map((row: FavRow) => row.cafe_slug), merged));
       }
+      setFavoriteOwner(nextUserId);
       setReady(true);
     }
 
@@ -80,6 +93,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // Network/DB failure — fall back to whatever we can show.
       if (!cancelled) {
         setSlugs(userId ? readLocalFavs() : []);
+        setFavoriteOwner(userId);
         setReady(true);
       }
     });
@@ -89,10 +103,40 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     };
   }, [userId, loading]);
 
+  useEffect(() => {
+    if (loading) return;
+    if (!userId) return;
+
+    let cancelled = false;
+    let request = 0;
+    const refresh = async () => {
+      const current = ++request;
+      try {
+        const client = getSupabaseBrowser();
+        if (!client) throw new Error("Unavailable");
+        const rows = await loadVisits(client, userId);
+        if (!cancelled && current === request) setVisitState({ userId, rows, error: false });
+      } catch {
+        if (!cancelled && current === request) setVisitState({ userId, rows: null, error: true });
+      }
+    };
+    void refresh();
+    window.addEventListener("cafe-visit-changed", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("cafe-visit-changed", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [userId, loading, visitRetry]);
+
+  const currentSlugs = favoriteOwner === userId ? slugs : EMPTY_SLUGS;
+  const currentReady = favoriteOwner === userId && ready;
+
   const toggle = useCallback(
     async (slug: string) => {
-      const exists = slugs.includes(slug);
-      const next = exists ? slugs.filter((s) => s !== slug) : [slug, ...slugs];
+      const exists = currentSlugs.includes(slug);
+      const next = exists ? currentSlugs.filter((s) => s !== slug) : [slug, ...currentSlugs];
 
       // Optimistic update
       setSlugs(next);
@@ -123,17 +167,22 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [slugs, user]
+    [currentSlugs, user]
   );
 
+  const visits = !userId ? EMPTY_VISITS : visitState.userId === userId ? visitState.rows : null;
+  const visitsError = Boolean(userId) && visitState.userId === userId && visitState.error;
+  const wantedSlugs = useMemo(() => {
+    if (!userId) return currentSlugs;
+    if (!visits) return [];
+    const visitedSlugs = new Set(visits.map(row => row.cafe_slug));
+    return currentSlugs.filter(slug => !visitedSlugs.has(slug));
+  }, [currentSlugs, userId, visits]);
+  const wantedReady = currentReady && (!userId || visits !== null);
   const value = useMemo<FavoritesContextValue>(
-    () => ({
-      slugs,
-      ready,
-      has: (slug: string) => slugs.includes(slug),
-      toggle,
-    }),
-    [slugs, ready, toggle]
+    () => ({ slugs: currentSlugs, ready: currentReady, wantedSlugs, wantedReady, visits, visitsError, retryVisits,
+      has: (slug: string) => currentSlugs.includes(slug), toggle }),
+    [currentSlugs, currentReady, wantedSlugs, wantedReady, visits, visitsError, retryVisits, toggle]
   );
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
