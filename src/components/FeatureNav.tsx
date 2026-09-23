@@ -7,7 +7,6 @@ const links = [
   ["/coupons", "คูปองของฉัน", "My coupons"],
   ["/photos", "รูปของฉัน", "My photos"],
   ["/chat", "ผู้ช่วยค้นหาร้าน", "Cafe assistant"],
-  ["/membership", "บัตรสมาชิก", "Membership"],
   ["/suggest", "แนะนำร้านใหม่", "Suggest a cafe"],
   ["/owner", "สำหรับเจ้าของร้าน", "Cafe owners"],
   ["/admin", "ผู้ดูแลระบบ", "Administration"],

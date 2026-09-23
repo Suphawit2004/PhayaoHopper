@@ -77,6 +77,52 @@ test("a favorited cafe remains in the want-to-visit list after recording a visit
   await expect(page.locator(".account-menu-panel")).toContainText("ร้านที่อยากไป (1)");
 });
 
+test("profile popup edits name and photo, sends password reset, removes membership card, and logs out", async ({ page }) => {
+  await page.goto("/login?next=%2F");
+  await page.locator(".password-login input[name=email]").fill("profile-e2e@example.test");
+  await page.locator(".password-login input[name=password]").fill("demo-password");
+  await page.locator(".password-login form button").last().click();
+  await expect(page).toHaveURL(/\/$/);
+
+  await page.locator("details.account-menu summary").click();
+  const panel = page.locator(".account-menu-panel");
+  await expect(panel.locator(".account-services")).not.toContainText("บัตรสมาชิก");
+  await panel.getByRole("button", { name: "แก้ไขชื่อและรูปโปรไฟล์" }).click();
+  await panel.locator('input[name="displayName"]').fill("สมาชิกทดสอบ Phayao");
+  await panel.locator('input[name="avatar"]').setInputFiles({ name: "fake.png", mimeType: "image/png", buffer: Buffer.from("not a PNG") });
+  await panel.getByRole("button", { name: "บันทึกโปรไฟล์" }).click();
+  await expect(panel.getByRole("status")).toContainText("รูปไม่ถูกต้อง");
+  await panel.locator('input[name="avatar"]').setInputFiles({
+    name: "avatar.png",
+    mimeType: "image/png",
+    buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
+  });
+  await panel.getByRole("button", { name: "บันทึกโปรไฟล์" }).click();
+  await expect(panel.locator(".account-identity-copy strong")).toHaveText("สมาชิกทดสอบ Phayao", { timeout: 20_000 });
+  await expect(panel.locator(".account-identity .account-avatar img")).toBeVisible();
+
+  await panel.getByRole("button", { name: "ส่งลิงก์รีเซ็ตรหัสผ่าน" }).click();
+  await expect(panel.getByRole("status")).toContainText("ส่งลิงก์ตั้งรหัสผ่านไปยังอีเมลแล้ว");
+
+  await page.goto("/auth/reset-password");
+  await expect(page.getByRole("heading", { name: "ตั้งหรือเปลี่ยนรหัสผ่าน" })).toBeVisible();
+  await expect(page.locator('input[name="password"]')).toBeVisible();
+
+  await page.goto("/");
+  await page.locator("details.account-menu summary").click();
+  const reopenedPanel = page.locator(".account-menu-panel");
+  await expect(reopenedPanel.locator(".account-identity-copy strong")).toHaveText("สมาชิกทดสอบ Phayao");
+  await expect(page.locator("details.account-menu > summary .account-avatar img")).toBeVisible();
+  await reopenedPanel.getByRole("button", { name: "ออกจากระบบ" }).click();
+  await expect(page.locator("details.account-menu")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "เข้าสู่ระบบ" })).toBeVisible();
+
+  await page.goto("/auth/reset-password");
+  await expect(page).toHaveURL(/\/login\?next=/);
+  await page.goto("/membership");
+  await expect(page).toHaveURL(/\/$/);
+});
+
 test("administrator can open the moderation dashboard", async ({ page }) => {
   await page.goto("/login?next=%2Fadmin");
   await page.locator(".password-login input[name=email]").fill("admin-e2e@example.test");

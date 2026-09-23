@@ -8,11 +8,12 @@ import { useFavorites } from "./FavoritesProvider";
 import CafeSearch from "./CafeSearch";
 import BrandMark from "./BrandMark";
 import FeatureNav from "./FeatureNav";
+import AccountProfileActions from "./AccountProfileActions";
 import { useProfile } from "@/lib/use-profile";
 import Icon from "./Icon";
 import Image from "next/image";
 export default function Navbar() {
-  const { t, toggle, lang } = useLang(); const { user, loading } = useAuth(); const { slugs } = useFavorites(); const pathname = usePathname();
+  const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { slugs } = useFavorites(); const pathname = usePathname();
   const { profile } = useProfile();
   const [open,setOpen] = useState(false); const trigger = useRef<HTMLButtonElement>(null); const accountMenu = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -80,6 +81,7 @@ export default function Navbar() {
                     <small>{user.email}</small>
                   </span>
                 </div>
+                <AccountProfileActions user={user} profile={profile} signOut={signOut} />
                 <Link className="account-favorites-link" href="/visited">
                   {lang === "th" ? "ร้านโปรด" : "Places to revisit"}
                 </Link>
