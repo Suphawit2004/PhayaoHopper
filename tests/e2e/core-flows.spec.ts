@@ -151,11 +151,12 @@ test("member must upload a valid photo to record a visit, then can review and se
   await expect(gallery.locator("img").first()).toBeVisible();
 });
 
-test("a favorited cafe remains in the want-to-visit list after recording a visit", async ({ page }) => {
+test("a visited cafe moves out of the want-to-visit list after recording a visit", async ({ page }) => {
   await signIn(page, "wishlist-e2e@example.test");
   const favoriteButton = page.locator(".favorite-control");
   await favoriteButton.click();
   await expect(favoriteButton).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.main-navigation > a[href="/favorites"]')).toContainText("(1)");
 
   const visitForm = page.locator("form").filter({ has: page.locator('input[name="isPublic"][type="hidden"]') });
   await visitForm.locator('input[type="file"]').setInputFiles({
@@ -165,14 +166,20 @@ test("a favorited cafe remains in the want-to-visit list after recording a visit
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
   await expect(page.getByRole("link", { name: "ดูร้านโปรด" })).toBeVisible();
+  await expect(page.locator('.main-navigation > a[href="/favorites"]')).not.toContainText("(1)");
 
   await page.goto("/visited");
+  const visited = page.locator("section[aria-labelledby='visited-list-heading']");
+  await expect(visited.locator(".cafe-card")).toHaveCount(1);
+  await expect(visited).toContainText("บ้านบานน์");
   const wantToVisit = page.locator("section[aria-labelledby='want-to-go-heading']");
-  await expect(wantToVisit.locator(".cafe-card")).toHaveCount(1);
-  await expect(wantToVisit).toContainText("บ้านบานน์");
+  await expect(wantToVisit.locator(".cafe-card")).toHaveCount(0);
 
   await page.locator("details.account-menu summary").click();
-  await expect(page.locator(".account-menu-panel")).toContainText("ร้านที่อยากไป (1)");
+  await expect(page.locator(".account-menu-panel")).toContainText("ร้านที่อยากไป");
+  await expect(page.locator(".account-menu-panel")).not.toContainText("ร้านที่อยากไป (1)");
+  await page.goto("/favorites");
+  await expect(page.locator(".cafe-card")).toHaveCount(0);
 });
 
 test("profile popup edits name and photo, sends password reset, removes membership card, and logs out", async ({ page }) => {

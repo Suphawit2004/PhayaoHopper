@@ -13,7 +13,8 @@ import { useProfile } from "@/lib/use-profile";
 import Icon from "./Icon";
 import Image from "next/image";
 export default function Navbar() {
-  const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { slugs } = useFavorites(); const pathname = usePathname();
+  const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady } = useFavorites(); const pathname = usePathname();
+  const wantedCount = wantedReady ? wantedSlugs.length : 0;
   const { profile } = useProfile();
   const [open,setOpen] = useState(false); const trigger = useRef<HTMLButtonElement>(null); const accountMenu = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function Navbar() {
     { href: "/cafes", label: t("nav.cafes"), icon: "coffee" as const },
     { href: "/chat", label: t("nav.assistant"), icon: "search" as const },
     { href: "/map", label: t("nav.map"), icon: "map" as const },
-    { href: "/favorites", label: `${t("nav.favorites")}${slugs.length ? ` (${slugs.length})` : ""}`, icon: "heart" as const },
+    { href: "/favorites", label: `${t("nav.favorites")}${wantedCount ? ` (${wantedCount})` : ""}`, icon: "heart" as const },
   ];
   const close = () => setOpen(false);
   const initials = (profile?.display_name || user?.email || "?").trim().slice(0, 1).toUpperCase();
@@ -90,7 +91,7 @@ export default function Navbar() {
                   {lang === "th" ? "ร้านโปรด" : "Places to revisit"}
                 </Link>
                 <Link className="account-favorites-link" href="/favorites">
-                  {lang === "th" ? `ร้านที่อยากไป${slugs.length ? ` (${slugs.length})` : ""}` : `Want to visit${slugs.length ? ` (${slugs.length})` : ""}`}
+                  {lang === "th" ? `ร้านที่อยากไป${wantedCount ? ` (${wantedCount})` : ""}` : `Want to visit${wantedCount ? ` (${wantedCount})` : ""}`}
                 </Link>
                 <FeatureNav />
               </div>
