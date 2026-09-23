@@ -6,6 +6,7 @@ import { suggestionFormAction } from "@/app/actions/admin";
 import type { AdminSuggestion } from "./AdminDashboard";
 import AdminMutation from "./AdminMutation";
 import styles from "./AdminDashboard.module.css";
+import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 
 export default function SuggestionPreview({ suggestion: s }: { suggestion: AdminSuggestion }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -13,8 +14,8 @@ export default function SuggestionPreview({ suggestion: s }: { suggestion: Admin
   const c = (th: string, en: string) => lang === "th" ? th : en;
   const [imageFailed, setImageFailed] = useState(false);
   const timeValid = (value: string | null) => !!value && /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
-  const locationValid = Number.isFinite(s.lat) && Number.isFinite(s.lng) && Math.abs(s.lat) <= 90 && Math.abs(s.lng) <= 180;
-  const missing = [!s.name.trim() && c("ชื่อร้าน", "Name"), !s.address?.trim() && c("ที่อยู่", "Address"), !timeValid(s.openTime) && c("เวลาเปิด", "Opening time"), !timeValid(s.closeTime) && c("เวลาปิด", "Closing time"), !locationValid && c("พิกัด", "Coordinates")].filter(Boolean);
+  const locationValid = isSupportedCafeCoordinate(s.lat, s.lng);
+  const missing = [!s.name.trim() && c("ชื่อร้าน", "Name"), !s.address?.trim() && c("ที่อยู่", "Address"), !timeValid(s.openTime) && c("เวลาเปิด", "Opening time"), !timeValid(s.closeTime) && c("เวลาปิด", "Closing time"), !locationValid && c("พิกัดนอกพื้นที่ที่รองรับ", "Coordinates outside the supported area")].filter(Boolean);
   return <>
     <button type="button" className="feature-button" onClick={() => dialog.current?.showModal()}>{c("ดูตัวอย่างและตรวจอนุมัติ", "Preview and review")}</button>
     <dialog ref={dialog} className={styles.previewDialog} aria-labelledby={`preview-${s.id}`}>

@@ -5,7 +5,7 @@ import { getCatalog } from "@/lib/catalog";
 
 async function serverTimestamp() { return Date.now(); }
 
-export const metadata = { title: "คูปองของฉัน | PhayaoHopper" };
+export const metadata = { title: "คูปองของฉัน | PhayaoHopper", robots: { index: false, follow: false } };
 export default async function CouponsPage() {
   const sb = await getSupabaseServer();
   const user = sb ? (await sb.auth.getUser()).data.user : null;

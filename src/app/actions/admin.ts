@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 
 export type AdminResult =
   | { ok: true }
@@ -14,8 +15,11 @@ export async function saveSuggestionDetails(form: FormData) {
   const name = String(form.get("name") ?? "").trim();
   const address = String(form.get("address") ?? "").trim();
   const open_time = String(form.get("openTime") ?? ""), close_time = String(form.get("closeTime") ?? "");
+  const lat = Number(form.get("lat"));
+  const lng = Number(form.get("lng"));
   if (!name || name.length > 120 || !address || address.length > 300 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(open_time) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(close_time)) return { ok: false, message: "ตรวจชื่อร้าน ที่อยู่ และเวลาเปิดปิด" };
-  const { data, error } = await sb.from("cafe_suggestions").update({ name, address, open_time, close_time }).eq("id", id).neq("status", "approved").select("id").single();
+  if (!isSupportedCafeCoordinate(lat, lng)) return { ok: false, message: "พิกัดต้องอยู่ในพื้นที่อำเภอเมืองพะเยาที่ระบบรองรับ" };
+  const { data, error } = await sb.from("cafe_suggestions").update({ name, address, open_time, close_time, lat, lng }).eq("id", id).neq("status", "approved").select("id").single();
   if (error || !data) return { ok: false, message: "บันทึกไม่สำเร็จ หรือร้านนี้อนุมัติไปแล้ว" };
   revalidatePath("/admin");
   return { ok: true, message: "บันทึกข้อมูลแล้ว สามารถอนุมัติร้านได้" };
@@ -36,6 +40,12 @@ export async function setSuggestionStatus(
   const sb = await requireAdmin();
   if (!sb) return { ok: false, error: "Not authorized" };
   if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false, error: "Invalid id" };
+
+  if (status === "approved") {
+    const { data: suggestion, error: lookupError } = await sb.from("cafe_suggestions").select("lat,lng").eq("id", id).single();
+    if (lookupError || !suggestion) return { ok: false, error: "ตรวจพิกัดร้านไม่สำเร็จ กรุณาลองใหม่" };
+    if (!isSupportedCafeCoordinate(suggestion.lat, suggestion.lng)) return { ok: false, error: "พิกัดอยู่นอกพื้นที่ที่ระบบรองรับ กรุณาแก้ไขก่อนอนุมัติ" };
+  }
 
   if (status !== "approved") {
     const { data: published, error: lookupError } = await sb.from("cafes").select("slug").eq("slug", `cafe-${id}`).maybeSingle();

@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { checkSuggestionRateLimit } from "@/lib/rate-limit-supabase";
 import { resolveClientIp } from "@/lib/client-ip";
+import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 
 export type SuggestionResult =
   | { ok: true }
@@ -55,10 +56,7 @@ export async function submitSuggestion(input: {
 
   const name = input.name?.trim() ?? "";
   if (!name || name.length > 120) return { ok: false, error: "invalid" };
-  if (!Number.isFinite(input.lat) || input.lat < -90 || input.lat > 90) {
-    return { ok: false, error: "invalid" };
-  }
-  if (!Number.isFinite(input.lng) || input.lng < -180 || input.lng > 180) {
+  if (!isSupportedCafeCoordinate(input.lat, input.lng)) {
     return { ok: false, error: "invalid" };
   }
   if (
