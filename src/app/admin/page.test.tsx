@@ -38,7 +38,7 @@ describe("Admin queue data boundaries", () => {
     expect(counts.find(q => q.table === "reviews")?.steps).toContain("lte:rating:2");
   });
   it("uses the selected category count when a page no longer exists", async () => {
-    await expect(AdminPage({ searchParams: Promise.resolve({ page: "1", tab: "reports" }) })).rejects.toThrow("redirect:/admin?page=0&tab=reports&filter=pending");
+    await expect(AdminPage({ searchParams: Promise.resolve({ page: "1", tab: "reports", filter: "pending" }) })).rejects.toThrow("redirect:/admin?page=0&tab=reports&filter=pending");
   });
   it("does not apply the low-rating filter when all reviews are requested", async () => {
     await AdminPage({ searchParams: Promise.resolve({ tab: "reviews", filter: "all" }) });
