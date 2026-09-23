@@ -243,7 +243,7 @@ const th = {
   "about.p2":
     "ข้อมูลคาเฟ่ทั้งหมดคัดมาจากแหล่งสาธารณะ เช่น Google Maps, Wongnai และรีวิวจากผู้ใช้ ณ เดือนสิงหาคม 2569 โปรดตรวจสอบเวลาเปิด-ปิดกับร้านโดยตรงอีกครั้งก่อนเดินทาง",
   "about.p3":
-    "รูปภาพในเว็บไซต์เป็นภาพ placeholder ชั่วคราว รอเปลี่ยนเป็นภาพจริงจากร้านในภายหลัง หากคุณเป็นเจ้าของร้านและต้องการปรับข้อมูล ติดต่อทีมงานได้เลย",
+    "ภาพร้านบางส่วนมาจากแหล่งที่ระบุเครดิตในหน้าร้าน และบางส่วนเป็นภาพที่ผู้ใช้หรือเจ้าของร้านอัปโหลด หากภาพร้านไม่พร้อม ระบบจะแสดงภาพสำรอง โปรดตรวจสอบภาพและข้อมูลกับร้านก่อนเดินทาง หากต้องการแจ้งแก้ไข ใช้ปุ่มแจ้งข้อมูลผิดพลาดในหน้าร้าน",
   "about.stackTitle": "เทคโนโลยีที่ใช้",
 
   "footer.tagline": "PhayaoHopper คู่มือคาเฟ่สำหรับวันสบาย ๆ ในพะเยา",
@@ -506,7 +506,7 @@ const en: Record<DictKey, string> = {
   "about.p2":
     "All cafe data was compiled in August 2026 from public sources such as Google Maps, Wongnai and user reviews. Please double-check opening hours with the shop before travelling.",
   "about.p3":
-    "Images are temporary placeholders waiting to be replaced with real photos. If you own one of these cafes and want details updated, feel free to reach out.",
+    "Some cafe photos come from sources credited on the cafe page; others are uploaded by members or cafe owners. A fallback appears when a photo is unavailable. Please verify photos and details with the cafe before visiting, or use the correction button on its page.",
   "about.stackTitle": "Tech stack",
 
   "footer.tagline": "Great cafes in central Phayao — PhayaoHopper has the answer",

@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import SuggestionPreview from "./SuggestionPreview";
 import AdminMutation from "./AdminMutation";
 import styles from "./AdminDashboard.module.css";
+import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 import Link from "next/link";
 import ActionForm from "@/components/ActionForm";
 import CafeEditorView from "@/components/CafeEditorView";
@@ -330,11 +331,14 @@ export default function AdminDashboard({
               )}
 
               {s.status !== "approved" && <p className="mt-3 text-sm">{lang==="th"?ui("ข้อมูลที่ยังขาด: "):"Missing information: "}{[!s.address&&(lang==="th"?ui("ที่อยู่"):"Address"),!s.openTime&&(lang==="th"?ui("เวลาเปิด"):"Opening time"),!s.closeTime&&(lang==="th"?ui("เวลาปิด"):"Closing time")].filter(Boolean).join(", ") || (lang==="th"?ui("ข้อมูลหลักครบแล้ว"):"Core details complete")}</p>}
+              {s.status !== "approved" && !isSupportedCafeCoordinate(s.lat, s.lng) && <p className="mt-2 text-sm font-semibold text-red-700" role="alert">{lang === "th" ? "พิกัดอยู่นอกพื้นที่ที่ระบบรองรับ กรุณาตรวจตำแหน่งจริงและแก้พิกัดก่อนอนุมัติ" : "Coordinates are outside the supported area. Verify the actual location and correct them before approval."}</p>}
               {s.status !== "approved" && <details className="mt-4 rounded-xl border border-[#eadfcd] p-4"><summary className="cursor-pointer text-sm font-semibold">{ui("ตรวจและเติมข้อมูลก่อนเผยแพร่")}</summary><div className="mt-4"><ActionForm action={saveSuggestionDetails}>
                 <input type="hidden" name="id" value={s.id} />
                 <label>{ui("ชื่อร้าน")}<input name="name" defaultValue={s.name} maxLength={120} required /></label>
                 <label>{ui("ที่อยู่")}<input name="address" defaultValue={s.address ?? ""} maxLength={300} required /></label>
                 <div className="feature-grid"><label>{ui("เวลาเปิด")}<input type="time" name="openTime" defaultValue={s.openTime ?? ""} required /></label><label>{ui("เวลาปิด")}<input type="time" name="closeTime" defaultValue={s.closeTime ?? ""} required /></label></div>
+                <div className="feature-grid"><label>{lang === "th" ? "ละติจูด" : "Latitude"}<input type="number" name="lat" step="any" min="19" max="20" defaultValue={s.lat} required /></label><label>{lang === "th" ? "ลองจิจูด" : "Longitude"}<input type="number" name="lng" step="any" min="99.6" max="100.2" defaultValue={s.lng} required /></label></div>
+                <p className="mt-2 text-xs text-espresso/70">{lang === "th" ? "ตรวจตำแหน่งบนแผนที่จริงก่อนบันทึกพิกัดใหม่" : "Verify the real location on a map before saving new coordinates."}</p>
               </ActionForm></div></details>}
               <div className={styles.actions}>
                 {s.status !== "approved" && (
