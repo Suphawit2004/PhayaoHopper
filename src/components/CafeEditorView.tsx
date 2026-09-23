@@ -11,6 +11,7 @@ import MediaPicker from "./MediaPicker";
 import MenuManager,{type EditableMenu} from "./MenuManager";
 import OwnerAssignment from "./OwnerAssignment";
 import MapBlock from "./map/MapBlock";
+import { CAFE_COORDINATE_BOUNDS } from "@/lib/cafe-coordinates";
 export default function CafeEditorView({cafe,admin,isActive,menu,error,ownerId,embedded=false}:{cafe:Cafe;admin:boolean;isActive:boolean;menu:EditableMenu[];error:boolean;ownerId:string;embedded?:boolean}){
   const ui=useUi();
  const {tr}=useLang();
@@ -34,8 +35,8 @@ return <div className={embedded ? "admin-embedded-editor" : "feature-page"}><Lin
       </div></details><details open><summary className="font-semibold">{ui("เวลาเปิด ราคา และพื้นที่")}</summary><div className="feature-grid mt-4">
         <label>{ui("เวลาเปิด")}<input type="time" name="openTime" defaultValue={cafe.openTime} required /></label>
         <label>{ui("เวลาปิด")}<input type="time" name="closeTime" defaultValue={cafe.closeTime} required /></label>
-        <label>{ui("ละติจูด")}<input type="number" step="any" name="lat" defaultValue={cafe.lat} readOnly={!admin} required min={19} max={20} /></label>
-        <label>{ui("ลองจิจูด")}<input type="number" step="any" name="lng" defaultValue={cafe.lng} readOnly={!admin} required min={99.6} max={100.2} /></label>
+        <label>{ui("ละติจูด")}<input type="number" step="any" name="lat" defaultValue={cafe.lat} readOnly={!admin} required min={CAFE_COORDINATE_BOUNDS.minLat} max={CAFE_COORDINATE_BOUNDS.maxLat} /></label>
+        <label>{ui("ลองจิจูด")}<input type="number" step="any" name="lng" defaultValue={cafe.lng} readOnly={!admin} required min={CAFE_COORDINATE_BOUNDS.minLng} max={CAFE_COORDINATE_BOUNDS.maxLng} /></label>
         <label>{ui("พื้นที่")}<select name="area" defaultValue={cafe.area} disabled={!admin}>{Object.entries(AREA_META).map(([key, value]) => <option value={key} key={key}>{tr(value.label)}</option>)}</select></label>
         <label>{ui("ระดับราคา")}<select name="priceRange" defaultValue={cafe.priceRange}><option value="1">฿</option><option value="2">฿฿</option></select></label>
       </div></details>

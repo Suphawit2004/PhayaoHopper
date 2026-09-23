@@ -3,6 +3,7 @@ import { getSupabaseServer } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import type { Cafe } from "@/data/cafes";
 import { cafeFromRow, cafeToRow } from "@/lib/cafe-row";
+import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 
 export type MutationResult = { ok: boolean; message: string };
 const done = (): MutationResult => ({ ok: true, message: "บันทึกเรียบร้อยแล้ว" });
@@ -67,6 +68,7 @@ export async function saveCafe(form: FormData) {
       lifestyleTags: attributeValues(form, "lifestyleTags", "newLifestyleTags"),
     };
     if (!data.name.th || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.openTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.closeTime)) throw new Error("กรุณาตรวจชื่อร้านและเวลาเปิดปิด");
+    if (!isSupportedCafeCoordinate(data.lat, data.lng)) throw new Error("พิกัดต้องอยู่ในเขตเมืองพะเยาถึงบริเวณมหาวิทยาลัยพะเยา");
     const media = await uploadMedia(sb, slug, form);
     if (media) data.photo = media.url;
     const values = cafeToRow(data);
