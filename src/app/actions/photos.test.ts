@@ -12,6 +12,13 @@ describe("community photo authentication and profile ownership", () => {
     expect(await uploadPhoto(new FormData())).toMatchObject({ ok: false });
     expect(storage.from).not.toHaveBeenCalled();
   });
+  it("rejects spoofed community-photo MIME before writing to Storage", async () => {
+    const upload = vi.fn();
+    mocks.server.mockResolvedValue({ auth: { getUser: async () => ({ data: { user: { id: "member-id" } } }) }, storage: { from: () => ({ upload }) } });
+    const form = new FormData(); form.set("slug", "test-cafe"); form.set("photo", new File(["not an image"], "fake.png", { type: "image/png" }));
+    expect(await uploadPhoto(form)).toMatchObject({ ok: false, message: expect.stringContaining("ไฟล์รูปไม่ถูกต้อง") });
+    expect(upload).not.toHaveBeenCalled();
+  });
   it("returns no profile photos to a guest", async () => {
     const eq = vi.fn();
     mocks.server.mockResolvedValue({ auth: { getUser: async () => ({ data: { user: null } }) }, from: () => ({ select: () => ({ eq, is: vi.fn().mockReturnThis() }) }) });

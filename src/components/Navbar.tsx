@@ -80,6 +80,9 @@ export default function Navbar() {
                     <small>{user.email}</small>
                   </span>
                 </div>
+                <Link className="account-favorites-link" href="/visited">
+                  {lang === "th" ? "เคยไปแล้ว" : "Visited cafes"}
+                </Link>
                 <Link className="account-favorites-link" href="/favorites">
                   {lang === "th" ? `ร้านโปรด${slugs.length ? ` (${slugs.length})` : ""}` : `Favorites${slugs.length ? ` (${slugs.length})` : ""}`}
                 </Link>

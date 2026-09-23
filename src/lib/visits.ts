@@ -22,16 +22,3 @@ export async function loadVisits(client: SupabaseClient, userId: string): Promis
     if (!data || data.length < 500) return rows;
   }
 }
-
-/** Ignore duplicates so repeated clicks never erase or re-date a visit. */
-export async function saveVisit(client: SupabaseClient, userId: string, slug: string): Promise<CafeVisit> {
-  const { error } = await client.from("cafe_visits").upsert(
-    { user_id: userId, cafe_slug: slug },
-    { onConflict: "user_id,cafe_slug", ignoreDuplicates: true },
-  );
-  if (error) throw error;
-  const { data, error: readError } = await client.from("cafe_visits")
-    .select("cafe_slug,created_at").eq("user_id", userId).eq("cafe_slug", slug).single();
-  if (readError || !data) throw readError ?? new Error("Visit not persisted");
-  return data;
-}

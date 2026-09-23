@@ -23,7 +23,16 @@ it("does not write photo records after a storage upload failure", async () => {
   const insert = vi.fn(), upload = vi.fn().mockResolvedValue({ error: { message: "network" } });
   const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: { cafe_slug: "test" } }), insert };
   mock.server.mockResolvedValue({ auth: { getUser: async () => ({ data: { user: { id: crypto.randomUUID() } } }) }, from: () => query, storage: { from: () => ({ upload }) } });
-  const form = new FormData(); form.set("batch", crypto.randomUUID()); form.set("slug", "test"); form.set("photo", new File(["test"], "test.jpg", { type: "image/jpeg" }));
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xda, 0x00, 0x02, 0x01, 0x02, 0xff, 0xd9]);
+  const form = new FormData(); form.set("batch", crypto.randomUUID()); form.set("slug", "test"); form.set("photo", new File([jpeg], "test.jpg", { type: "image/jpeg" }));
   expect(await stageReviewPhoto(form)).toHaveProperty("error");
   expect(upload).toHaveBeenCalledOnce(); expect(insert).not.toHaveBeenCalled();
+});
+
+it("rejects a review image whose bytes do not match its declared MIME before Storage", async () => {
+  const upload = vi.fn();
+  mock.server.mockResolvedValue({ auth: { getUser: async () => ({ data: { user: { id: crypto.randomUUID() } } }) }, storage: { from: () => ({ upload }) } });
+  const form = new FormData(); form.set("batch", crypto.randomUUID()); form.set("slug", "test"); form.set("photo", new File(["not a png"], "test.png", { type: "image/png" }));
+  expect(await stageReviewPhoto(form)).toMatchObject({ error: expect.stringContaining("ไฟล์รูปไม่ถูกต้อง") });
+  expect(upload).not.toHaveBeenCalled();
 });

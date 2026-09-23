@@ -5,22 +5,26 @@ import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { saveVisit, removeVisit } from "@/lib/visits";
+import { removeVisit } from "@/lib/visits";
+import { uploadPhoto } from "@/app/actions/photos";
+import ActionForm from "./ActionForm";
 
 export default function VisitButton({ slug }: { slug: string }) {
   const { user, loading } = useAuth();
   const { lang } = useLang();
   const th = lang === "th";
   if (loading) return <p role="status" className="text-sm text-espresso/60">{th ? "กำลังโหลดประวัติ…" : "Loading visit history…"}</p>;
-  if (!user) return <Link className="ui-secondary self-start" href={`/login?next=${encodeURIComponent(`/cafes/${slug}`)}`}>{th ? "เข้าสู่ระบบเพื่อบันทึกว่าไปมาแล้ว" : "Sign in to mark as visited"}</Link>;
+  if (!user) return <Link className="ui-secondary self-start" href={`/login?next=${encodeURIComponent(`/cafes/${slug}`)}`}>{th ? "เข้าสู่ระบบเพื่ออัปโหลดรูปและบันทึกว่าเคยไปแล้ว" : "Sign in to upload a visit photo"}</Link>;
   return <MemberVisitButton key={`${user.id}:${slug}`} userId={user.id} slug={slug} th={th} />;
 }
 
 function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string; th: boolean }) {
-  const [state, setState] = useState<"loading" | "new" | "saved" | "saving" | "removing" | "error">("loading");
+  const [state, setState] = useState<"loading" | "new" | "saved" | "removing" | "error">("loading");
   const [message, setMessage] = useState("");
   const [retry, setRetry] = useState(0);
+  const [preview, setPreview] = useState("");
   const busy = useRef(false);
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -34,28 +38,9 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
       } catch { if (!cancelled) setState("error"); }
     }
     void load();
-    return () => { cancelled = true; };
+    window.addEventListener("cafe-visit-changed", load);
+    return () => { cancelled = true; window.removeEventListener("cafe-visit-changed", load); };
   }, [userId, slug, retry]);
-
-  async function markVisited() {
-    if (busy.current || state !== "new") return;
-    busy.current = true;
-    setState("saving"); setMessage("");
-    try {
-      const client = getSupabaseBrowser();
-      if (!client) throw new Error("Unavailable");
-      await saveVisit(client, userId, slug);
-      window.dispatchEvent(new Event("cafe-visit-changed"));
-      setState("saved");
-      setMessage(th ? "บันทึกแล้ว ดูร้านนี้ได้ในหมวดเคยไปแล้ว" : "Saved to your visited cafes.");
-    } catch (error) {
-      setState("new");
-      const code = (error as { code?: string }).code;
-      setMessage(code === "23503" || code === "42501"
-        ? (th ? "บันทึกไม่ได้ กรุณาตรวจสอบว่าล็อกอินอยู่และร้านยังเปิดให้เข้าชม" : "Please check your sign-in and that this cafe is still available.")
-        : (th ? "บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง" : "Could not save. Please try again."));
-    } finally { busy.current = false; }
-  }
 
   async function cancelVisit() {
     if (busy.current || state !== "saved") return;
@@ -68,7 +53,7 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
       await removeVisit(client, userId, slug);
       window.dispatchEvent(new Event("cafe-visit-changed"));
       setState("new");
-      setMessage(th ? "ยกเลิกแล้ว สามารถกดไปมาแล้วเพื่อบันทึกใหม่ได้" : "Visit removed. You can mark this cafe as visited again.");
+      setMessage(th ? "ยกเลิกแล้ว หากต้องการบันทึกใหม่ให้อัปโหลดรูปอีกครั้ง" : "Visit removed. Upload another photo to record a new visit.");
     } catch {
       setState("saved");
       setMessage(th ? "ยกเลิกไม่สำเร็จ กรุณาลองอีกครั้ง" : "Could not remove the visit. Please try again.");
@@ -81,9 +66,33 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
         state === "saved" || state === "removing" ? <>
           <span className="inline-flex items-center gap-2 rounded-lg border border-[#bdd3c7] bg-[#edf5ef] px-4 py-3 font-semibold text-[#28543e]"><span aria-hidden="true">✓</span>{th ? "เคยไปแล้ว" : "Visited"}</span>
           <button type="button" className="ui-secondary text-sm" disabled={state === "removing"} onClick={cancelVisit}>{state === "removing" ? (th ? "กำลังยกเลิก…" : "Removing…") : (th ? "ยกเลิกเคยไปแล้ว" : "Remove visit")}</button>
-        </> : <button type="button" className="feature-button" disabled={state !== "new"} onClick={markVisited}>
-          {state === "loading" ? (th ? "กำลังโหลด…" : "Loading…") : state === "saving" ? (th ? "กำลังบันทึก…" : "Saving…") : (th ? "ไปมาแล้ว" : "I've been here")}
-        </button>}
+        </> : state === "loading" ? <p role="status">{th ? "กำลังโหลด…" : "Loading…"}</p> : <div className="w-full max-w-sm border-l-2 border-[#b39259] pl-4">
+          <p className="mb-3 text-sm text-espresso/75">{th ? "อัปโหลดรูปจากร้านนี้เพื่อบันทึกว่าเคยไปแล้ว รูปจะปรากฏในหน้าร้านและรูปของฉัน" : "Upload a photo from this cafe to record your visit. It will appear at the cafe and in My photos."}</p>
+          <ActionForm reset label={th ? "อัปโหลดรูป" : "Upload photo"} action={async form => {
+            const result = await uploadPhoto(form);
+            if (result.ok) {
+              setPreview(""); setState("saved");
+              setMessage(th ? "บันทึกว่าเคยไปแล้ว รูปแสดงในหน้าร้านและรูปของฉัน" : "Visit recorded. Your photo is in the cafe gallery and My photos.");
+              window.dispatchEvent(new Event("cafe-visit-changed"));
+              window.dispatchEvent(new Event("cafe-photos-changed"));
+            }
+            return result;
+          }}>
+            <input type="hidden" name="slug" value={slug} />
+            <input type="hidden" name="isPublic" value="on" />
+            <label className="grid gap-2 text-sm font-medium">{th ? "เลือกรูปจากร้าน" : "Choose a cafe photo"}
+              <input required type="file" name="photo" accept="image/jpeg,image/png,image/webp" onChange={event => {
+                const file = event.target.files?.[0];
+                setPreview(file ? URL.createObjectURL(file) : "");
+              }} />
+            </label>
+            {preview && <div className="h-36 w-48 overflow-hidden rounded-lg bg-sand">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={preview} alt={th ? "ตัวอย่างรูปก่อนอัปโหลด" : "Selected photo preview"} className="h-full w-full object-cover" />
+            </div>}
+            <p className="text-xs text-espresso/70">{th ? "JPG, PNG หรือ WebP ไม่เกิน 5 MB · รูปนี้เป็นสาธารณะ" : "JPG, PNG or WebP, up to 5 MB · This photo is public"}</p>
+          </ActionForm>
+        </div>}
       {state === "saved" && <Link href="/visited" className="text-sm font-semibold underline underline-offset-4">{th ? "ดูร้านที่เคยไปแล้ว" : "View visited cafes"} →</Link>}
     </div>
     <p role="status" className="text-sm text-espresso/70">{message}</p>

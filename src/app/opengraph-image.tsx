@@ -33,10 +33,12 @@ export default function OpengraphImage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 34,
-            }}
+              position: "relative",
+          }}
           >
-            ◇
+            <div style={{ width: 28, height: 28, border: "3px solid #ddbf79", transform: "rotate(45deg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 10, height: 10, background: "#ddbf79" }} />
+            </div>
           </div>
           <div
             style={{

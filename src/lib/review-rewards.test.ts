@@ -8,7 +8,11 @@ async function asUser(uid=user,role='authenticated') {await db.exec(`reset role;
 async function review(n:number,slug='baan-baann',photos:string[]=[]) {
  const result=await db.query<{result:{review:{id:string};coupon:{id:string;reward:string;issued_at:string;expires_at:string}|null}}>('select submit_review_reward($1,$2,$3,$4,$5,$6::uuid[]) as result',[id(n),slug,'Test reviewer',5,'Review',photos]);return result.rows[0].result;
 }
-async function visit(slug='baan-baann') { await db.query('insert into cafe_visits(user_id,cafe_slug) values ($1,$2) on conflict do nothing',[user,slug]); }
+async function visit(slug='baan-baann') {
+ const path=`${user}/${crypto.randomUUID()}.jpg`;
+ await db.query("insert into storage.objects(bucket_id,name) values ('cafe-community',$1)",[path]);
+ await db.query('insert into cafe_photos(user_id,cafe_slug,path,is_public) values ($1,$2,$3,true)',[user,slug,path]);
+}
 async function stage(n:number,batch:number,slug='baan-baann',uid=user,object=true) {
  await db.query('insert into cafe_photos(id,user_id,cafe_slug,path,review_batch) values ($1,$2,$3,$4,$5)',[id(n),uid,slug,`${uid}/${n}.jpg`,id(batch)]);
  if(object) await db.query("insert into storage.objects(bucket_id,name) values ('cafe-community',$1)",[`${uid}/${n}.jpg`]);
@@ -39,6 +43,7 @@ await db.exec(readFileSync('supabase/migrations/20260919170131_cafe_visits.sql',
 await db.exec(readFileSync('supabase/migrations/20260920115529_cafe_visits_remove_own.sql','utf8'));
 await db.exec(`insert into auth.users(id,email) values ('${user}','test@example.test'),('${other}','other@example.test'); insert into reviews(id,user_id,cafe_slug,author_name,rating) values ('${id(99)}','${other}','baan-baann','Legacy',4)`);
 await db.exec(readFileSync('supabase/migrations/20260921114634_review_rewards.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20260923034008_require_photo_for_visit.sql','utf8'));
 },30000);
 afterAll(()=>db.close());
 it('preserves old reviews without retroactive coupons',async()=>{
