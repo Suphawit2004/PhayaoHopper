@@ -11,11 +11,11 @@ import MediaPicker from "./MediaPicker";
 import MenuManager,{type EditableMenu} from "./MenuManager";
 import OwnerAssignment from "./OwnerAssignment";
 import MapBlock from "./map/MapBlock";
-export default function CafeEditorView({cafe,admin,isActive,menu,error,ownerId}:{cafe:Cafe;admin:boolean;isActive:boolean;menu:EditableMenu[];error:boolean;ownerId:string}){
+export default function CafeEditorView({cafe,admin,isActive,menu,error,ownerId,embedded=false}:{cafe:Cafe;admin:boolean;isActive:boolean;menu:EditableMenu[];error:boolean;ownerId:string;embedded?:boolean}){
   const ui=useUi();
  const {tr}=useLang();
  const slug=cafe.slug;
-return <div className="feature-page"><Link href={admin ? "/admin" : "/owner"}>{ui("← กลับหน้าจัดการ")}</Link><h1 className="mt-4">{tr(cafe.name)}</h1><Link href={`/cafes/${slug}`}>{ui("ดูหน้าร้าน →")}</Link>
+return <div className={embedded ? "admin-embedded-editor" : "feature-page"}><Link href={embedded ? "/admin?tab=cafes" : admin ? "/admin" : "/owner"}>{ui("← กลับหน้าจัดการ")}</Link><h1 className="mt-4">{tr(cafe.name)}</h1><Link href={`/cafes/${slug}`}>{ui("ดูหน้าร้าน →")}</Link>
     <section className="feature-card"><h2>{ui("ข้อมูลร้าน")}</h2><ActionForm action={saveCafe}>
       <input type="hidden" name="slug" value={slug} />
       {admin && <label><span><input type="checkbox" name="isActive" defaultChecked={isActive} />{ui("เผยแพร่ร้านในเว็บไซต์ (ปิดเมื่อร้านเลิกกิจการ)")}</span></label>}

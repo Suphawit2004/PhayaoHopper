@@ -4,6 +4,7 @@ import AdminDashboard, { type AdminReport, type AdminReview, type AdminSuggestio
 import { redirect } from "next/navigation";
 import { cafeFromRow } from "@/lib/cafe-row";
 import { suggestionPublication } from "@/lib/suggestion-publication";
+import type { EditableMenu } from "@/components/MenuManager";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -12,11 +13,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; tab?: string; filter?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; tab?: string; filter?: string; cafe?: string }> }) {
   const params = await searchParams;
-  const tab = params.tab === "reviews" || params.tab === "reports" ? params.tab : "suggestions";
+  const tab = params.tab === "reviews" || params.tab === "reports" || params.tab === "cafes" ? params.tab : "suggestions";
   const pendingOnly = params.filter !== "all";
-  const viewQuery = new URLSearchParams({tab:params.tab==="reviews"||params.tab==="reports"?params.tab:"suggestions",filter:params.filter==="all"?"all":"pending"}).toString();
+  const viewQuery = new URLSearchParams({tab,filter:params.filter==="all"?"all":"pending"}).toString();
   const page = Math.max(0, Math.min(10000, Math.floor(Number(params.page) || 0)));
   const sb = await getSupabaseServer();
   if (!sb) return <AdminDashboard mode="not-configured" />;
@@ -95,14 +96,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     sb.from("reviews").select("id", { count: "exact", head: true }).lte("rating", 2),
   ]);
   const cafes = (catalog.data ?? []).map(cafeFromRow);
-  const selected = tab === "reports" ? reports : tab === "reviews" ? reviews : suggestions;
-  const totalPages = Math.max(1, Math.ceil((selected.count ?? 0) / 50));
-  if (!selected.error && page >= totalPages) redirect(`/admin?page=${totalPages - 1}&${viewQuery}`);
+  const selectedCafeRow = tab === "cafes" ? (catalog.data ?? []).find(cafe => cafe.slug === params.cafe) : undefined;
+  const [selectedMenu, selectedOwner] = selectedCafeRow ? await Promise.all([
+    sb.from("menu_items").select("id,name:name_th,nameEn:name_en,price,available:is_available,photo_url").eq("cafe_slug", selectedCafeRow.slug).order("created_at"),
+    sb.from("cafe_owners").select("user_id").eq("cafe_slug", selectedCafeRow.slug).maybeSingle(),
+  ]) : [null, null];
+  const selected = tab === "cafes" ? null : tab === "reports" ? reports : tab === "reviews" ? reviews : suggestions;
+  const totalPages = Math.max(1, Math.ceil((selected?.count ?? 0) / 50));
+  if (selected && !selected.error && page >= totalPages) redirect(`/admin?page=${totalPages - 1}&${viewQuery}`);
   return (
     <AdminDashboard
       mode="ready"
       queueCounts={{ suggestions: pendingS.error ? null : pendingS.count ?? 0, reports: pendingR.error ? null : pendingR.count ?? 0, reviews: lowReviews.error ? null : lowReviews.count ?? 0 }}
-      loadError={!!selected.error}
+      loadError={tab === "cafes" ? !!catalog.error : !!selected?.error}
       suggestions={suggestionRows.map(s => ({ ...s, publishedSlug: suggestionPublication(s.id, catalog.error ? null : cafes) }))}
       reports={reportRows}
       reviews={reviewRows}
@@ -112,8 +118,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         members: profiles.error ? null : profiles.count,
         pendingRequests: pendingS.error || pendingR.error ? null : (pendingS.count ?? 0) + (pendingR.count ?? 0),
       }}
-      pageInfo={{ page, totalPages }}
+      pageInfo={selected ? { page, totalPages } : undefined}
       cafeLinks={cafes.map(cafe => ({ slug: cafe.slug, nameTh: cafe.name.th, nameEn: cafe.name.en }))}
+      selectedCafe={selectedCafeRow ? {
+        cafe: cafeFromRow(selectedCafeRow),
+        isActive: selectedCafeRow.is_active as boolean,
+        menu: (selectedMenu?.data ?? []) as EditableMenu[],
+        menuError: !!selectedMenu?.error,
+        ownerId: selectedOwner?.data?.user_id ?? "",
+      } : undefined}
       partialError={!!(suggestions.error || reports.error || reviews.error || catalog.error || profiles.error || pendingS.error || pendingR.error || lowReviews.error)}
     />
   );

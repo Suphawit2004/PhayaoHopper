@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import {useUi} from "@/i18n/UiText";
 import { useCatalog } from "@/components/CatalogProvider";
 
@@ -8,6 +9,9 @@ import AdminMutation from "./AdminMutation";
 import styles from "./AdminDashboard.module.css";
 import Link from "next/link";
 import ActionForm from "@/components/ActionForm";
+import CafeEditorView from "@/components/CafeEditorView";
+import type { Cafe } from "@/data/cafes";
+import type { EditableMenu } from "@/components/MenuManager";
 
 import { useLang } from "@/i18n/LangProvider";
 import type { DictKey } from "@/i18n/dictionaries";
@@ -89,6 +93,7 @@ export default function AdminDashboard({
   loadError = false,
   overview,
   cafeLinks = [],
+  selectedCafe,
   pageInfo,
   partialError = false,
 }: {
@@ -100,6 +105,7 @@ export default function AdminDashboard({
   reviews?: AdminReview[];
   overview?: { publishedCafes: number | null; totalCafes: number | null; members: number | null; pendingRequests: number | null };
   cafeLinks?: { slug: string; nameTh: string; nameEn: string }[];
+  selectedCafe?: { cafe: Cafe; isActive: boolean; menu: EditableMenu[]; menuError: boolean; ownerId: string };
   pageInfo?: { page: number; totalPages: number };
   partialError?: boolean;
 }) {
@@ -108,16 +114,19 @@ export default function AdminDashboard({
   const { t, tr, lang } = useLang();
   const tk = (k: string) => t(k as DictKey);
   const params = useSearchParams(); const router = useRouter();
-  const rawTab = params.get("tab"); const tab = rawTab==="reports" || rawTab==="reviews" ? rawTab : "suggestions";
+  const rawTab = params.get("tab"); const tab = rawTab==="reports" || rawTab==="reviews" || rawTab==="cafes" ? rawTab : "suggestions";
+  const requestedCafe = params.get("cafe");
   const pendingOnly = params.get("filter") !== "all";
-  const changeView = (nextTab:string, pending:boolean) => router.replace(`/admin?page=0&tab=${nextTab}&filter=${pending?"pending":"all"}`,{scroll:false});
+  const [cafeSearch, setCafeSearch] = useState("");
+  const changeView = (nextTab:string, pending:boolean) => router.replace(nextTab === "cafes" ? "/admin?tab=cafes" : `/admin?page=0&tab=${nextTab}&filter=${pending?"pending":"all"}`,{scroll:false});
   const copy = lang === "th" ? {
     back: ui("กลับไปหน้าเว็บไซต์"), workspace: ui("จัดการข้อมูลคาเฟ่"), loaded: ui("รายการที่โหลดมา"),
     queue: ui("รอตรวจสอบ"), recent: ui("รีวิวล่าสุด"), all: ui("รายการทั้งหมด"), pending: ui("แสดงเฉพาะที่รอตรวจสอบ"),
     manage: ui("เลือกหมวดที่ต้องการจัดการ"), done: ui("ไม่มีรายการรอตรวจสอบในหมวดนี้"),
     adminLabel: ui("พื้นที่ผู้ดูแลระบบ"), overview: ui("ภาพรวมระบบ"), overviewHint: ui("สถานะข้อมูลสำคัญของแพลตฟอร์ม"),
     published: ui("ร้านที่เผยแพร่ / ร้านทั้งหมด"), members: ui("สมาชิกทั้งหมด"), requests: ui("คำขอรอดำเนินการทั้งหมด"),
-    cafes: ui("จัดการข้อมูลและรูปภาพร้าน"), page: ui("หน้า"), perPage: ui("สูงสุด 50 รายการต่อหน้า"),
+    cafes: ui("จัดการข้อมูลและรูปภาพร้าน"), cafesHint: "เลือกร้านเพื่อแก้ไขข้อมูลและรูปภาพ", cafeSearch: "ค้นหาชื่อร้านหรือรหัสร้าน", cafeEmpty: "ไม่พบร้านที่ตรงกับคำค้นหา", cafeOpen: "เปิดหน้าจัดการร้าน",
+    page: ui("หน้า"), perPage: ui("สูงสุด 50 รายการต่อหน้า"),
     previous: ui("หน้าก่อน"), next: ui("หน้าถัดไป"), partialError: ui("ข้อมูลภาพรวมบางส่วนโหลดไม่สำเร็จ กรุณาโหลดหน้าใหม่"),
     suggestions: ui("ตรวจสอบข้อมูลร้าน ก่อนอนุมัติหรือส่งกลับ"), reports: ui("ตรวจสอบคำขอแก้ไขข้อมูลจากผู้ใช้"),
     reviews: ui("ดูความคิดเห็นและจัดการรีวิวที่ไม่เหมาะสม"),
@@ -127,7 +136,8 @@ export default function AdminDashboard({
     manage: "Choose a section to manage", done: "No pending items in this section",
     adminLabel: "Administrator workspace", overview: "System overview", overviewHint: "Key platform operations at a glance",
     published: "Published cafes / total cafes", members: "Total members", requests: "Requests awaiting action",
-    cafes: "Manage cafe details and photos", page: "Page", perPage: "Up to 50 items per page",
+    cafes: "Manage cafe details and photos", cafesHint: "Choose a cafe to edit its details and photos", cafeSearch: "Search cafe name or slug", cafeEmpty: "No cafe matches your search", cafeOpen: "Open cafe editor",
+    page: "Page", perPage: "Up to 50 items per page",
     previous: "Previous page", next: "Next page", partialError: "Some overview data could not be loaded. Refresh the page.",
     suggestions: "Review cafe details before approving or rejecting", reports: "Check corrections submitted by visitors",
     reviews: "Read feedback and moderate inappropriate reviews",
@@ -178,7 +188,12 @@ export default function AdminDashboard({
     { key: "suggestions" as const, label: t("admin.tab.suggestions"), badge: pendingSuggestions },
     { key: "reports" as const, label: t("admin.tab.reports"), badge: pendingReports },
     { key: "reviews" as const, label: t("admin.tab.reviews"), badge: queueCounts.reviews },
+    { key: "cafes" as const, label: copy.cafes, badge: overview?.totalCafes ?? null },
   ];
+  const searchTerm = cafeSearch.trim().toLocaleLowerCase();
+  const visibleCafes = searchTerm
+    ? cafeLinks.filter(cafe => `${cafe.nameTh} ${cafe.nameEn} ${cafe.slug}`.toLocaleLowerCase().includes(searchTerm))
+    : cafeLinks;
 
   return (
     <div className={styles.dashboard}>
@@ -215,26 +230,26 @@ export default function AdminDashboard({
       </section>}
       <div id="admin-workspace" className={styles.workspace}>
         <aside className={styles.sidebar}>
-          <span className={styles.sidebarEyebrow}>{lang === "th" ? "คิวตรวจสอบ" : "MODERATION QUEUES"}</span>
+          <span className={styles.sidebarEyebrow}>{lang === "th" ? "พื้นที่ทำงาน" : "WORKSPACE"}</span>
           <h2>{lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}</h2>
           <p>{copy.manage}</p>
           <nav aria-label={t("admin.title")} className={styles.navigation}>
             {tabs.map(({ key, label, badge }) => (
               <button key={key} type="button" aria-pressed={tab === key}
                 onClick={() => { changeView(key,true); }}
-                className={tab === key ? styles.active : undefined}>
+                className={`${key === "cafes" ? styles.manageTab : ""} ${tab === key ? styles.active : ""}`}>
                 <span>{label}</span><span className={styles.count}>{badge ?? "—"}</span>
               </button>
             ))}
           </nav>
-          {cafeLinks.length > 0 && <a className={styles.cafeShortcut} href="#admin-cafes">
-            <span>{copy.cafes}</span><span aria-hidden="true">↘</span>
-          </a>}
         </aside>
         <div className={styles.content}>
           <div className={styles.toolbar}>
-            <div><h2>{tabs.find((item) => item.key === tab)?.label}</h2><p>{copy[tab]}</p></div>
-            {<label className={styles.filter}>
+            <div><h2>{tabs.find((item) => item.key === tab)?.label}</h2><p>{tab === "cafes" ? copy.cafesHint : copy[tab]}</p></div>
+            {tab === "cafes" && !selectedCafe ? <label className={styles.cafeSearch}>
+              <span className="sr-only">{copy.cafeSearch}</span>
+              <input type="search" value={cafeSearch} onChange={event => setCafeSearch(event.target.value)} placeholder={copy.cafeSearch} />
+            </label> : <label className={styles.filter}>
               <input type="checkbox" checked={pendingOnly} onChange={(e) => changeView(tab,e.target.checked)} />
               {tab === "reviews" ? (lang === "th" ? "เฉพาะคะแนน 1–2 ดาว" : "Only 1–2 star reviews") : copy.pending}
             </label>}
@@ -444,20 +459,27 @@ export default function AdminDashboard({
           ))}
         </section>
       )}
-        </div>
-      </div>
+      {!loadError && tab === "cafes" && selectedCafe && <div className={styles.embeddedEditor}>
+        <CafeEditorView cafe={selectedCafe.cafe} admin isActive={selectedCafe.isActive} menu={selectedCafe.menu} error={selectedCafe.menuError} ownerId={selectedCafe.ownerId} embedded />
+      </div>}
+      {!loadError && tab === "cafes" && !selectedCafe && <section className={styles.cafeList} aria-label={copy.cafes}>
+        {requestedCafe && <p role="alert" className={styles.partialError}>{lang === "th" ? "ไม่พบร้านที่เลือก กรุณาเลือกร้านจากรายการ" : "Cafe not found. Please choose one from the list."}</p>}
+        <p className={styles.cafeCount}>{lang === "th" ? `แสดง ${visibleCafes.length} จาก ${cafeLinks.length} ร้าน` : `Showing ${visibleCafes.length} of ${cafeLinks.length} cafes`}</p>
+        {visibleCafes.length === 0 ? <EmptyRow label={copy.cafeEmpty} /> : <div className={styles.cafeGrid}>
+          {visibleCafes.map(cafe => <Link key={cafe.slug} href={`/admin?tab=cafes&cafe=${encodeURIComponent(cafe.slug)}`} className={styles.cafeLink}>
+            <span><strong>{lang === "th" ? cafe.nameTh : cafe.nameEn}</strong><small>{cafe.slug}</small></span>
+            <span className={styles.cafeOpen}>{copy.cafeOpen} <span aria-hidden="true">↗</span></span>
+          </Link>)}
+        </div>}
+      </section>}
       {pageInfo && <nav className={styles.pagination} aria-label={lang === "th" ? "หน้ารายการแอดมิน" : "Admin list pages"}>
         {pageInfo.page > 0 ? <Link href={`/admin?page=${pageInfo.page - 1}&tab=${tab}&filter=${pendingOnly ? "pending" : "all"}`}>← {copy.previous}</Link> : <span />}
         <span>{copy.page} {pageInfo.page + 1} / {pageInfo.totalPages}<small>{copy.perPage}</small></span>
         {pageInfo.page + 1 < pageInfo.totalPages ? <Link href={`/admin?page=${pageInfo.page + 1}&tab=${tab}&filter=${pendingOnly ? "pending" : "all"}`}>{copy.next} →</Link> : <span />}
       </nav>}
-      {cafeLinks.length > 0 && <details id="admin-cafes" className={styles.cafeManager}>
-        <summary>{copy.cafes} <span>{cafeLinks.length}</span></summary>
-        <div className={styles.cafeGrid}>{cafeLinks.map((cafe) => <Link key={cafe.slug} href={`/owner/${cafe.slug}`}>
-          <span>{lang === "th" ? cafe.nameTh : cafe.nameEn}</span><span aria-hidden>↗</span>
-        </Link>)}</div>
-      </details>}
       {partialError && <p role="alert" className={styles.partialError}>{copy.partialError}</p>}
+        </div>
+      </div>
     </div>
   );
 }
