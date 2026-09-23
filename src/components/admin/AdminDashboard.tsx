@@ -246,10 +246,10 @@ export default function AdminDashboard({
         <div className={styles.content}>
           <div className={styles.toolbar}>
             <div><h2>{tabs.find((item) => item.key === tab)?.label}</h2><p>{tab === "cafes" ? copy.cafesHint : copy[tab]}</p></div>
-            {tab === "cafes" && !selectedCafe ? <label className={styles.cafeSearch}>
+            {tab === "cafes" ? (selectedCafe ? null : <label className={styles.cafeSearch}>
               <span className="sr-only">{copy.cafeSearch}</span>
               <input type="search" value={cafeSearch} onChange={event => setCafeSearch(event.target.value)} placeholder={copy.cafeSearch} />
-            </label> : <label className={styles.filter}>
+            </label>) : <label className={styles.filter}>
               <input type="checkbox" checked={pendingOnly} onChange={(e) => changeView(tab,e.target.checked)} />
               {tab === "reviews" ? (lang === "th" ? "เฉพาะคะแนน 1–2 ดาว" : "Only 1–2 star reviews") : copy.pending}
             </label>}
