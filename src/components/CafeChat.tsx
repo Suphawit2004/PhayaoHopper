@@ -34,11 +34,19 @@ export default function CafeChat() {
   const [error, setError] = useState("");
   const [failed, setFailed] = useState("");
   const log = useRef<HTMLDivElement>(null);
+  const composerInput = useRef<HTMLTextAreaElement>(null);
   const thai = lang === "th";
 
   useEffect(() => {
     log.current?.scrollTo({ top: log.current.scrollHeight, behavior: "auto" });
   }, [turns, pending]);
+
+  useEffect(() => {
+    const input = composerInput.current;
+    if (!input) return;
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
+  }, [query]);
 
   async function send(question: string) {
     const text = question.trim();
@@ -188,31 +196,37 @@ export default function CafeChat() {
           </div>
 
           <form className="chat-composer" onSubmit={(event) => { event.preventDefault(); void send(query); }}>
-            <label htmlFor="cafe-assistant-query">{thai ? "เล่าให้ฟังว่ากำลังมองหาร้านแบบไหน" : "Tell us what kind of cafe you’re looking for"}</label>
+            <label className="sr-only" htmlFor="cafe-assistant-query">{thai ? "เล่าให้ฟังว่ากำลังมองหาร้านแบบไหน" : "Tell us what kind of cafe you’re looking for"}</label>
             <div className="chat-composer-row">
               <textarea
+                ref={composerInput}
                 id="cafe-assistant-query"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                aria-describedby="chat-composer-help"
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                     event.preventDefault();
                     void send(query);
                   }
                 }}
-                rows={2}
+                rows={1}
                 maxLength={500}
                 required
                 disabled={pending}
                 placeholder={thai ? "เช่น อยากได้ร้านเงียบ ๆ มีปลั๊ก นั่งทำงานได้" : "e.g. A quiet cafe with outlets where I can work"}
               />
-              <button type="submit" className="chat-send-button" disabled={pending || !query.trim()}>
-                <span>{pending ? (thai ? "กำลังค้นหา" : "Searching") : (thai ? "ค้นหาร้าน" : "Find cafes")}</span>
-                <span className="chat-send-arrow" aria-hidden="true">→</span>
+              <button
+                type="submit"
+                className="chat-send-button"
+                aria-label={pending ? (thai ? "กำลังค้นหาร้าน" : "Searching") : (thai ? "ส่งข้อความ" : "Send message")}
+                disabled={pending || !query.trim()}
+              >
+                {pending ? <span className="chat-send-loading" aria-hidden="true" /> : <span className="chat-send-arrow" aria-hidden="true">↑</span>}
               </button>
             </div>
             <div className="chat-composer-foot">
-              <span>{thai ? "Enter เพื่อส่ง · Shift + Enter ขึ้นบรรทัดใหม่" : "Enter to send · Shift + Enter for a new line"}</span>
+              <span id="chat-composer-help">{thai ? "Enter เพื่อส่ง · Shift + Enter ขึ้นบรรทัดใหม่" : "Enter to send · Shift + Enter for a new line"}</span>
               <span>{query.length}/500</span>
             </div>
             {error && (

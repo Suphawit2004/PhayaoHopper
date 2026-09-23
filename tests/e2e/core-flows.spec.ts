@@ -64,6 +64,15 @@ test("cafe assistant is a primary navbar link and completes a catalogue search",
   await expect(page.locator(".chat-fallback-note")).toBeVisible();
   await expect(page.locator(".chat-recommendation").first()).toHaveAttribute("href", /^\/cafes\//);
 
+  await page.locator(".chat-reset").click();
+  const composer = page.getByRole("textbox", { name: "เล่าให้ฟังว่ากำลังมองหาร้านแบบไหน" });
+  await composer.fill("แนะนำคาเฟ่");
+  const sendButton = page.getByRole("button", { name: "ส่งข้อความ" });
+  await expect(sendButton).toBeEnabled();
+  await sendButton.click();
+  await expect(page.locator(".chat-user-message")).toHaveText("แนะนำคาเฟ่");
+  await expect(page.locator(".chat-recommendation")).toHaveCount(5);
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator(".chat-reset").click();
   await expect(page.locator(".chat-mobile-prompts")).toBeVisible();
