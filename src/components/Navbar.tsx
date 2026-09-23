@@ -15,6 +15,7 @@ import Image from "next/image";
 export default function Navbar() {
   const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady, slugs, visits } = useFavorites(); const pathname = usePathname();
   const wantedCount = wantedReady ? wantedSlugs.length : 0;
+  const myCafeCount = wantedReady && visits ? visits.length + wantedCount : 0;
   const visitedOnlyCount = visits?.filter(row => !slugs.includes(row.cafe_slug)).length ?? 0;
   const favoriteVisitedCount = visits?.filter(row => slugs.includes(row.cafe_slug)).length ?? 0;
   const { profile } = useProfile();
@@ -50,7 +51,9 @@ export default function Navbar() {
     { href: "/cafes", label: t("nav.cafes"), icon: "coffee" as const },
     { href: "/chat", label: t("nav.assistant"), icon: "search" as const },
     { href: "/map", label: t("nav.map"), icon: "map" as const },
-    { href: "/favorites", label: `${t("nav.favorites")}${wantedCount ? ` (${wantedCount})` : ""}`, icon: "heart" as const },
+    { href: user ? "/visited" : "/favorites", label: user
+      ? `${lang === "th" ? "ร้านของฉัน" : "My cafes"}${myCafeCount ? ` (${myCafeCount})` : ""}`
+      : `${t("nav.favorites")}${wantedCount ? ` (${wantedCount})` : ""}`, icon: "heart" as const },
   ];
   const close = () => setOpen(false);
   const initials = (profile?.display_name || user?.email || "?").trim().slice(0, 1).toUpperCase();
@@ -69,7 +72,7 @@ export default function Navbar() {
           {open ? (lang === "th" ? "ปิดเมนู" : "Close menu") : (lang === "th" ? "เมนู" : "Menu")}
         </button>
         <nav id="main-navigation" className={`main-navigation ${open ? "is-open" : ""}`} aria-label={t("nav.main")}>
-          {links.map(({ href, label, icon }) => <Link key={href} href={href} onClick={close} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>
+          {links.map(({ href, label, icon }) => <Link key={href} href={href} onClick={close} aria-current={pathname === href || pathname.startsWith(`${href}/`) || (user && href === "/visited" && pathname === "/favorites") ? "page" : undefined}>
             <Icon name={icon} width={17} height={17} />
             <span>{label}</span>
           </Link>)}

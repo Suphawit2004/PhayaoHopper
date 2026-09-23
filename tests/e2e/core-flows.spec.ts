@@ -156,7 +156,7 @@ test("a cafe moves between want-to-visit, favorites, and visited-only as its sta
   const favoriteButton = page.locator(".favorite-control");
   await favoriteButton.click();
   await expect(favoriteButton).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator('.main-navigation > a[href="/favorites"]')).toContainText("(1)");
+  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("ร้านของฉัน (1)");
 
   const visitForm = page.locator("form").filter({ has: page.locator('input[name="isPublic"][type="hidden"]') });
   await visitForm.locator('input[type="file"]').setInputFiles({
@@ -166,7 +166,7 @@ test("a cafe moves between want-to-visit, favorites, and visited-only as its sta
   });
   await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
   await expect(page.getByRole("link", { name: "ดูร้านของฉัน" })).toBeVisible();
-  await expect(page.locator('.main-navigation > a[href="/favorites"]')).not.toContainText("(1)");
+  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("ร้านของฉัน (1)");
 
   await page.goto("/visited");
   const visited = page.locator("section[aria-labelledby='visited-list-heading']");
@@ -183,6 +183,18 @@ test("a cafe moves between want-to-visit, favorites, and visited-only as its sta
   await expect(page.locator(".account-menu-panel")).not.toContainText("ร้านที่อยากไป (1)");
   await page.goto("/favorites");
   await expect(page.locator(".cafe-card")).toHaveCount(0);
+  const listNavigation = page.getByRole("navigation", { name: "หมวดร้านของฉัน" });
+  await expect(page.locator('.main-navigation > a[href="/visited"]')).toContainText("ร้านของฉัน (1)");
+  await expect(listNavigation.getByRole("link", { name: "ร้านที่เคยไป 0" })).toBeVisible();
+  await expect(listNavigation.getByRole("link", { name: "ร้านที่อยากไป 0" })).toHaveAttribute("aria-current", "page");
+  await expect(listNavigation.getByRole("link", { name: "ร้านโปรด 1" })).toBeVisible();
+  await listNavigation.getByRole("link", { name: "ร้านโปรด 1" }).click();
+  await expect(page).toHaveURL(/\/visited#favorite-visited$/);
+  await expect(page.locator("#favorite-visited .cafe-card")).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/favorites");
+  const pageWidth = await page.locator("body").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
+  expect(pageWidth.scroll).toBeLessThanOrEqual(pageWidth.width);
   await page.goto("/visited");
   await favorites.locator(".favorite-control").click();
   await expect(visited.locator(".cafe-card")).toHaveCount(1);

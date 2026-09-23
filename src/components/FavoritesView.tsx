@@ -12,7 +12,10 @@ export default function FavoritesView() {
   const CAFES = useCatalog();
   const { t, lang } = useLang();
   const { user } = useAuth();
-  const { slugs, wantedSlugs, wantedReady, visitsError, retryVisits } = useFavorites();
+  const { slugs, wantedSlugs, wantedReady, visits, visitsError, retryVisits } = useFavorites();
+  const favoriteSet = new Set(slugs);
+  const visitedCount = visits?.filter(row => !favoriteSet.has(row.cafe_slug)).length;
+  const favoriteCount = visits?.filter(row => favoriteSet.has(row.cafe_slug)).length;
 
   const cafes = wantedSlugs
     .map((slug) => CAFES.find((c) => c.slug === slug))
@@ -23,9 +26,15 @@ export default function FavoritesView() {
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-espresso">❤️ {t("fav.title")}</h1>
         <p className="mt-1 text-espresso/60">
-          {t("cafes.found").replaceAll("{n}", String(cafes.length))}
+          {lang === "th" ? "ร้านที่กดใจไว้และยังไม่เคยไป" : "Heart-saved cafes you have not visited yet"} · {t("cafes.found").replaceAll("{n}", String(cafes.length))}
         </p>
       </header>
+
+      {user && <nav className="my-cafes-tabs mb-7" aria-label={lang === "th" ? "หมวดร้านของฉัน" : "My cafe lists"}>
+        <Link href="/visited#visited-only">{lang === "th" ? "ร้านที่เคยไป" : "Visited"}{visitedCount !== undefined && <span>{visitedCount}</span>}</Link>
+        <Link href="/favorites" aria-current="page">{lang === "th" ? "ร้านที่อยากไป" : "Want to visit"}{wantedReady && <span>{cafes.length}</span>}</Link>
+        <Link href="/visited#favorite-visited">{lang === "th" ? "ร้านโปรด" : "Favorites"}{favoriteCount !== undefined && <span>{favoriteCount}</span>}</Link>
+      </nav>}
 
       {!user && wantedReady && slugs.length > 0 && (
         <p className="mb-5 rounded-xl bg-sand/60 px-4 py-3 text-sm text-espresso/80">
