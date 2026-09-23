@@ -45,4 +45,8 @@ describe("Admin queue data boundaries", () => {
     const query = state.queries.find(q => q.table === "reviews" && !q.head)!;
     expect(query.steps).not.toContain("lte:rating:2");
   });
+  it("keeps cafe management outside moderation pagination", async () => {
+    await expect(AdminPage({ searchParams: Promise.resolve({ page: "9", tab: "cafes" }) })).resolves.toBeTruthy();
+    expect(state.queries.some(q => q.table === "cafes" && q.steps.includes("order:slug"))).toBe(true);
+  });
 });
