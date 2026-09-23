@@ -8,6 +8,7 @@ import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { submitSuggestion } from "@/app/actions/suggestions";
 import { CAFE_COORDINATE_BOUNDS, isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
+import TimeInput from "@/components/TimeInput";
 
 const MapPicker = dynamic(() => import("./map/MapPicker"), {
   ssr: false,
@@ -71,6 +72,7 @@ function SuggestionForm() {
   const [photoError, setPhotoError] = useState<"tooBig" | "wrongType" | "upload" | null>(null);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [rateLimited, setRateLimited] = useState(false);
+  const [timeError, setTimeError] = useState(false);
   const [showCoordError, setShowCoordError] = useState(false);
 
   const patch = (p: Partial<FormState>) => setForm((prev) => ({ ...prev, ...p }));
@@ -115,10 +117,17 @@ function SuggestionForm() {
     setShowCoordError(false);
     setPhotoError(null);
     setRateLimited(false);
+    setTimeError(false);
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+    if ((form.openTime || form.closeTime) && (!validTime(form.openTime) || !validTime(form.closeTime))) {
+      setTimeError(true);
+      return;
+    }
+    setTimeError(false);
     if (!coords) {
       setShowCoordError(true);
       coordsRef.current?.scrollIntoView({block:"center"}); coordsRef.current?.focus();
@@ -311,23 +320,11 @@ function SuggestionForm() {
         <h2 className="form-section text-xl font-bold">{lang==="th"?"ข้อมูลเพิ่มเติม (ไม่บังคับ)":"Additional information (optional)"}</h2>
         <div>
           <span className="block text-sm font-semibold text-espresso">{t("suggest.hours")}</span>
-          <div className="mt-1.5 flex items-center gap-2">
-            <input
-              type="time"
-              aria-label={t("suggest.openLabel")}
-              value={form.openTime}
-              onChange={(e) => patch({ openTime: e.target.value })}
-              className="flex-1 rounded-xl border border-[#e8dcc8] bg-sand/40 px-3 py-2.5 text-sm outline-none focus:border-latte focus:bg-white"
-            />
-            <span className="text-espresso/50">–</span>
-            <input
-              type="time"
-              aria-label={t("suggest.closeLabel")}
-              value={form.closeTime}
-              onChange={(e) => patch({ closeTime: e.target.value })}
-              className="flex-1 rounded-xl border border-[#e8dcc8] bg-sand/40 px-3 py-2.5 text-sm outline-none focus:border-latte focus:bg-white"
-            />
+          <div className="mt-1.5 grid grid-cols-2 gap-3">
+            <TimeInput label={t("suggest.openLabel")} value={form.openTime} onChange={(openTime) => patch({ openTime })} />
+            <TimeInput label={t("suggest.closeLabel")} value={form.closeTime} onChange={(closeTime) => patch({ closeTime })} />
           </div>
+          {timeError && <p role="alert" className="mt-2 text-sm text-red-700">{lang === "th" ? "กรุณาเลือกเวลาเปิดและเวลาปิดให้ครบ หรือเว้นว่างทั้งคู่" : "Choose both opening and closing times, or leave both blank."}</p>}
         </div>
 
         <div>
