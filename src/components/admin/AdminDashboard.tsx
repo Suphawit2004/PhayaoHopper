@@ -90,6 +90,7 @@ export default function AdminDashboard({
   reports = [],
   reviews = [],
   queueCounts = { suggestions: null, reports: null, reviews: null },
+  itemCounts = { reports: null, reviews: null },
   loadError = false,
   overview,
   cafeLinks = [],
@@ -99,6 +100,7 @@ export default function AdminDashboard({
 }: {
   mode: Mode;
   queueCounts?: { suggestions: number | null; reports: number | null; reviews: number | null };
+  itemCounts?: { reports: number | null; reviews: number | null };
   loadError?: boolean;
   suggestions?: AdminSuggestion[];
   reports?: AdminReport[];
@@ -182,12 +184,11 @@ export default function AdminDashboard({
     });
 
   const pendingSuggestions = queueCounts.suggestions;
-  const pendingReports = queueCounts.reports;
 
   const tabs = [
     { key: "suggestions" as const, label: t("admin.tab.suggestions"), badge: pendingSuggestions },
-    { key: "reports" as const, label: t("admin.tab.reports"), badge: pendingReports },
-    { key: "reviews" as const, label: t("admin.tab.reviews"), badge: queueCounts.reviews },
+    { key: "reports" as const, label: t("admin.tab.reports"), badge: itemCounts.reports },
+    { key: "reviews" as const, label: t("admin.tab.reviews"), badge: itemCounts.reviews },
     { key: "cafes" as const, label: copy.cafes, badge: overview?.totalCafes ?? null },
   ];
   const searchTerm = cafeSearch.trim().toLocaleLowerCase();
@@ -236,7 +237,7 @@ export default function AdminDashboard({
           <nav aria-label={t("admin.title")} className={styles.navigation}>
             {tabs.map(({ key, label, badge }) => (
               <button key={key} type="button" aria-pressed={tab === key}
-                onClick={() => { changeView(key,true); }}
+                onClick={() => { changeView(key,key === "suggestions"); }}
                 className={`${key === "cafes" ? styles.manageTab : ""} ${tab === key ? styles.active : ""}`}>
                 <span>{label}</span><span className={styles.count}>{badge ?? "—"}</span>
               </button>

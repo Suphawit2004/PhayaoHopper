@@ -16,8 +16,9 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; tab?: string; filter?: string; cafe?: string }> }) {
   const params = await searchParams;
   const tab = params.tab === "reviews" || params.tab === "reports" || params.tab === "cafes" ? params.tab : "suggestions";
-  const pendingOnly = params.filter !== "all";
-  const viewQuery = new URLSearchParams({tab,filter:params.filter==="all"?"all":"pending"}).toString();
+  // New submissions start in the review queue; reports and reviews show all records by default.
+  const pendingOnly = params.filter === "pending" || (params.filter !== "all" && tab === "suggestions");
+  const viewQuery = new URLSearchParams({tab,filter:pendingOnly?"pending":"all"}).toString();
   const page = Math.max(0, Math.min(10000, Math.floor(Number(params.page) || 0)));
   const sb = await getSupabaseServer();
   if (!sb) return <AdminDashboard mode="not-configured" />;
@@ -89,11 +90,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     created_at: r.created_at as string,
   }));
 
-  const [catalog, profiles, pendingS, pendingR, lowReviews] = await Promise.all([
+  const [catalog, profiles, pendingS, pendingR, lowReviews, allReports, allReviews] = await Promise.all([
     sb.from("cafes").select("*").order("slug"), sb.from("profiles").select("id", { count: "exact", head: true }),
     sb.from("cafe_suggestions").select("id", { count: "exact", head: true }).eq("status", "pending"),
     sb.from("data_reports").select("id", { count: "exact", head: true }).eq("status", "pending"),
     sb.from("reviews").select("id", { count: "exact", head: true }).lte("rating", 2),
+    sb.from("data_reports").select("id", { count: "exact", head: true }),
+    sb.from("reviews").select("id", { count: "exact", head: true }),
   ]);
   const cafes = (catalog.data ?? []).map(cafeFromRow);
   const selectedCafeRow = tab === "cafes" ? (catalog.data ?? []).find(cafe => cafe.slug === params.cafe) : undefined;
@@ -108,6 +111,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <AdminDashboard
       mode="ready"
       queueCounts={{ suggestions: pendingS.error ? null : pendingS.count ?? 0, reports: pendingR.error ? null : pendingR.count ?? 0, reviews: lowReviews.error ? null : lowReviews.count ?? 0 }}
+      itemCounts={{ reports: allReports.error ? null : allReports.count ?? 0, reviews: allReviews.error ? null : allReviews.count ?? 0 }}
       loadError={tab === "cafes" ? !!catalog.error : !!selected?.error}
       suggestions={suggestionRows.map(s => ({ ...s, publishedSlug: suggestionPublication(s.id, catalog.error ? null : cafes) }))}
       reports={reportRows}
@@ -127,7 +131,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         menuError: !!selectedMenu?.error,
         ownerId: selectedOwner?.data?.user_id ?? "",
       } : undefined}
-      partialError={!!(suggestions.error || reports.error || reviews.error || catalog.error || profiles.error || pendingS.error || pendingR.error || lowReviews.error)}
+      partialError={!!(suggestions.error || reports.error || reviews.error || catalog.error || profiles.error || pendingS.error || pendingR.error || lowReviews.error || allReports.error || allReviews.error)}
     />
   );
 }
