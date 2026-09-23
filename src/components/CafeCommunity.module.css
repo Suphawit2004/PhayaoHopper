@@ -77,3 +77,24 @@
 .privateBadge { border: 1px solid var(--lanna-border); color: #44545a; background: #fffefa; }
 .empty { border-color: #c9bda8; border-radius: 10px; background: #fffefa; }
 .signIn { border: 1px solid var(--lanna-border); border-radius: 10px; background: #f2eee5; }
+
+/* Member photo library: a quiet, square-first grid inspired by social photo profiles. */
+.personalGallery { max-width: 940px; margin-inline: auto; }
+.personalGallery .header { align-items: end; }
+.personalGallery .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.personalGallery .photo { border: 0; border-radius: 0; background: transparent; }
+.personalGallery .imageWrap { aspect-ratio: 1; overflow: hidden; }
+.personalGallery .imageWrap img { width: 100%; height: 100%; aspect-ratio: 1; object-fit: cover; transition: transform 180ms ease; }
+.personalGallery .photo:hover .imageWrap img { transform: scale(1.025); }
+.personalGallery .caption { padding: 10px 3px 4px; font-size: 13px; }
+.personalGallery .caption p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.personalGallery .actions { margin-top: 2px; padding: 8px 0 10px; border-top: 0; }
+.personalGallery .toolbar { margin-top: 22px; }
+.personalGallery .toolbar h3 { color: var(--lanna-indigo); }
+.personalGallery .publicBadge, .personalGallery .privateBadge { left: 8px; top: 8px; padding: 4px 8px; border-radius: 999px; font-size: 11px; }
+.personalGallery .photo-open { width: 100%; height: 100%; }
+.personalGallery .photo-open:focus-visible { outline: 3px solid var(--lanna-gold); outline-offset: -3px; }
+@media (prefers-reduced-motion: reduce) {
+  .personalGallery .imageWrap img { transition: none; }
+  .personalGallery .photo:hover .imageWrap img { transform: none; }
+}

@@ -277,7 +277,7 @@ function ReviewContent({ slug, baseRating, authLoading }: ReviewSectionProps & {
           />
         </label>
         <label className="mt-4 block text-sm font-semibold">{th ? "รูปประกอบรีวิว (ไม่เกิน 5 รูป)" : "Review photos (up to 5)"}<input type="file" multiple accept="image/jpeg,image/png,image/webp" className="mt-2 block w-full text-sm" onChange={e=>{void chooseFiles(Array.from(e.target.files ?? []));e.target.value="";}} /></label>
-        <p className="mt-2 text-sm">{th ? "JPG/PNG/WebP ไม่เกิน 5 MB ต่อรูป รูปแนบเป็นสาธารณะ แสดงในรีวิว หน้าร้าน และโปรไฟล์" : "JPG/PNG/WebP, max 5 MB each. Attached photos are public in your review, cafe gallery and profile."}</p>
+        <p className="mt-2 text-sm">{th ? "JPG/PNG/WebP ไม่เกิน 5 MB ต่อรูป รูปแนบเป็นสาธารณะ แสดงในรีวิว หน้าร้าน และแกลเลอรีของคุณ" : "JPG/PNG/WebP, max 5 MB each. Attached photos are public in your review, cafe gallery and your photo gallery."}</p>
         {previews.length>0 && <div className="mt-3 flex flex-wrap gap-2">{previews.map((url,i)=><Image unoptimized key={url} src={url} alt={`${th?"รูปแนบ":"Attachment"} ${i+1}`} width={96} height={96} className="h-24 w-24 rounded-lg object-cover" />)}<button type="button" className="ui-secondary" onClick={()=>void chooseFiles([])}>{th?"เอารูปออก":"Remove photos"}</button></div>}
         </fieldset>
         <p className="mt-4 text-sm font-semibold">{th ? `คูปองทดลอง ${files.length>=3?"10%":"5 บาท"} · อายุ 30 วัน · รับได้ครั้งเดียวต่อบัญชีต่อร้าน · ใช้แลกส่วนลดจริงไม่ได้` : `Demo ${files.length>=3?"10%":"฿5"} coupon · 30 days · One reward per account per cafe · No real discount`}</p>
