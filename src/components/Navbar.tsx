@@ -7,15 +7,14 @@ import { useAuth } from "./AuthProvider";
 import { useFavorites } from "./FavoritesProvider";
 import CafeSearch from "./CafeSearch";
 import BrandMark from "./BrandMark";
+import FeatureNav from "./FeatureNav";
 import { useProfile } from "@/lib/use-profile";
 import Icon from "./Icon";
 import Image from "next/image";
-import ProfileView from "./ProfileView";
 export default function Navbar() {
   const { t, toggle, lang } = useLang(); const { user, loading } = useAuth(); const { slugs } = useFavorites(); const pathname = usePathname();
   const { profile } = useProfile();
   const [open,setOpen] = useState(false); const trigger = useRef<HTMLButtonElement>(null); const accountMenu = useRef<HTMLDetailsElement>(null);
-  const [accountOpen, setAccountOpen] = useState(false);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
@@ -41,11 +40,6 @@ export default function Navbar() {
   }, [open]);
   const links = [["/cafes", t("nav.cafes")], ["/map", t("nav.map")], ["/favorites", `${t("nav.favorites")}${slugs.length ? ` (${slugs.length})` : ""}`]];
   const close = () => setOpen(false);
-  const closeAccount = () => {
-    accountMenu.current?.removeAttribute("open");
-    setAccountOpen(false);
-    accountMenu.current?.querySelector("summary")?.focus();
-  };
   const initials = (profile?.display_name || user?.email || "?").trim().slice(0, 1).toUpperCase();
 
   return (
@@ -63,7 +57,7 @@ export default function Navbar() {
         <nav id="main-navigation" className={`main-navigation ${open ? "is-open" : ""}`} aria-label={t("nav.main")}>
           {links.map(([href, label]) => <Link key={href} href={href} onClick={close} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
           {!loading && (user ? (
-            <details ref={accountMenu} className="account-menu" onToggle={event => setAccountOpen(event.currentTarget.open)}>
+            <details ref={accountMenu} className="account-menu">
               <summary aria-label={lang === "th" ? "เปิดเมนูโปรไฟล์" : "Open profile menu"}>
                 <span className="account-avatar">
                   {profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={36} height={36} unoptimized /> : <span aria-hidden="true">{initials}</span>}
@@ -72,13 +66,24 @@ export default function Navbar() {
                 <Icon name="chevronDown" className="account-chevron" />
               </summary>
               <div className="account-menu-panel" onClick={event => {
-                const link = (event.target as HTMLElement).closest("a");
-                if (link && !link.getAttribute("href")?.startsWith("#")) {
+                if ((event.target as HTMLElement).closest("a")) {
                   accountMenu.current?.removeAttribute("open");
                   close();
                 }
               }}>
-                {accountOpen && <ProfileView inPopup onClose={closeAccount} />}
+                <div className="account-identity">
+                  <span className="account-avatar account-avatar-large">
+                    {profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={48} height={48} unoptimized /> : <span aria-hidden="true">{initials}</span>}
+                  </span>
+                  <span className="account-identity-copy">
+                    <strong>{profile?.display_name || user.email?.split("@")[0] || (lang === "th" ? "สมาชิก" : "Member")}</strong>
+                    <small>{user.email}</small>
+                  </span>
+                </div>
+                <Link className="account-favorites-link" href="/favorites">
+                  {lang === "th" ? `ร้านโปรด${slugs.length ? ` (${slugs.length})` : ""}` : `Favorites${slugs.length ? ` (${slugs.length})` : ""}`}
+                </Link>
+                <FeatureNav />
               </div>
             </details>
           ) : <Link href="/login" onClick={close}>{t("nav.login")}</Link>)}
