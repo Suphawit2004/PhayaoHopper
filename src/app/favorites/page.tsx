@@ -1,7 +1,7 @@
 import FavoritesView from "@/components/FavoritesView";
 
 export const metadata = {
-  title: "รายการโปรด — Favorites",
+  title: "ร้านที่อยากไป — Want to visit",
 };
 
 export default function FavoritesPage() {

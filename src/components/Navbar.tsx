@@ -81,10 +81,10 @@ export default function Navbar() {
                   </span>
                 </div>
                 <Link className="account-favorites-link" href="/visited">
-                  {lang === "th" ? "เคยไปแล้ว" : "Visited cafes"}
+                  {lang === "th" ? "ร้านโปรด" : "Places to revisit"}
                 </Link>
                 <Link className="account-favorites-link" href="/favorites">
-                  {lang === "th" ? `ร้านโปรด${slugs.length ? ` (${slugs.length})` : ""}` : `Favorites${slugs.length ? ` (${slugs.length})` : ""}`}
+                  {lang === "th" ? `ร้านที่อยากไป${slugs.length ? ` (${slugs.length})` : ""}` : `Want to visit${slugs.length ? ` (${slugs.length})` : ""}`}
                 </Link>
                 <FeatureNav />
               </div>
