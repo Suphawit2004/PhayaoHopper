@@ -117,6 +117,11 @@ main > div.max-w-4xl > h1::after { left: 50%; transform: translateX(-50%); }
 .cafe-card:hover { border-color: #b78e70; box-shadow: 0 9px 24px rgb(32 62 74 / 9%); transform: translateY(-2px); }
 .visited-cafe-entry { display: flex; flex-direction: column; }
 .visited-cafe-entry > .cafe-card { flex: 1; }
+.my-cafes-tabs { display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid var(--ph-border); }
+.my-cafes-tabs a { display: inline-flex; min-height: 46px; flex: 0 0 auto; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 3px solid transparent; color: var(--ph-ink); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.my-cafes-tabs a:hover, .my-cafes-tabs a[aria-current=page] { border-bottom-color: var(--ph-gold); color: var(--ph-red); }
+.my-cafes-tabs a:focus-visible { outline: 3px solid var(--ph-ink); outline-offset: -3px; }
+.my-cafes-tabs span { min-width: 22px; border-radius: 999px; background: #eee8dc; padding: 2px 6px; color: var(--ph-ink); font-size: 12px; text-align: center; }
 .map-results { gap: 24px; }
 .map-list article { border-color: var(--ph-border); border-radius: var(--ph-radius); background: var(--ph-surface); }
 .map-list article.is-selected { outline-color: var(--ph-red); }

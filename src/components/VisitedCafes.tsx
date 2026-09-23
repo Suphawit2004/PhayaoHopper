@@ -57,7 +57,7 @@ function VisitList({ compact }: { compact: boolean }) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><h2 id="want-to-go-heading" className="text-xl font-bold">{th ? "ร้านที่อยากไป" : "Want to visit"}</h2>
           <p className="mt-1 text-sm text-espresso/65">{th ? "ร้านที่กดหัวใจไว้และยังไม่เคยไป" : "Heart-saved cafes you have not visited yet."}</p></div>
-        <div className="flex items-center gap-3"><p className="text-sm text-espresso/65">{th ? `${wanted.length} ร้าน` : `${wanted.length} cafes`}</p><Link href="/cafes" className="ui-secondary">{th ? "เพิ่มร้านที่อยากไป" : "Add a cafe"} →</Link></div>
+        <div className="flex flex-wrap items-center gap-3"><p className="text-sm text-espresso/65">{th ? `${wanted.length} ร้าน` : `${wanted.length} cafes`}</p><Link href="/favorites" className="text-sm font-semibold underline underline-offset-4">{th ? "ดูเฉพาะหมวดนี้" : "View this list"} →</Link><Link href="/cafes" className="ui-secondary">{th ? "เพิ่มร้านที่อยากไป" : "Add a cafe"} →</Link></div>
       </div>
       {!wantedReady ? <p role="status">{th ? "กำลังโหลดร้านที่อยากไป…" : "Loading want-to-visit list…"}</p> : wanted.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{wanted.map(cafe => <CafeCard key={cafe.slug} cafe={cafe} />)}</div> :
         <div className="rounded-xl border border-dashed border-[#ddd6c7] p-5 text-sm text-espresso/70">
