@@ -43,7 +43,7 @@ await db.exec(readFileSync('supabase/migrations/20260919170131_cafe_visits.sql',
 await db.exec(readFileSync('supabase/migrations/20260920115529_cafe_visits_remove_own.sql','utf8'));
 await db.exec(`insert into auth.users(id,email) values ('${user}','test@example.test'),('${other}','other@example.test'); insert into reviews(id,user_id,cafe_slug,author_name,rating) values ('${id(99)}','${other}','baan-baann','Legacy',4)`);
 await db.exec(readFileSync('supabase/migrations/20260921114634_review_rewards.sql','utf8'));
-await db.exec(readFileSync('supabase/migrations/20260923034008_require_photo_for_visit.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20260923040141_require_photo_for_visit.sql','utf8'));
 },30000);
 afterAll(()=>db.close());
 it('preserves old reviews without retroactive coupons',async()=>{

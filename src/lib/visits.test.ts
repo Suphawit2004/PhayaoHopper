@@ -31,7 +31,7 @@ beforeAll(async () => {
   `);
   await db.exec(readFileSync('supabase/migrations/20260919170131_cafe_visits.sql','utf8'));
   await db.exec(readFileSync('supabase/migrations/20260920115529_cafe_visits_remove_own.sql','utf8'));
-  await db.exec(readFileSync('supabase/migrations/20260923034008_require_photo_for_visit.sql','utf8'));
+  await db.exec(readFileSync('supabase/migrations/20260923040141_require_photo_for_visit.sql','utf8'));
 }, 30000);
 afterAll(() => db.close());
 
