@@ -118,7 +118,7 @@ export default function AdminDashboard({
   const params = useSearchParams(); const router = useRouter();
   const rawTab = params.get("tab"); const tab = rawTab==="reports" || rawTab==="reviews" || rawTab==="cafes" ? rawTab : "suggestions";
   const requestedCafe = params.get("cafe");
-  const pendingOnly = params.get("filter") !== "all";
+  const pendingOnly = params.get("filter") === "pending" || (params.get("filter") !== "all" && tab === "suggestions");
   const [cafeSearch, setCafeSearch] = useState("");
   const changeView = (nextTab:string, pending:boolean) => router.replace(nextTab === "cafes" ? "/admin?tab=cafes" : `/admin?page=0&tab=${nextTab}&filter=${pending?"pending":"all"}`,{scroll:false});
   const copy = lang === "th" ? {
