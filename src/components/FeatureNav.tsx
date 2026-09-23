@@ -6,7 +6,6 @@ import { useAuth } from "./AuthProvider";
 const links = [
   ["/coupons", "คูปองของฉัน", "My coupons"],
   ["/photos", "รูปของฉัน", "My photos"],
-  ["/visited", "เคยไปแล้ว", "Visited cafes"],
   ["/chat", "ผู้ช่วยค้นหาร้าน", "Cafe assistant"],
   ["/membership", "บัตรสมาชิก", "Membership"],
   ["/suggest", "แนะนำร้านใหม่", "Suggest a cafe"],

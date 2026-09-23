@@ -7,6 +7,7 @@ import { useCatalog } from "./CatalogProvider";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { loadVisits, type CafeVisit } from "@/lib/visits";
+import { useFavorites } from "./FavoritesProvider";
 import CafeCard from "./CafeCard";
 
 export default function VisitedCafes({ compact = false }: { compact?: boolean }) {
@@ -25,6 +26,7 @@ export default function VisitedCafes({ compact = false }: { compact?: boolean })
 
 function VisitList({ userId, compact }: { userId: string; compact: boolean }) {
   const cafes = useCatalog();
+  const { slugs: favoriteSlugs } = useFavorites();
   const { lang } = useLang();
   const th = lang === "th";
   const [rows, setRows] = useState<CafeVisit[] | null>(null);
@@ -45,8 +47,26 @@ function VisitList({ userId, compact }: { userId: string; compact: boolean }) {
   }, [userId, retry]);
   if (error) return <div role="alert"><p>{th ? "โหลดประวัติไม่สำเร็จ" : "Could not load visits."}</p><button className="ui-secondary mt-3" onClick={() => { setError(false); setRetry(n => n + 1); }}>{th ? "ลองอีกครั้ง" : "Retry"}</button></div>;
   if (!rows) return <p role="status">{th ? "กำลังโหลดประวัติ…" : "Loading visits…"}</p>;
-  if (!rows.length) return <div className="rounded-xl border border-dashed border-[#ddd6c7] p-6"><p className="font-semibold">{th ? "ยังไม่มีร้านที่บันทึกว่าเคยไป" : "No visits saved yet"}</p><p className="mt-2 text-sm text-espresso/65">{th ? "เปิดหน้าร้านที่คุณเคยไป แล้วอัปโหลดรูปจากร้านนั้น" : "Open a cafe you visited and upload a photo from there."}</p><Link href="/cafes" className="ui-secondary mt-4 inline-block">{th ? "ค้นหาร้านคาเฟ่" : "Explore cafes"} →</Link></div>;
-  return <><p className="mb-4 text-sm text-espresso/65">{th ? `${rows.length} ร้าน` : `${rows.length} cafes`}</p><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+  const visitedSlugs = new Set(rows.map(row => row.cafe_slug));
+  const wanted = favoriteSlugs.filter(slug => !visitedSlugs.has(slug))
+    .map(slug => cafes.find(cafe => cafe.slug === slug))
+    .filter((cafe): cafe is (typeof cafes)[number] => Boolean(cafe));
+  return <>
+    <section aria-labelledby="want-to-go-heading" className="mb-10">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div><h2 id="want-to-go-heading" className="text-xl font-bold">{th ? "ร้านที่อยากไป" : "Want to visit"}</h2>
+          <p className="mt-1 text-sm text-espresso/65">{th ? "ร้านโปรดที่ยังไม่อยู่ในประวัติเคยไปแล้ว" : "Favorite cafes you have not marked as visited yet."}</p></div>
+        <Link href="/cafes" className="ui-secondary">{th ? "เพิ่มร้านที่อยากไป" : "Add a cafe"} →</Link>
+      </div>
+      {wanted.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{wanted.map(cafe => <CafeCard key={cafe.slug} cafe={cafe} />)}</div> :
+        <div className="rounded-xl border border-dashed border-[#ddd6c7] p-5 text-sm text-espresso/70">
+          {th ? "กดไอคอนหัวใจบนการ์ดคาเฟ่เพื่อเพิ่มร้านในรายการอยากไป ร้านจะมาแสดงที่นี่" : "Select the heart on a cafe card to add it to your wish list. It will appear here."}
+        </div>}
+    </section>
+    <section aria-labelledby="visited-list-heading">
+      <div className="mb-4 flex items-center justify-between gap-3"><h2 id="visited-list-heading" className="text-xl font-bold">{th ? "เคยไปแล้ว" : "Visited cafes"}</h2>
+        <p className="text-sm text-espresso/65">{th ? `${rows.length} ร้าน` : `${rows.length} cafes`}</p></div>
+      {!rows.length ? <div className="rounded-xl border border-dashed border-[#ddd6c7] p-6"><p className="font-semibold">{th ? "ยังไม่มีร้านที่บันทึกว่าเคยไป" : "No visits saved yet"}</p><p className="mt-2 text-sm text-espresso/65">{th ? "เปิดหน้าร้านที่คุณเคยไป แล้วอัปโหลดรูปจากร้านนั้น" : "Open a cafe you visited and upload a photo from there."}</p><Link href="/cafes" className="ui-secondary mt-4 inline-block">{th ? "ค้นหาร้านคาเฟ่" : "Explore cafes"} →</Link></div> : <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
     {(compact ? rows.slice(0, 3) : rows).map(row => {
       const cafe = cafes.find(c => c.slug === row.cafe_slug);
       return <div key={row.cafe_slug} className="min-w-0">
@@ -54,5 +74,7 @@ function VisitList({ userId, compact }: { userId: string; compact: boolean }) {
         <p className="mt-2 text-xs text-espresso/60">{th ? "บันทึกเมื่อ " : "Saved on "}<time dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString(th ? "th-TH" : "en-GB", { timeZone: "Asia/Bangkok", day: "numeric", month: "short", year: "numeric" })}</time></p>
       </div>;
     })}
-  </div></>;
+  </div>}
+    </section>
+  </>;
 }
