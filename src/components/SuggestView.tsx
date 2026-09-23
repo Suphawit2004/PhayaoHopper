@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { submitSuggestion } from "@/app/actions/suggestions";
+import { CAFE_COORDINATE_BOUNDS, isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 
 const MapPicker = dynamic(() => import("./map/MapPicker"), {
   ssr: false,
@@ -231,8 +232,8 @@ function SuggestionForm() {
 
         <fieldset ref={coordsRef} tabIndex={-1} className="form-section">
           <legend>{t("suggest.location")}</legend>
-          <div className="grid grid-cols-2 gap-3"><label>{lang==="th"?"ละติจูด":"Latitude"}<input type="number" step="any" min={19} max={20} value={coordDraft.lat} onChange={e=>setCoordDraft(v=>({...v,lat:e.target.value}))} className={inputClass}/></label><label>{lang==="th"?"ลองจิจูด":"Longitude"}<input type="number" step="any" min={99.6} max={100.2} value={coordDraft.lng} onChange={e=>setCoordDraft(v=>({...v,lng:e.target.value}))} className={inputClass}/></label></div>
-          <button type="button" className="ui-secondary mt-3" onClick={()=>{const lat=Number(coordDraft.lat),lng=Number(coordDraft.lng);if(coordDraft.lat&&coordDraft.lng&&lat>=19&&lat<=20&&lng>=99.6&&lng<=100.2){setCoords([lat,lng]);setShowCoordError(false);}else{setShowCoordError(true);coordsRef.current?.focus();}}}>{lang==="th"?"ใช้พิกัดที่กรอก":"Use these coordinates"}</button>
+          <div className="grid grid-cols-2 gap-3"><label>{lang==="th"?"ละติจูด":"Latitude"}<input type="number" step="any" min={CAFE_COORDINATE_BOUNDS.minLat} max={CAFE_COORDINATE_BOUNDS.maxLat} value={coordDraft.lat} onChange={e=>setCoordDraft(v=>({...v,lat:e.target.value}))} className={inputClass}/></label><label>{lang==="th"?"ลองจิจูด":"Longitude"}<input type="number" step="any" min={CAFE_COORDINATE_BOUNDS.minLng} max={CAFE_COORDINATE_BOUNDS.maxLng} value={coordDraft.lng} onChange={e=>setCoordDraft(v=>({...v,lng:e.target.value}))} className={inputClass}/></label></div>
+          <button type="button" className="ui-secondary mt-3" onClick={()=>{const lat=Number(coordDraft.lat),lng=Number(coordDraft.lng);if(coordDraft.lat&&coordDraft.lng&&isSupportedCafeCoordinate(lat,lng)){setCoords([lat,lng]);setShowCoordError(false);}else{setShowCoordError(true);coordsRef.current?.focus();}}}>{lang==="th"?"ใช้พิกัดที่กรอก":"Use these coordinates"}</button>
           <p className="mt-0.5 text-xs text-espresso/60">
             🖱️ {t("suggest.locationHint")}
             {coords && (

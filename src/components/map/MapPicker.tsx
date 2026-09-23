@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { useLang } from "@/i18n/LangProvider";
 import { DEFAULT_CENTER } from "@/lib/map";
+import { CAFE_COORDINATE_BOUNDS, isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 
 const pinIcon = L.divIcon({
   className: "coffee-marker",
@@ -40,8 +41,17 @@ export default function MapPicker({ value, onChange, className }: MapPickerProps
   const { t } = useLang();
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState(false);
+  const [outsideArea, setOutsideArea] = useState(false);
 
   const round = (n: number) => Number(n.toFixed(6));
+  const pick = (lat: number, lng: number) => {
+    if (!isSupportedCafeCoordinate(lat, lng)) {
+      setOutsideArea(true);
+      return;
+    }
+    setOutsideArea(false);
+    onChange(round(lat), round(lng));
+  };
 
   const locateMe = () => {
     if (!navigator.geolocation) {
@@ -53,7 +63,7 @@ export default function MapPicker({ value, onChange, className }: MapPickerProps
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocating(false);
-        onChange(round(pos.coords.latitude), round(pos.coords.longitude));
+        pick(pos.coords.latitude, pos.coords.longitude);
       },
       () => {
         setLocating(false);
@@ -68,6 +78,8 @@ export default function MapPicker({ value, onChange, className }: MapPickerProps
       <MapContainer
         center={value ?? DEFAULT_CENTER}
         zoom={14}
+        maxBounds={[[CAFE_COORDINATE_BOUNDS.minLat, CAFE_COORDINATE_BOUNDS.minLng], [CAFE_COORDINATE_BOUNDS.maxLat, CAFE_COORDINATE_BOUNDS.maxLng]]}
+        maxBoundsViscosity={1}
         scrollWheelZoom
         className="absolute inset-0 z-0"
       >
@@ -75,7 +87,7 @@ export default function MapPicker({ value, onChange, className }: MapPickerProps
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <ClickCapture onPick={(lat, lng) => onChange(round(lat), round(lng))} />
+        <ClickCapture onPick={pick} />
         <Recenter value={value} />
         {value && (
           <Marker
@@ -85,7 +97,7 @@ export default function MapPicker({ value, onChange, className }: MapPickerProps
             eventHandlers={{
               dragend: (e) => {
                 const ll = e.target.getLatLng();
-                onChange(round(ll.lat), round(ll.lng));
+                pick(ll.lat, ll.lng);
               },
             }}
           />
@@ -112,6 +124,11 @@ export default function MapPicker({ value, onChange, className }: MapPickerProps
       {geoError && (
         <p className="absolute inset-x-2 bottom-2 z-[900] rounded-lg bg-rose-50/95 px-3 py-2 text-xs font-medium text-rose-700 shadow">
           ⚠️ {t("suggest.locationError")}
+        </p>
+      )}
+      {outsideArea && (
+        <p role="alert" className="absolute inset-x-2 bottom-2 z-[900] rounded-lg bg-amber-50/95 px-3 py-2 text-xs font-medium text-amber-900 shadow">
+          {t("suggest.locationOutside")}
         </p>
       )}
     </div>

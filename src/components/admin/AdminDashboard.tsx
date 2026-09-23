@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import SuggestionPreview from "./SuggestionPreview";
 import AdminMutation from "./AdminMutation";
 import styles from "./AdminDashboard.module.css";
-import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
+import { CAFE_COORDINATE_BOUNDS, isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 import Link from "next/link";
 import ActionForm from "@/components/ActionForm";
 import CafeEditorView from "@/components/CafeEditorView";
@@ -337,7 +337,7 @@ export default function AdminDashboard({
                 <label>{ui("ชื่อร้าน")}<input name="name" defaultValue={s.name} maxLength={120} required /></label>
                 <label>{ui("ที่อยู่")}<input name="address" defaultValue={s.address ?? ""} maxLength={300} required /></label>
                 <div className="feature-grid"><label>{ui("เวลาเปิด")}<input type="time" name="openTime" defaultValue={s.openTime ?? ""} required /></label><label>{ui("เวลาปิด")}<input type="time" name="closeTime" defaultValue={s.closeTime ?? ""} required /></label></div>
-                <div className="feature-grid"><label>{lang === "th" ? "ละติจูด" : "Latitude"}<input type="number" name="lat" step="any" min="19" max="20" defaultValue={s.lat} required /></label><label>{lang === "th" ? "ลองจิจูด" : "Longitude"}<input type="number" name="lng" step="any" min="99.6" max="100.2" defaultValue={s.lng} required /></label></div>
+                <div className="feature-grid"><label>{lang === "th" ? "ละติจูด" : "Latitude"}<input type="number" name="lat" step="any" min={CAFE_COORDINATE_BOUNDS.minLat} max={CAFE_COORDINATE_BOUNDS.maxLat} defaultValue={s.lat} required /></label><label>{lang === "th" ? "ลองจิจูด" : "Longitude"}<input type="number" name="lng" step="any" min={CAFE_COORDINATE_BOUNDS.minLng} max={CAFE_COORDINATE_BOUNDS.maxLng} defaultValue={s.lng} required /></label></div>
                 <p className="mt-2 text-xs text-espresso/70">{lang === "th" ? "ตรวจตำแหน่งบนแผนที่จริงก่อนบันทึกพิกัดใหม่" : "Verify the real location on a map before saving new coordinates."}</p>
               </ActionForm></div></details>}
               <div className={styles.actions}>
