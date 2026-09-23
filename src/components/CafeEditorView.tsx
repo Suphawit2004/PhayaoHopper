@@ -12,9 +12,10 @@ import MenuManager,{type EditableMenu} from "./MenuManager";
 import OwnerAssignment from "./OwnerAssignment";
 import MapBlock from "./map/MapBlock";
 import { CAFE_COORDINATE_BOUNDS } from "@/lib/cafe-coordinates";
+import TimeInput from "@/components/TimeInput";
 export default function CafeEditorView({cafe,admin,isActive,menu,error,ownerId,embedded=false}:{cafe:Cafe;admin:boolean;isActive:boolean;menu:EditableMenu[];error:boolean;ownerId:string;embedded?:boolean}){
   const ui=useUi();
- const {tr}=useLang();
+ const {tr,lang}=useLang();
   const slug=cafe.slug;
   const customStyles=cafe.tags.filter(tag=>!(tag in TAG_META));
   const customFacilities=cafe.lifestyleTags.filter(tag=>!(tag in LIFESTYLE_META));
@@ -33,8 +34,8 @@ return <div className={embedded ? "admin-embedded-editor" : "feature-page"}><Lin
         <label>{ui("โทรศัพท์")}<input name="phone" defaultValue={cafe.phone} maxLength={40} /></label>
         <MediaPicker label={ui("รูปหน้าร้าน")} initialUrl={cafe.photo}/>
       </div></details><details open><summary className="font-semibold">{ui("เวลาเปิด ราคา และพื้นที่")}</summary><div className="feature-grid mt-4">
-        <label>{ui("เวลาเปิด")}<input type="time" name="openTime" defaultValue={cafe.openTime} required /></label>
-        <label>{ui("เวลาปิด")}<input type="time" name="closeTime" defaultValue={cafe.closeTime} required /></label>
+        <TimeInput label={ui("เวลาเปิด")} name="openTime" defaultValue={cafe.openTime} required chooseLabel={lang === "th" ? "เลือก" : "Select"} />
+        <TimeInput label={ui("เวลาปิด")} name="closeTime" defaultValue={cafe.closeTime} required chooseLabel={lang === "th" ? "เลือก" : "Select"} />
         <label>{ui("ละติจูด")}<input type="number" step="any" name="lat" defaultValue={cafe.lat} readOnly={!admin} required min={CAFE_COORDINATE_BOUNDS.minLat} max={CAFE_COORDINATE_BOUNDS.maxLat} /></label>
         <label>{ui("ลองจิจูด")}<input type="number" step="any" name="lng" defaultValue={cafe.lng} readOnly={!admin} required min={CAFE_COORDINATE_BOUNDS.minLng} max={CAFE_COORDINATE_BOUNDS.maxLng} /></label>
         <label>{ui("พื้นที่")}<select name="area" defaultValue={cafe.area} disabled={!admin}>{Object.entries(AREA_META).map(([key, value]) => <option value={key} key={key}>{tr(value.label)}</option>)}</select></label>
