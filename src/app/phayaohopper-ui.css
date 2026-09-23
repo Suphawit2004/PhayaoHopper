@@ -222,30 +222,9 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .coupon-notice:empty { display: none; }
 .coupon-notice:not(:empty) { padding: 11px 14px; border-radius: 8px; background: #edf1f2; color: var(--ph-ink); }
 
-/* Admin's site-wide figures and cafe shortcuts sit beneath the moderation workbench. */
-.admin-pagination { align-items: center; gap: 20px; color: var(--ph-ink); font-size: 14px; }
-.admin-pagination a { min-height: 42px; padding: 9px 14px; border: 1px solid var(--ph-border); border-radius: 8px; background: var(--ph-surface); }
-.admin-pagination a:hover { border-color: var(--ph-red); color: var(--ph-red); }
-.admin-extras { padding-top: 14px; }
-.admin-metrics { gap: 16px; }
-.admin-metric { display: grid; gap: 10px; padding: 22px 24px; border-top: 2px solid var(--ph-gold); }
-.admin-metric > p { color: var(--ph-muted); font-size: 14px; font-weight: 600; }
-.admin-metric > strong { color: var(--ph-ink); font-variant-numeric: tabular-nums; }
-.admin-cafe-manager { margin-top: 22px; }
-.admin-cafe-manager > summary { color: var(--ph-ink); }
-.admin-cafe-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-color: var(--ph-border); background: #fffefa; color: var(--ph-ink); }
-.admin-cafe-link:hover { border-color: #c7b37b; background: #f4efe5; }
-
 :where(.feature-page, .explorer-controls, .cafe-search, .filter-dialog, .map-list, .feature-card) :is(input:not([type=checkbox]):not([type=radio]), textarea, select) { accent-color: var(--ph-ink); }
 :where(.feature-page, .explorer-controls, .cafe-search, .filter-dialog, .map-list, .feature-card) :is(input:not([type=checkbox]):not([type=radio]), textarea, select):focus-visible { outline: 3px solid rgb(32 62 74 / 45%); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .cafe-search form, .search-results, .map-list article, .map-select, .mobile-selected-cafe { transition: none; }
-}
-
-@media (min-width: 1200px) {
-  .admin-pagination, .admin-extras { width: min(100%, 1720px); max-width: 1720px !important; margin-inline: auto !important; padding-inline: clamp(32px, 4vw, 68px) !important; }
-  .admin-extras { padding-top: 14px; }
-  .admin-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-  .admin-cafe-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 }
