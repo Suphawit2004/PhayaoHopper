@@ -87,6 +87,10 @@ export default function AdminDashboard({
   reviews = [],
   queueCounts = { suggestions: null, reports: null, reviews: null },
   loadError = false,
+  overview,
+  cafeLinks = [],
+  pageInfo,
+  partialError = false,
 }: {
   mode: Mode;
   queueCounts?: { suggestions: number | null; reports: number | null; reviews: number | null };
@@ -94,6 +98,10 @@ export default function AdminDashboard({
   suggestions?: AdminSuggestion[];
   reports?: AdminReport[];
   reviews?: AdminReview[];
+  overview?: { publishedCafes: number | null; totalCafes: number | null; members: number | null; pendingRequests: number | null };
+  cafeLinks?: { slug: string; nameTh: string; nameEn: string }[];
+  pageInfo?: { page: number; totalPages: number };
+  partialError?: boolean;
 }) {
   const ui=useUi();
   const CAFES = useCatalog();
@@ -107,12 +115,20 @@ export default function AdminDashboard({
     back: ui("กลับไปหน้าเว็บไซต์"), workspace: ui("จัดการข้อมูลคาเฟ่"), loaded: ui("รายการที่โหลดมา"),
     queue: ui("รอตรวจสอบ"), recent: ui("รีวิวล่าสุด"), all: ui("รายการทั้งหมด"), pending: ui("แสดงเฉพาะที่รอตรวจสอบ"),
     manage: ui("เลือกหมวดที่ต้องการจัดการ"), done: ui("ไม่มีรายการรอตรวจสอบในหมวดนี้"),
+    adminLabel: ui("พื้นที่ผู้ดูแลระบบ"), overview: ui("ภาพรวมระบบ"), overviewHint: ui("สถานะข้อมูลสำคัญของแพลตฟอร์ม"),
+    published: ui("ร้านที่เผยแพร่ / ร้านทั้งหมด"), members: ui("สมาชิกทั้งหมด"), requests: ui("คำขอรอดำเนินการทั้งหมด"),
+    cafes: ui("จัดการข้อมูลและรูปภาพร้าน"), page: ui("หน้า"), perPage: ui("สูงสุด 50 รายการต่อหน้า"),
+    previous: ui("หน้าก่อน"), next: ui("หน้าถัดไป"), partialError: ui("ข้อมูลภาพรวมบางส่วนโหลดไม่สำเร็จ กรุณาโหลดหน้าใหม่"),
     suggestions: ui("ตรวจสอบข้อมูลร้าน ก่อนอนุมัติหรือส่งกลับ"), reports: ui("ตรวจสอบคำขอแก้ไขข้อมูลจากผู้ใช้"),
     reviews: ui("ดูความคิดเห็นและจัดการรีวิวที่ไม่เหมาะสม"),
   } : {
     back: "Back to website", workspace: "Cafe management", loaded: "Loaded records",
     queue: "Awaiting review", recent: "Latest reviews", all: "All records", pending: "Show pending only",
     manage: "Choose a section to manage", done: "No pending items in this section",
+    adminLabel: "Administrator workspace", overview: "System overview", overviewHint: "Key platform operations at a glance",
+    published: "Published cafes / total cafes", members: "Total members", requests: "Requests awaiting action",
+    cafes: "Manage cafe details and photos", page: "Page", perPage: "Up to 50 items per page",
+    previous: "Previous page", next: "Next page", partialError: "Some overview data could not be loaded. Refresh the page.",
     suggestions: "Review cafe details before approving or rejecting", reports: "Check corrections submitted by visitors",
     reviews: "Read feedback and moderate inappropriate reviews",
   };
@@ -120,9 +136,12 @@ export default function AdminDashboard({
   if (mode !== "ready") {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
-        <p className="text-4xl" aria-hidden>
-          🔒
-        </p>
+        <span className="mx-auto grid size-12 place-items-center rounded-xl bg-sand text-coffee" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <rect x="4.5" y="10" width="15" height="11" rx="2" />
+            <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 4v3" />
+          </svg>
+        </span>
         <h1 className="mt-4 text-xl font-bold">{tk(`admin.gate.${mode}`)}</h1>
         {(mode === "login" || mode === "not-configured") && (
           <a
@@ -164,11 +183,41 @@ export default function AdminDashboard({
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
-        <div><h1>{t("admin.title")}</h1><p>{t("admin.desc")}</p></div>
+        <div className={styles.titleBlock}>
+          <span className={styles.eyebrow}>{copy.adminLabel}</span>
+          <h1>{t("admin.title")}</h1>
+          <p>{t("admin.desc")}</p>
+        </div>
         <Link href="/" className={styles.backLink}>{copy.back} <span aria-hidden>↗</span></Link>
       </header>
+      {overview && <section className={styles.overview} aria-label={copy.overview}>
+        <div className={styles.sectionHeading}>
+          <div><span className={styles.eyebrow}>{copy.adminLabel}</span><h2>{copy.overview}</h2></div>
+          <p>{copy.overviewHint}</p>
+        </div>
+        <div className={styles.summary}>
+          <article className={styles.metric}>
+            <span>{copy.published}</span>
+            <strong>{overview.publishedCafes == null || overview.totalCafes == null ? "—" : `${overview.publishedCafes} / ${overview.totalCafes}`}</strong>
+            <small>{lang === "th" ? "สถานะรายการคาเฟ่ในระบบ" : "Current cafe catalog"}</small>
+          </article>
+          <article className={styles.metric}>
+            <span>{copy.members}</span>
+            <strong>{overview.members ?? "—"}</strong>
+            <small>{lang === "th" ? "บัญชีผู้ใช้ที่ลงทะเบียน" : "Registered user accounts"}</small>
+          </article>
+          <article className={`${styles.metric} ${styles.metricAccent}`}>
+            <span>{copy.requests}</span>
+            <strong>{overview.pendingRequests ?? "—"}</strong>
+            <small>{lang === "th" ? "ร้านใหม่และรายงานข้อมูล" : "New cafes and data reports"}</small>
+          </article>
+        </div>
+      </section>}
       <section className={styles.queueSection} aria-label={lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}>
-        <h2>{lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}</h2>
+        <div className={styles.sectionHeading}>
+          <div><span className={styles.eyebrow}>{lang === "th" ? "คิวตรวจสอบ" : "MODERATION QUEUES"}</span><h2>{lang === "th" ? "งานที่ควรจัดการ" : "Work to review"}</h2></div>
+          <p>{lang === "th" ? "เลือกคิวเพื่อเริ่มตรวจสอบรายการ" : "Choose a queue to start reviewing records"}</p>
+        </div>
         <div className={styles.queueCards}>
           {[
             { key: "suggestions", count: pendingSuggestions, title: lang === "th" ? "ร้านรออนุมัติ" : "Cafes awaiting approval", hint: lang === "th" ? "ตรวจร้านเก่าที่รอก่อน" : "Oldest submissions first" },
@@ -261,7 +310,7 @@ export default function AdminDashboard({
                 </div>
               </dl>
 
-              {s.note && <p className="mt-3 rounded-xl bg-sand/50 p-3 text-sm">💬 {s.note}</p>}
+              {s.note && <p className={`${styles.message} mt-3`}>{s.note}</p>}
               {s.photoUrl && (
                 <a
                   href={s.photoUrl}
@@ -331,7 +380,7 @@ export default function AdminDashboard({
                   {REPORT_FIELD_KEY[r.field] ? tk(REPORT_FIELD_KEY[r.field]) : r.field}
                 </span>
               </p>
-              <p className="mt-2 text-sm">💬 {r.message}</p>
+              <p className={`${styles.message} mt-2`}>{r.message}</p>
 
               <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
                 {r.suggestedValue && (
@@ -396,7 +445,7 @@ export default function AdminDashboard({
               <p className="mt-1 text-xs text-espresso/50">
                 {t("admin.review.by").replace("{name}", rv.author_name)} · {fmt(rv.created_at)}
               </p>
-              {rv.comment && <p className="mt-2 text-sm">💬 {rv.comment}</p>}
+              {rv.comment && <p className={`${styles.message} mt-2`}>{rv.comment}</p>}
               <AdminMutation action={deleteReviewFormAction} label={t("admin.delete")} confirm={t("admin.confirmDeleteReview")}>
                 <input type="hidden" name="id" value={rv.id} />
                 
@@ -408,6 +457,18 @@ export default function AdminDashboard({
       )}
         </div>
       </div>
+      {pageInfo && <nav className={styles.pagination} aria-label={lang === "th" ? "หน้ารายการแอดมิน" : "Admin list pages"}>
+        {pageInfo.page > 0 ? <Link href={`/admin?page=${pageInfo.page - 1}&tab=${tab}&filter=${pendingOnly ? "pending" : "all"}`}>← {copy.previous}</Link> : <span />}
+        <span>{copy.page} {pageInfo.page + 1} / {pageInfo.totalPages}<small>{copy.perPage}</small></span>
+        {pageInfo.page + 1 < pageInfo.totalPages ? <Link href={`/admin?page=${pageInfo.page + 1}&tab=${tab}&filter=${pendingOnly ? "pending" : "all"}`}>{copy.next} →</Link> : <span />}
+      </nav>}
+      {cafeLinks.length > 0 && <details className={styles.cafeManager}>
+        <summary>{copy.cafes} <span>{cafeLinks.length}</span></summary>
+        <div className={styles.cafeGrid}>{cafeLinks.map((cafe) => <Link key={cafe.slug} href={`/owner/${cafe.slug}`}>
+          <span>{lang === "th" ? cafe.nameTh : cafe.nameEn}</span><span aria-hidden>↗</span>
+        </Link>)}</div>
+      </details>}
+      {partialError && <p role="alert" className={styles.partialError}>{copy.partialError}</p>}
     </div>
   );
 }
