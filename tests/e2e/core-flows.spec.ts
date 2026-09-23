@@ -47,6 +47,34 @@ test("navbar keeps search within reach on mobile and marks the active section", 
   expect(narrowHeader.scrollWidth).toBeLessThanOrEqual(narrowHeader.clientWidth);
 });
 
+test("cafe assistant is a primary navbar link and completes a catalogue search", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  const assistantLink = page.locator(".main-navigation a[href='/chat']");
+  await expect(assistantLink).toBeVisible();
+  await expect(assistantLink).toContainText("ผู้ช่วยค้นหาร้าน");
+  await assistantLink.click();
+  await expect(page).toHaveURL(/\/chat$/);
+  await expect(page.getByRole("heading", { name: /วันนี้อยากนั่งร้านแบบไหน/ })).toBeVisible();
+  await expect(page.locator(".chat-sidebar")).toContainText("ค้นหาในพื้นที่เมืองพะเยา");
+
+  await page.locator(".chat-quick-prompt").first().click();
+  await expect(page.locator(".chat-user-message")).toHaveText("แนะนำคาเฟ่");
+  await expect(page.locator(".chat-recommendation")).toHaveCount(5);
+  await expect(page.locator(".chat-fallback-note")).toBeVisible();
+  await expect(page.locator(".chat-recommendation").first()).toHaveAttribute("href", /^\/cafes\//);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator(".chat-reset").click();
+  await expect(page.locator(".chat-mobile-prompts")).toBeVisible();
+  const pageBounds = await page.locator("body").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
+  expect(pageBounds.scroll).toBeLessThanOrEqual(pageBounds.width);
+  await page.getByRole("button", { name: "เมนู" }).click();
+  await expect(page.locator(".main-navigation a[href='/chat']")).toHaveAttribute("aria-current", "page");
+  const bounds = await page.locator(".nav-main").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
+  expect(bounds.scroll).toBeLessThanOrEqual(bounds.width);
+});
+
 async function signIn(page: import("@playwright/test").Page, email: string) {
   await page.goto(`/login?next=${encodeURIComponent(cafePath)}`);
   await page.locator(".password-login input[name=email]").fill(email);
