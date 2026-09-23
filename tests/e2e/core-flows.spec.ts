@@ -62,6 +62,8 @@ test("cafe assistant is a primary navbar link and completes a catalogue search",
   await expect(page.locator(".chat-user-message")).toHaveText("แนะนำคาเฟ่");
   await expect(page.locator(".chat-recommendation")).toHaveCount(5);
   await expect(page.locator(".chat-fallback-note")).toBeVisible();
+  await expect(page.locator(".chat-fallback-note")).toContainText("โหมดทดสอบจำลอง");
+  await expect(page.locator(".chat-answer-source")).toContainText("โหมดจำลอง");
   await expect(page.locator(".chat-recommendation").first()).toHaveAttribute("href", /^\/cafes\//);
 
   await page.locator(".chat-reset").click();
@@ -82,6 +84,21 @@ test("cafe assistant is a primary navbar link and completes a catalogue search",
   await expect(page.locator(".main-navigation a[href='/chat']")).toHaveAttribute("aria-current", "page");
   const bounds = await page.locator(".nav-main").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
   expect(bounds.scroll).toBeLessThanOrEqual(bounds.width);
+});
+
+test("cafe assistant labels an upstream timeout without blaming account quota", async ({ page }) => {
+  await page.route("**/api/cafe-assistant", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ mode: "catalog-fallback", fallbackReason: "provider_timeout", provider: null,
+        message: "พบร้านที่เกี่ยวข้องในเมืองพะเยา", cafes: [] }),
+    });
+  });
+  await page.goto("/chat");
+  await page.locator(".chat-quick-prompt").first().click();
+  await expect(page.locator(".chat-fallback-note")).toContainText("Gemini ตอบช้าเกินเวลาที่กำหนด");
+  await expect(page.locator(".chat-fallback-note")).not.toContainText("โควตา");
 });
 
 async function signIn(page: import("@playwright/test").Page, email: string) {

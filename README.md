@@ -114,8 +114,8 @@ pins.txt            # พิกัดร้านสำหรับ apply-pins s
 
 ### Gemini cafe assistant
 
-Set `GEMINI_API_KEY` and `GEMINI_MODEL` in Vercel Environment Variables for each deployment environment, then redeploy. Use a Gemini model ID available to your Google AI Studio project that supports structured JSON output. Do not prefix either variable with `NEXT_PUBLIC_` or commit a key. The old OpenAI variables are no longer used.
+Set `GEMINI_API_KEY` and `GEMINI_MODEL` in Vercel Production Environment Variables, then redeploy. Use a Gemini model ID available to your Google AI Studio project that supports structured JSON output. Do not prefix either variable with `NEXT_PUBLIC_` or commit a key. The old OpenAI variables are no longer used.
 
-The server calls Google Gemini `generateContent` with approved cafe data. Signed-in accounts retain the database-enforced quota of 30 calls/day. Missing configuration, exhausted quota, timeout, blocked/truncated output, provider errors or invalid cafe references use catalogue search, visibly labelled in the chat. API credentials and live model access must be configured before real AI answers can be verified.
+The server calls Google Gemini `generateContent` with approved cafe data in Vercel Production. It sends only locally matched cafes for a specific query, or a compact single-language catalogue when none match. Local development, CI, and Vercel Preview use a deterministic, quota-free simulation by default; the chat labels it clearly and uses the approved cafe catalogue without claiming that Gemini answered. To intentionally exercise Gemini in a non-production environment, set the server-only `CAFE_ASSISTANT_MODE=gemini` there and provide a dedicated test-project key. Missing configuration, account or provider rate limits, timeout, provider outage, blocked/truncated output, or invalid cafe references use catalogue search with a distinct explanation in the chat. API credentials and live model access must be configured before real AI answers can be verified.
 
 API reference: https://ai.google.dev/api/generate-content
