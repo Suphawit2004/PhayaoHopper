@@ -21,10 +21,7 @@ interface SearchPopoverProps {
   onClose: () => void;
 }
 
-const chipBase =
-  "rounded-chip inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition";
-const chipOff = `${chipBase} border border-[#e8dcc8] bg-white text-espresso/80 hover:border-latte hover:bg-sand/60`;
-const chipOn = `${chipBase} border-coffee bg-coffee text-cream`;
+const chipBase = "filter-chip inline-flex items-center justify-center gap-1 rounded-full px-3 text-xs font-semibold";
 
 export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
   const { t, tr, lang } = useLang();
@@ -79,7 +76,7 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
                 type="button"
                 onClick={() => toggleTag(tag)}
                 aria-pressed={active}
-                className={active ? chipOn : chipOff}
+                className={chipBase}
               >
                 <span aria-hidden>{TAG_META[tag].emoji}</span> {tr(TAG_META[tag].label)}
               </button>
@@ -99,9 +96,7 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
                 type="button"
                 onClick={() => toggleLife(life)}
                 aria-pressed={active}
-                className={
-                  active ? `${chipBase} border-emerald-700 bg-emerald-700 text-white` : chipOff
-                }
+                className={chipBase}
               >
                 <span aria-hidden>{LIFESTYLE_META[life].emoji}</span>{" "}
                 {tr(LIFESTYLE_META[life].label)}
@@ -118,7 +113,7 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
             type="button"
             onClick={() => patch({ area: null })}
             aria-pressed={filters.area === null}
-            className={filters.area === null ? chipOn : chipOff}
+            className={chipBase}
           >
             {t("cafes.areaAll")}
           </button>
@@ -130,7 +125,7 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
                 type="button"
                 onClick={() => patch({ area: a as CafeArea })}
                 aria-pressed={active}
-                className={active ? chipOn : chipOff}
+                className={chipBase}
               >
                 <span aria-hidden>{AREA_META[a].emoji}</span> {tr(AREA_META[a].label)}
               </button>
@@ -154,7 +149,7 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
                 type="button"
                 onClick={() => patch({ maxPrice: p })}
                 aria-pressed={active}
-                className={active ? chipOn : chipOff}
+                className={chipBase}
               >
                 {label}
               </button>
@@ -170,11 +165,8 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
             type="button"
             onClick={() => patch({ openNow: !filters.openNow })}
             aria-pressed={filters.openNow}
-            className={
-              filters.openNow
-                ? `${chipBase} border-emerald-700 bg-emerald-700 text-white`
-                : chipOff
-            }
+            data-filter-tone="status"
+            className={chipBase}
           >
             🟢 {t("cafes.openNow")}
           </button>
@@ -182,7 +174,7 @@ export default function SearchPopover({ open, onClose }: SearchPopoverProps) {
             type="button"
             onClick={() => patch({ transitionZone: !filters.transitionZone })}
             aria-pressed={filters.transitionZone}
-            className={filters.transitionZone ? chipOn : chipOff}
+            className={chipBase}
           >
             🛣️ {t("cafes.zone")}
           </button>

@@ -242,6 +242,18 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .results-toolbar nav a[aria-current] { background: var(--ph-ink); color: var(--ph-surface); }
 .rounded-chip { min-height: 32px; border-color: #d4c9b7; background: #f4efe5; color: var(--ph-ink); }
 .rounded-chip:hover { border-color: var(--ph-red); background: #f1e7df; }
+.filter-dialog .filter-chip { min-height: 42px; border: 1px solid #d4c9b7; background: #f4efe5; color: var(--ph-ink); cursor: pointer; white-space: nowrap; }
+.filter-dialog .filter-chip:hover { border-color: #9a7450; background: #eee8dc; }
+.filter-dialog .filter-chip[aria-pressed="true"] { border-color: var(--ph-ink); background: var(--ph-ink); color: #fffefa; }
+.filter-dialog .filter-chip[data-filter-tone="status"][aria-pressed="true"] { border-color: #246347; background: #246347; color: #fffefa; }
+.filter-dialog .filter-chip:focus-visible { outline: 3px solid rgb(154 116 80 / 55%); outline-offset: 2px; }
+.filter-dialog > .flex:first-child { position: sticky; z-index: 1; top: 0; margin: -24px -24px 16px; padding: 18px 24px 12px; border-bottom: 1px solid var(--ph-border); background: var(--ph-surface); }
+.filter-dialog > .flex:first-child h2 { color: var(--ph-ink); font-size: 18px; font-weight: 700; }
+.filter-dialog > .feature-button { position: sticky; z-index: 1; bottom: 0; width: calc(100% + 48px); margin-inline: -24px; margin-bottom: -24px; padding: 12px 24px max(12px, env(safe-area-inset-bottom)); border-radius: 0 0 14px 14px; box-shadow: 0 -8px 18px rgb(250 248 243 / 90%); }
+@media (max-width: 640px) {
+  .filter-dialog > .flex:first-child { margin: -20px -20px 14px; padding: 14px 20px 10px; }
+  .filter-dialog > .feature-button { width: calc(100% + 40px); margin-inline: -20px; margin-bottom: -20px; padding: 11px 20px max(11px, env(safe-area-inset-bottom)); border-radius: 0; }
+}
 .area-chip, .tag-chip { border: 1px solid #e1d8c8; background: #f4efe5; color: var(--ph-ink); }
 .favorite-control { border-color: #d8d0c2; color: var(--ph-ink); }
 .favorite-control[aria-pressed="true"] { color: var(--ph-red); }
