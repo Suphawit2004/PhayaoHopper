@@ -53,8 +53,8 @@ export async function uploadPhoto(form: FormData): Promise<MutationResult> {
     caption: String(form.get("caption") ?? "").trim().slice(0, 300), is_public: form.get("isPublic") === "on" });
   if (error) { await sb.storage.from("cafe-community").remove([path]); return { ok: false, message: "บันทึกรูปไม่สำเร็จ" }; }
   revalidatePath(`/cafes/${slug}`);
-  revalidatePath("/profile");
-  return { ok: true, message: form.get("isPublic") === "on" ? "เพิ่มรูปในหน้าคาเฟ่และโปรไฟล์แล้ว" : "บันทึกรูปส่วนตัวในโปรไฟล์แล้ว" };
+  revalidatePath("/photos");
+  return { ok: true, message: form.get("isPublic") === "on" ? "เพิ่มรูปในหน้าร้านและแกลเลอรีของฉันแล้ว" : "บันทึกรูปส่วนตัวไว้ในแกลเลอรีของฉันแล้ว" };
 }
 
 export async function changePhoto(id: string, operation: "public" | "private" | "delete"): Promise<MutationResult> {
@@ -70,6 +70,6 @@ export async function changePhoto(id: string, operation: "public" | "private" | 
   if (error || !data) return { ok: false, message: "แก้ไขรูปไม่สำเร็จ" };
   if (operation === "delete") await sb.storage.from("cafe-community").remove([row.path]);
   revalidatePath(`/cafes/${row.cafe_slug}`);
-  revalidatePath("/profile");
+  revalidatePath("/photos");
   return { ok: true, message: "บันทึกเรียบร้อยแล้ว" };
 }

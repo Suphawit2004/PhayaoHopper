@@ -64,15 +64,15 @@ function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
     (!cafeFilter || photo.cafe_slug === cafeFilter) &&
     (visibilityFilter === "all" || photo.is_public === (visibilityFilter === "public")));
   const publicCount = photos.filter(photo => photo.is_public).length;
-  return <section className={`feature-card ${styles.section}`}>
+  return <section className={`feature-card ${styles.section} ${slug ? "" : styles.personalGallery}`}>
     <header className={styles.header}>
-      <div><h2>{slug ? ui("ภาพจากผู้มาเยือน") : ui("รูปที่ฉันโพสต์")}</h2>
+      <div><h2>{slug ? ui("ภาพจากผู้มาเยือน") : ui("รูปของฉัน")}</h2>
         <p>{slug ? ui("แบ่งปันมุมโปรด เครื่องดื่ม และบรรยากาศของร้าน") : ui("เก็บภาพคาเฟ่ที่คุณแบ่งปันไว้ในที่เดียว")}</p></div>
       {!slug && <Link href="/cafes" className="feature-button">{ui("เลือกร้านเพื่อเพิ่มรูป")}</Link>}
     </header>
     {slug && (loading ? <p role="status">{ui("กำลังตรวจสอบการเข้าสู่ระบบ…")}</p> : user ?
       <details className="photo-composer-toggle"><summary className="ui-secondary mt-5">{ui("เพิ่มรูป")}</summary><PhotoComposer slug={slug} onUploaded={refresh} /></details> :
-      <div className={styles.signIn}><div><strong>{ui("มีมุมโปรดของร้านนี้ไหม?")}</strong><p>{ui("เข้าสู่ระบบเพื่อเพิ่มรูปและเก็บไว้ในโปรไฟล์ของคุณ")}</p></div>
+      <div className={styles.signIn}><div><strong>{ui("มีมุมโปรดของร้านนี้ไหม?")}</strong><p>{ui("เข้าสู่ระบบเพื่อเพิ่มรูปและบันทึกไว้ในแกลเลอรีของคุณ")}</p></div>
         <Link href={`/login?next=/cafes/${slug}`} className="feature-button">{ui("เข้าสู่ระบบเพื่อเพิ่มรูป")}</Link></div>)}
     {!slug && <div className={styles.libraryTools}>
       <p className={styles.librarySummary}>{lang === "th" ? `สาธารณะ ${publicCount} รูป · ส่วนตัว ${photos.length - publicCount} รูป` : `${publicCount} public · ${photos.length - publicCount} private`}</p>
@@ -92,10 +92,10 @@ function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
     <div className={styles.toolbar}><h3>{slug ? ui("แกลเลอรีของร้าน") : ui("แกลเลอรีของฉัน")} <span role="status">{visiblePhotos.length} {lang==="th"?"รูป":"photos"}</span></h3>
       <button type="button" disabled={refreshing} onClick={refresh}>{refreshing ? ui("กำลังโหลดรูป…") : ui("รีเฟรชรูป")}</button></div>
     {message && <p role="status" className={styles.notice}>{ui(message)}</p>}
-    <div className={styles.gallery}>{visiblePhotos.map(photo => {
+    <div className={styles.gallery} role="list" aria-label={slug ? ui("แกลเลอรีของร้าน") : ui("แกลเลอรีของฉัน")}>{visiblePhotos.map(photo => {
       const cafe = cafes.find(c => c.slug === photo.cafe_slug);
       const canManage = photo.user_id === user?.id || admin || isAdmin;
-      return <figure key={photo.id} id={`photo-${photo.id}`} tabIndex={-1} className={styles.photo}>
+      return <figure role="listitem" key={photo.id} id={`photo-${photo.id}`} tabIndex={-1} className={styles.photo}>
         <div className={styles.imageWrap}>
           <PhotoViewer photo={photo} />
           {canManage && <span className={photo.is_public ? styles.publicBadge : styles.privateBadge}>{photo.is_public ? ui("สาธารณะ") : ui("ส่วนตัว")}</span>}
@@ -114,13 +114,13 @@ function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
         </figcaption>
         {canManage && <div className={styles.actions}>
           <ActionForm label={photo.is_public ? ui("เก็บเป็นส่วนตัว") : ui("เผยแพร่")} action={async () => { const result = await changePhoto(photo.id, photo.is_public ? "private" : "public"); if (result.ok) await refresh(); return result; }}>{null}</ActionForm>
-          <div className={styles.deleteAction}><ActionForm label={ui("ลบรูป")} action={async () => { if (!window.confirm(ui("ลบรูปนี้? รูปจะถูกนำออกจากหน้าร้านและโปรไฟล์"))) return { ok: false, message: ui("ยกเลิกการลบ") }; const result = await changePhoto(photo.id, "delete"); if (result.ok) await refresh(); return result; }}>{null}</ActionForm></div>
+          <div className={styles.deleteAction}><ActionForm label={ui("ลบรูป")} action={async () => { if (!window.confirm(ui("ลบรูปนี้? รูปจะถูกนำออกจากหน้าร้านและแกลเลอรีของคุณ"))) return { ok: false, message: ui("ยกเลิกการลบ") }; const result = await changePhoto(photo.id, "delete"); if (result.ok) await refresh(); return result; }}>{null}</ActionForm></div>
         </div>}
       </figure>;
     })}</div>
     {!!photos.length && !visiblePhotos.length && <div className={styles.empty}><strong>{lang === "th" ? "ไม่มีรูปตรงกับตัวกรอง" : "No photos match these filters"}</strong><p>{lang === "th" ? "ลองเลือกร้านหรือสถานะอื่น หรือล้างตัวกรองเพื่อดูทั้งหมด" : "Choose another cafe or visibility, or clear filters to see all photos."}</p></div>}
     {!photos.length && !message && <div className={styles.empty}><strong>{slug ? ui("เป็นคนแรกที่แบ่งปันมุมโปรด") : ui("เริ่มเก็บความทรงจำจากคาเฟ่")}</strong><p>{slug ? (user ? ui("เพิ่มภาพของคุณผ่านแบบฟอร์มด้านบนได้เลย") : ui("เข้าสู่ระบบเพื่อเพิ่มรูป")) : ui("เลือกร้านที่คุณไป แล้วเพิ่มรูปจากหน้าคาเฟ่ รูปจะมาอยู่ที่นี่ด้วย")}</p></div>}
-    <p className={styles.privacyNote}>{ui("รูปสาธารณะแสดงในหน้าร้านและโปรไฟล์ ส่วนรูปส่วนตัวเห็นได้เฉพาะคุณและผู้ดูแลระบบ")}</p>
+    <p className={styles.privacyNote}>{ui("รูปสาธารณะแสดงในหน้าร้านและแกลเลอรีของคุณ ส่วนรูปส่วนตัวเห็นได้เฉพาะคุณและผู้ดูแลระบบ")}</p>
   </section>;
 }
 
@@ -164,7 +164,7 @@ function PhotoComposer({ slug, onUploaded }: { slug: string; onUploaded: () => P
         <div className={styles.fields}>
           {file && <button type="button" className="ui-secondary" onClick={() => {setFile(null);setPreview("");setError("");if(inputRef.current)inputRef.current.value="";}}>{ui("นำรูปออก")}</button>}
           <label>{ui("คำบรรยาย")}<span className={styles.optional}>{ui("(ไม่บังคับ)")}</span><textarea name="caption" maxLength={300} rows={4} placeholder={ui("มุมที่ชอบ เมนูที่ลอง หรือบรรยากาศของร้าน…")} /></label>
-          <fieldset className={styles.visibility}><legend>{ui("ผู้ที่เห็นรูปนี้")}</legend><div className="flex flex-wrap gap-4"><label><span><input type="radio" name="isPublic" value="on" checked={isPublic} onChange={()=>setIsPublic(true)}/>{ui("สาธารณะ")}</span></label><label><span><input type="radio" name="isPublic" value="private" checked={!isPublic} onChange={()=>setIsPublic(false)}/>{ui("ส่วนตัว")}</span></label></div><small>{isPublic ? ui("ทุกคนเห็นรูปนี้ในหน้าร้าน และรูปจะอยู่ในโปรไฟล์ของคุณด้วย") : ui("เก็บในโปรไฟล์ของคุณ เห็นได้เฉพาะคุณและผู้ดูแลระบบ")}</small></fieldset>
+          <fieldset className={styles.visibility}><legend>{ui("ผู้ที่เห็นรูปนี้")}</legend><div className="flex flex-wrap gap-4"><label><span><input type="radio" name="isPublic" value="on" checked={isPublic} onChange={()=>setIsPublic(true)}/>{ui("สาธารณะ")}</span></label><label><span><input type="radio" name="isPublic" value="private" checked={!isPublic} onChange={()=>setIsPublic(false)}/>{ui("ส่วนตัว")}</span></label></div><small>{isPublic ? ui("ทุกคนเห็นรูปนี้ในหน้าร้านและแกลเลอรีของคุณ") : ui("เก็บเป็นส่วนตัวในแกลเลอรี เห็นได้เฉพาะคุณและผู้ดูแลระบบ")}</small></fieldset>
         </div>
       </div>
       {error && <p role="alert" className={styles.error}>{error}</p>}
