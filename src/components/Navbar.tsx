@@ -72,15 +72,6 @@ export default function Navbar() {
                   close();
                 }
               }}>
-                <div className="account-identity">
-                  <span className="account-avatar account-avatar-large">
-                    {profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={48} height={48} unoptimized /> : <span aria-hidden="true">{initials}</span>}
-                  </span>
-                  <span className="account-identity-copy">
-                    <strong>{profile?.display_name || user.email?.split("@")[0] || (lang === "th" ? "สมาชิก" : "Member")}</strong>
-                    <small>{user.email}</small>
-                  </span>
-                </div>
                 <AccountProfileActions user={user} profile={profile} signOut={signOut} />
                 <Link className="account-favorites-link" href="/visited">
                   {lang === "th" ? "ร้านโปรด" : "Places to revisit"}
