@@ -11,10 +11,14 @@ interface FavoriteButtonProps {
 
 export default function FavoriteButton({ slug, variant = "overlay" }: FavoriteButtonProps) {
   const { t, lang } = useLang();
-  const { has, toggle, ready } = useFavorites();
+  const { has, toggle, ready, visits } = useFavorites();
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
   const active = has(slug);
+  const visited = visits?.some(row => row.cafe_slug === slug) ?? false;
+  const label = visited
+    ? (active ? (lang === "th" ? "นำออกจากร้านโปรด" : "Remove from favorites") : (lang === "th" ? "เพิ่มในร้านโปรด" : "Add to favorites"))
+    : (active ? t("fav.remove") : t("fav.add"));
 
   const base =
     "grid place-items-center transition hover:scale-110 disabled:opacity-50";
@@ -28,8 +32,8 @@ export default function FavoriteButton({ slug, variant = "overlay" }: FavoriteBu
       type="button"
       disabled={!ready || pending}
       aria-pressed={active}
-      aria-label={active ? t("fav.remove") : t("fav.add")}
-      title={active ? t("fav.remove") : t("fav.add")}
+      aria-label={label}
+      title={label}
       onClick={async (e) => {
         e.preventDefault();
         e.stopPropagation();

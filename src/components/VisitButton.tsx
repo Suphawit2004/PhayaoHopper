@@ -51,7 +51,7 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
             const result = await uploadPhoto(form);
             if (result.ok) {
               setPreview(""); setState("saved");
-              setMessage(th ? "บันทึกแล้ว ดูร้านนี้ได้ในหมวดร้านโปรด รูปแสดงในหน้าร้านและรูปของฉัน" : "Visit recorded under Places to revisit. Your photo is in the cafe gallery and My photos.");
+              setMessage(th ? "บันทึกว่าเคยไปแล้ว ร้านนี้จะแสดงในร้านที่เคยไปหรือร้านโปรดตามสถานะหัวใจ รูปแสดงในหน้าร้านและรูปของฉัน" : "Visit recorded under Visited cafes or Favorites, depending on its heart status. Your photo is in the cafe gallery and My photos.");
               window.dispatchEvent(new Event("cafe-visit-changed"));
               window.dispatchEvent(new Event("cafe-photos-changed"));
             }
@@ -72,7 +72,7 @@ function MemberVisitButton({ userId, slug, th }: { userId: string; slug: string;
             <p className="text-xs text-espresso/70">{th ? "JPG, PNG หรือ WebP ไม่เกิน 5 MB · รูปนี้เป็นสาธารณะ" : "JPG, PNG or WebP, up to 5 MB · This photo is public"}</p>
           </ActionForm>
         </div>}
-      {state === "saved" && <Link href="/visited" className="text-sm font-semibold underline underline-offset-4">{th ? "ดูร้านโปรด" : "View places to revisit"} →</Link>}
+      {state === "saved" && <Link href="/visited" className="text-sm font-semibold underline underline-offset-4">{th ? "ดูร้านของฉัน" : "View my cafes"} →</Link>}
     </div>
     <p role="status" className="text-sm text-espresso/70">{message}</p>
   </div>;
