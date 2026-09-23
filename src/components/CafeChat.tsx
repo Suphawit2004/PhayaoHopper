@@ -1,17 +1,248 @@
 "use client";
-import {useEffect,useRef,useState} from "react";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {useLang} from "@/i18n/LangProvider";
-import {useCatalog} from "./CatalogProvider";
+import { useLang } from "@/i18n/LangProvider";
+import { useCatalog } from "./CatalogProvider";
 import CafeThumb from "./CafeThumb";
-type Reply={message:string;mode:string;fallbackReason?:string;cafes:{slug:string;name:string;openTime:string;closeTime:string;closedDays:number[];address:string}[]};
-export default function CafeChat(){
- const {lang,tr}=useLang();const cafes=useCatalog();const [query,setQuery]=useState("");const [turns,setTurns]=useState<{question:string;reply:Reply}[]>([]);const [pending,setPending]=useState(false),[error,setError]=useState(""),[failed,setFailed]=useState("");const log=useRef<HTMLDivElement>(null);
- useEffect(()=>{log.current?.scrollTo({top:log.current.scrollHeight,behavior:"auto"});},[turns,pending]);
- async function send(question:string){if(!question.trim()||pending)return;setPending(true);setError("");setFailed(question);try{const response=await fetch("/api/cafe-assistant",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:question,lang}),signal:AbortSignal.timeout(45000)});if(!response.ok)throw Error();const reply:Reply=await response.json();setTurns(old=>[...old.slice(-19),{question,reply}]);setQuery("");setFailed("");}catch{setError(lang==="th"?"ส่งไม่สำเร็จ คำถามของคุณยังอยู่ กดลองอีกครั้ง":"Could not send. Your question is saved below. Try again.");}finally{setPending(false);}}
- const prompts=lang==="th"?["คาเฟ่เงียบเหมาะอ่านหนังสือ","อยากพักผ่อนฮีลใจ","ร้านเปิดดึก"]:["Quiet cafe for studying","A relaxing cafe","Open late"];
- return <div className="feature-page chat-page"><div className="flex flex-wrap justify-between items-center gap-3"><h1>{lang==="th"?"วันนี้อยากไปคาเฟ่แบบไหน?":"What kind of cafe are you looking for?"}</h1>{turns.length>0&&<button className="ui-secondary" disabled={pending} onClick={()=>{setTurns([]);setQuery("");setError("");setFailed("");}}>{lang==="th"?"เริ่มค้นหาใหม่":"Start a new search"}</button>}</div><p>{lang==="th"?"ค้นหาร้านในอำเภอเมืองพะเยา":"Find cafes in Mueang Phayao district"}</p>
- <div className="flex flex-wrap gap-2 mt-5">{prompts.map(q=><button className="ui-secondary" key={q} disabled={pending} onClick={()=>send(q)}>{q}</button>)}</div>
- <div ref={log} role="log" aria-live="polite" aria-label={lang==="th"?"บทสนทนา":"Conversation"} className="chat-history my-6 space-y-5">{turns.map((turn,i)=><div key={i}><p className="ml-8 rounded-xl bg-[#285f60] p-4 text-white">{turn.question}</p><div className="feature-card"><p className="mb-3 text-xs font-semibold text-coffee">{turn.reply.mode === "ai" ? (lang === "th" ? "คำตอบจาก Gemini · อ้างอิงข้อมูลร้านในระบบ" : "Gemini answer · Based on the cafe catalogue") : (lang === "th" ? "ค้นหาจากข้อมูลร้าน · ไม่ได้ใช้ AI" : "Catalogue search · AI not used")}</p>{turn.reply.mode !== "ai" && <p className="mb-3 text-sm text-espresso/70">{turn.reply.fallbackReason === "not_configured" ? (lang === "th" ? "ยังไม่ได้เปิดการเชื่อมต่อ Gemini" : "Gemini connection is not enabled yet.") : turn.reply.fallbackReason === "sign_in_required" ? (lang === "th" ? "เข้าสู่ระบบเพื่อใช้ AI เมื่อเปิดให้บริการ" : "Sign in to use AI when available.") : (lang === "th" ? "AI ไม่พร้อมใช้งานหรือครบโควตา 30 ครั้งต่อวัน จึงใช้การค้นหาสำรอง" : "AI is unavailable or the 30-per-day quota is reached; using catalogue search.")}</p>}<p className="whitespace-pre-wrap">{turn.reply.message}</p><ul className="mt-4 space-y-3">{turn.reply.cafes.map(c=>{const cafe=cafes.find(x=>x.slug===c.slug);return <li key={c.slug} className="border-t pt-3 flex gap-3">{cafe&&<span className="relative h-20 w-24 shrink-0 rounded-lg overflow-hidden"><CafeThumb cafe={cafe} sizes="96px"/></span>}<div><Link className="font-semibold underline" href={`/cafes/${c.slug}`}>{cafe?tr(cafe.name):c.name}</Link><p>{c.openTime}–{c.closeTime}</p><p>{cafe?tr(cafe.address):c.address}</p>{cafe&&<p className="text-sm">{tr(cafe.description)}</p>}</div></li>;})}</ul></div></div>)}{pending&&<p role="status">{lang==="th"?"กำลังค้นหา…":"Searching…"}</p>}</div>
- <form className="feature-form feature-card chat-composer" onSubmit={e=>{e.preventDefault();void send(query);}}><label>{lang==="th"?"คำถามของคุณ":"Your question"}<textarea value={query} onChange={e=>setQuery(e.target.value)} rows={2} maxLength={500} required disabled={pending}/></label><button disabled={pending} className="feature-button">{pending?(lang==="th"?"กำลังค้นหา…":"Searching…"):(lang==="th"?"ส่งคำถาม":"Send question")}</button>{error&&<div role="alert"><p>{error}</p><button type="button" className="ui-secondary" disabled={pending} onClick={()=>send(failed)}>{lang==="th"?"ลองอีกครั้ง":"Retry"}</button></div>}</form></div>;
+import Icon from "./Icon";
+
+type Recommendation = {
+  slug: string;
+  name: string;
+  openTime: string;
+  closeTime: string;
+  closedDays: number[];
+  address: string;
+};
+
+type Reply = {
+  message: string;
+  mode: string;
+  fallbackReason?: string;
+  cafes: Recommendation[];
+};
+
+type Turn = { question: string; reply: Reply };
+
+export default function CafeChat() {
+  const { lang, tr } = useLang();
+  const cafes = useCatalog();
+  const [query, setQuery] = useState("");
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const [failed, setFailed] = useState("");
+  const log = useRef<HTMLDivElement>(null);
+  const thai = lang === "th";
+
+  useEffect(() => {
+    log.current?.scrollTo({ top: log.current.scrollHeight, behavior: "auto" });
+  }, [turns, pending]);
+
+  async function send(question: string) {
+    const text = question.trim();
+    if (!text || pending) return;
+
+    setPending(true);
+    setError("");
+    setFailed(text);
+    try {
+      const response = await fetch("/api/cafe-assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: text, lang }),
+        signal: AbortSignal.timeout(45_000),
+      });
+      if (!response.ok) throw new Error("Assistant request failed");
+      const reply: Reply = await response.json();
+      setTurns((current) => [...current.slice(-19), { question: text, reply }]);
+      setQuery("");
+      setFailed("");
+    } catch {
+      setError(thai
+        ? "ส่งคำถามไม่สำเร็จ ข้อความยังอยู่ในช่องพิมพ์ ลองส่งอีกครั้งได้เลย"
+        : "Your question could not be sent and is still in the input. Please try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const prompts = thai
+    ? ["แนะนำคาเฟ่", "บ้านบานน์เปิดกี่โมง", "มีร้านสำหรับนั่งทำงานไหม"]
+    : ["Cafe recommendations", "What time does Baan Baann open?", "Where can I work for a while?"];
+
+  function fallbackDescription(reason?: string) {
+    if (reason === "not_configured") return thai ? "Gemini ยังไม่พร้อม ระบบจึงค้นจากข้อมูลร้านที่มี" : "Gemini is not configured, so this uses the cafe catalogue.";
+    if (reason === "sign_in_required") return thai ? "เข้าสู่ระบบเพื่อใช้ Gemini เมื่อเปิดให้บริการ · คำตอบนี้ค้นจากข้อมูลร้าน" : "Sign in for Gemini when available · this answer uses the cafe catalogue.";
+    return thai ? "Gemini ไม่พร้อมหรือครบโควตาประจำวัน จึงค้นจากข้อมูลร้านแทน" : "Gemini is unavailable or its daily quota is reached, so the cafe catalogue was used.";
+  }
+
+  return (
+    <div className="feature-page chat-page">
+      <section className="chat-hero" aria-labelledby="chat-page-title">
+        <div className="chat-hero-copy">
+          <p className="chat-eyebrow">PHAYAOHOPPER <span aria-hidden="true">/</span> LOCAL CAFE GUIDE</p>
+          <h1 id="chat-page-title">{thai ? <>หาร้านที่เข้ากับ<br /><span>จังหวะของคุณ</span></> : <>Find a cafe for<br /><span>your kind of day</span></>}</h1>
+          <p className="chat-hero-description">
+            {thai
+              ? "บอกบรรยากาศหรือสิ่งที่กำลังมองหา แล้วเลือกคาเฟ่ในเมืองพะเยาที่เหมาะกับคุณ"
+              : "Tell us the mood or amenities you have in mind. We’ll help you find a cafe in Mueang Phayao."}
+          </p>
+          <div className="chat-hero-meta">
+            <span><Icon name="pin" width={16} height={16} />{thai ? "อำเภอเมืองพะเยา" : "Mueang Phayao"}</span>
+            <span>{thai ? "อ้างอิงจากข้อมูลร้านในระบบ" : "Answers based on the cafe catalogue"}</span>
+          </div>
+        </div>
+        <aside className="chat-hero-note" aria-label={thai ? "ขอบเขตการค้นหา" : "Search coverage"}>
+          <span className="chat-hero-note-mark" aria-hidden="true"><Icon name="coffee" width={24} height={24} /></span>
+          <p className="chat-hero-note-label">{thai ? "เริ่มจากสิ่งที่คุณชอบ" : "Start with what you like"}</p>
+          <p>{thai ? "ร้านสงบ · อ่านหนังสือ · มีที่จอดรถ · หรือถามเวลาเปิด" : "Quiet spots · places to read · parking · or opening hours"}</p>
+          <div className="chat-hero-note-count"><strong>{cafes.length}</strong><span>{thai ? "คาเฟ่ในคู่มือ" : "cafes in the guide"}</span></div>
+        </aside>
+      </section>
+
+      {turns.length === 0 && (
+        <div className="chat-mobile-prompts" role="group" aria-label={thai ? "คำถามตัวอย่าง" : "Example questions"}>
+          {prompts.map((prompt) => (
+            <button key={prompt} type="button" disabled={pending} onClick={() => void send(prompt)}>{prompt}<span aria-hidden="true">↗</span></button>
+          ))}
+        </div>
+      )}
+
+      <section className="chat-workspace" aria-label={thai ? "ผู้ช่วยค้นหาร้าน" : "Cafe assistant"}>
+        <div className="chat-panel">
+          <header className="chat-panel-head">
+            <span className="chat-assistant-mark"><Icon name="coffee" width={20} height={20} /></span>
+            <div className="chat-panel-heading">
+              <strong>{thai ? "ผู้ช่วยค้นหาร้าน" : "Cafe assistant"}</strong>
+              <span>{thai ? "ค้นหาคาเฟ่ในเมืองพะเยา" : "Find a cafe in Mueang Phayao"}</span>
+            </div>
+            <span className="chat-location-tag">{thai ? "พะเยา · เมือง" : "Phayao · Mueang"}</span>
+            {turns.length > 0 && (
+              <button
+                type="button"
+                className="chat-reset"
+                disabled={pending}
+                onClick={() => { setTurns([]); setQuery(""); setError(""); setFailed(""); }}
+              >
+                {thai ? "เริ่มใหม่" : "Start over"}
+              </button>
+            )}
+          </header>
+
+          <div ref={log} role="log" aria-live="polite" aria-label={thai ? "บทสนทนา" : "Conversation"} className="chat-history">
+            {turns.length === 0 && (
+              <div className="chat-empty-state">
+                <span className="chat-empty-rule" aria-hidden="true" />
+                <p className="chat-empty-kicker">{thai ? "เริ่มต้นบทสนทนา" : "A good place to begin"}</p>
+                <h2>{thai ? "วันนี้อยากนั่งร้านแบบไหน?" : "What kind of place sounds good today?"}</h2>
+                <p>{thai ? "เลือกคำถามตัวอย่าง หรือพิมพ์สิ่งที่อยากได้ด้วยภาษาของคุณเอง" : "Choose a prompt or describe what you’re looking for."}</p>
+              </div>
+            )}
+
+            {turns.map((turn, index) => (
+              <article key={`${index}-${turn.question}`} className="chat-turn">
+                <p className="chat-user-message">{turn.question}</p>
+                <div className="chat-answer">
+                  <div className="chat-answer-source">
+                    <span className="chat-answer-avatar"><Icon name="coffee" width={16} height={16} /></span>
+                    <strong>{turn.reply.mode === "ai" ? (thai ? "Gemini · ข้อมูลร้านในระบบ" : "Gemini · Cafe catalogue") : (thai ? "ค้นจากข้อมูลร้าน" : "Cafe catalogue search")}</strong>
+                    {turn.reply.mode !== "ai" && <span className="chat-source-note">{thai ? "ระบบสำรอง" : "Fallback"}</span>}
+                  </div>
+                  {turn.reply.mode !== "ai" && <p className="chat-fallback-note">{fallbackDescription(turn.reply.fallbackReason)}</p>}
+                  <p className="chat-answer-copy">{turn.reply.message}</p>
+                  {turn.reply.cafes.length > 0 && (
+                    <section className="chat-recommendations" aria-label={thai ? "คาเฟ่ที่แนะนำ" : "Recommended cafes"}>
+                      <div className="chat-recommendations-heading">
+                        <h3>{thai ? "ร้านที่น่าลอง" : "Places to explore"}</h3>
+                        <span>{turn.reply.cafes.length} {thai ? "ร้าน" : turn.reply.cafes.length === 1 ? "cafe" : "cafes"}</span>
+                      </div>
+                      <div className="chat-recommendation-list">
+                        {turn.reply.cafes.map((recommendation) => {
+                          const cafe = cafes.find((item) => item.slug === recommendation.slug);
+                          return (
+                            <Link key={recommendation.slug} className="chat-recommendation" href={`/cafes/${recommendation.slug}`}>
+                              <span className="chat-recommendation-photo">
+                                {cafe
+                                  ? <CafeThumb cafe={cafe} sizes="(max-width: 640px) 100vw, 220px" />
+                                  : <span className="chat-recommendation-placeholder"><Icon name="coffee" width={24} height={24} /></span>}
+                              </span>
+                              <span className="chat-recommendation-body">
+                                <strong>{cafe ? tr(cafe.name) : recommendation.name}</strong>
+                                <span className="chat-recommendation-hours">{recommendation.openTime}–{recommendation.closeTime}</span>
+                                <span className="chat-recommendation-address">{cafe ? tr(cafe.address) : recommendation.address}</span>
+                                {cafe && <span className="chat-recommendation-description">{tr(cafe.description)}</span>}
+                              </span>
+                              <span className="chat-recommendation-arrow" aria-hidden="true">→</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              </article>
+            ))}
+            {pending && <p role="status" className="chat-pending"><span aria-hidden="true" />{thai ? "กำลังค้นหาร้านที่ตรงกับคุณ…" : "Looking for a cafe that fits…"}</p>}
+          </div>
+
+          <form className="chat-composer" onSubmit={(event) => { event.preventDefault(); void send(query); }}>
+            <label htmlFor="cafe-assistant-query">{thai ? "เล่าให้ฟังว่ากำลังมองหาร้านแบบไหน" : "Tell us what kind of cafe you’re looking for"}</label>
+            <div className="chat-composer-row">
+              <textarea
+                id="cafe-assistant-query"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                    event.preventDefault();
+                    void send(query);
+                  }
+                }}
+                rows={2}
+                maxLength={500}
+                required
+                disabled={pending}
+                placeholder={thai ? "เช่น อยากได้ร้านเงียบ ๆ มีปลั๊ก นั่งทำงานได้" : "e.g. A quiet cafe with outlets where I can work"}
+              />
+              <button type="submit" className="chat-send-button" disabled={pending || !query.trim()}>
+                <span>{pending ? (thai ? "กำลังค้นหา" : "Searching") : (thai ? "ค้นหาร้าน" : "Find cafes")}</span>
+                <span className="chat-send-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+            <div className="chat-composer-foot">
+              <span>{thai ? "Enter เพื่อส่ง · Shift + Enter ขึ้นบรรทัดใหม่" : "Enter to send · Shift + Enter for a new line"}</span>
+              <span>{query.length}/500</span>
+            </div>
+            {error && (
+              <div className="chat-error" role="alert">
+                <span>{error}</span>
+                <button type="button" className="chat-retry" disabled={pending} onClick={() => void send(failed)}>{thai ? "ลองอีกครั้ง" : "Retry"}</button>
+              </div>
+            )}
+          </form>
+        </div>
+
+        <aside className="chat-sidebar">
+          <section className="chat-quick-panel" aria-labelledby="chat-quick-title">
+            <p className="chat-sidebar-kicker">{thai ? "ถามได้เลย" : "A few ideas"}</p>
+            <h2 id="chat-quick-title">{thai ? "เริ่มจากคำถามเหล่านี้" : "Try asking"}</h2>
+            <div className="chat-quick-list">
+              {prompts.map((prompt, index) => (
+                <button key={prompt} type="button" className="chat-quick-prompt" disabled={pending} onClick={() => void send(prompt)}>
+                  <span>0{index + 1}</span><strong>{prompt}</strong><span aria-hidden="true">↗</span>
+                </button>
+              ))}
+            </div>
+          </section>
+          <section className="chat-scope-note" aria-labelledby="chat-scope-title">
+            <span className="chat-scope-mark" aria-hidden="true"><Icon name="pin" width={17} height={17} /></span>
+            <h2 id="chat-scope-title">{thai ? "ค้นหาในพื้นที่เมืองพะเยา" : "Focused on Mueang Phayao"}</h2>
+            <p>{thai ? "คำแนะนำและเวลาเปิด-ปิดอ้างอิงจากข้อมูลร้านที่มีในระบบ หากไม่มีข้อมูล ระบบจะแจ้งให้ทราบ" : "Recommendations and hours come from the available cafe catalogue. If a detail isn’t listed, we’ll say so."}</p>
+          </section>
+        </aside>
+      </section>
+    </div>
+  );
 }

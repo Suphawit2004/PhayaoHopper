@@ -45,6 +45,7 @@ export default function Navbar() {
   }, [open]);
   const links = [
     { href: "/cafes", label: t("nav.cafes"), icon: "coffee" as const },
+    { href: "/chat", label: t("nav.assistant"), icon: "search" as const },
     { href: "/map", label: t("nav.map"), icon: "map" as const },
     { href: "/favorites", label: `${t("nav.favorites")}${slugs.length ? ` (${slugs.length})` : ""}`, icon: "heart" as const },
   ];
