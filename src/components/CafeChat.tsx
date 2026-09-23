@@ -81,9 +81,15 @@ export default function CafeChat() {
     : ["Cafe recommendations", "What time does Baan Baann open?", "Where can I work for a while?"];
 
   function fallbackDescription(reason?: string) {
+    if (reason === "simulation") return thai ? "โหมดทดสอบจำลอง: ใช้ข้อมูลร้านในระบบ โดยไม่เรียก Gemini หรือใช้โควตา" : "Simulation mode: uses the cafe catalogue without calling Gemini or consuming quota.";
     if (reason === "not_configured") return thai ? "Gemini ยังไม่พร้อม ระบบจึงค้นจากข้อมูลร้านที่มี" : "Gemini is not configured, so this uses the cafe catalogue.";
     if (reason === "sign_in_required") return thai ? "เข้าสู่ระบบเพื่อใช้ Gemini เมื่อเปิดให้บริการ · คำตอบนี้ค้นจากข้อมูลร้าน" : "Sign in for Gemini when available · this answer uses the cafe catalogue.";
-    return thai ? "Gemini ไม่พร้อมหรือครบโควตาประจำวัน จึงค้นจากข้อมูลร้านแทน" : "Gemini is unavailable or its daily quota is reached, so the cafe catalogue was used.";
+    if (reason === "account_quota") return thai ? "สิทธิ์ถาม Gemini ของบัญชีวันนี้ครบแล้ว จึงค้นจากข้อมูลร้านแทน" : "Your account's Gemini allowance is used for today, so the cafe catalogue was used.";
+    if (reason === "quota_check_failed") return thai ? "ตรวจสิทธิ์ใช้ Gemini ไม่สำเร็จ จึงค้นจากข้อมูลร้านแทน" : "Gemini access could not be checked, so the cafe catalogue was used.";
+    if (reason === "provider_rate_limit") return thai ? "Gemini กำลังจำกัดจำนวนคำขอ จึงค้นจากข้อมูลร้านแทน" : "Gemini is limiting requests, so the cafe catalogue was used.";
+    if (reason === "provider_timeout") return thai ? "Gemini ตอบช้าเกินเวลาที่กำหนด จึงค้นจากข้อมูลร้านแทน" : "Gemini took too long to respond, so the cafe catalogue was used.";
+    if (reason === "provider_unavailable") return thai ? "บริการ Gemini ไม่พร้อมชั่วคราว จึงค้นจากข้อมูลร้านแทน" : "Gemini is temporarily unavailable, so the cafe catalogue was used.";
+    return thai ? "Gemini ตอบกลับไม่สมบูรณ์ จึงค้นจากข้อมูลร้านแทน" : "Gemini did not return a usable answer, so the cafe catalogue was used.";
   }
 
   return (
@@ -155,8 +161,8 @@ export default function CafeChat() {
                 <div className="chat-answer">
                   <div className="chat-answer-source">
                     <span className="chat-answer-avatar"><Icon name="coffee" width={16} height={16} /></span>
-                    <strong>{turn.reply.mode === "ai" ? (thai ? "Gemini · ข้อมูลร้านในระบบ" : "Gemini · Cafe catalogue") : (thai ? "ค้นจากข้อมูลร้าน" : "Cafe catalogue search")}</strong>
-                    {turn.reply.mode !== "ai" && <span className="chat-source-note">{thai ? "ระบบสำรอง" : "Fallback"}</span>}
+                    <strong>{turn.reply.mode === "mock" ? (thai ? "โหมดจำลอง · ข้อมูลร้าน" : "Simulation · Cafe catalogue") : turn.reply.mode === "ai" ? (thai ? "Gemini · ข้อมูลร้านในระบบ" : "Gemini · Cafe catalogue") : (thai ? "ค้นจากข้อมูลร้าน" : "Cafe catalogue search")}</strong>
+                    {turn.reply.mode !== "ai" && <span className="chat-source-note">{turn.reply.mode === "mock" ? (thai ? "โหมดทดสอบ" : "Test mode") : (thai ? "ระบบสำรอง" : "Fallback")}</span>}
                   </div>
                   {turn.reply.mode !== "ai" && <p className="chat-fallback-note">{fallbackDescription(turn.reply.fallbackReason)}</p>}
                   <p className="chat-answer-copy">{turn.reply.message}</p>
