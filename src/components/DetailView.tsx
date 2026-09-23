@@ -3,7 +3,7 @@ import Icon from "./Icon";
 
 import { useRef, useState } from "react";
 import BackToResults from "./BackToResults";
-import { LIFESTYLE_META } from "@/data/cafes";
+import { lifestyleTagMeta } from "@/data/cafes";
 import type { Cafe } from "@/data/cafes";
 import { mapsUrl } from "@/data/cafes";
 import { DAY_KEYS } from "@/i18n/dictionaries";
@@ -131,7 +131,7 @@ export default function DetailView({ cafe }: { cafe: Cafe }) {
         </div>
       </div>
 
-      <section className="feature-card"><h2>{t("cafes.lifestyleLabel")}</h2><ul className="flex flex-wrap gap-3 mt-3">{cafe.lifestyleTags.map(tag=><li key={tag} className="rounded-lg bg-[#eaf2f0] px-3 py-2">{LIFESTYLE_META[tag].emoji} {tr(LIFESTYLE_META[tag].label)}</li>)}</ul>{!cafe.lifestyleTags.length&&<p>{lang==="th"?"ยังไม่มีข้อมูลยืนยัน":"No verified facilities listed"}</p>}</section>
+      <section className="feature-card"><h2>{t("cafes.lifestyleLabel")}</h2><ul className="flex flex-wrap gap-3 mt-3">{cafe.lifestyleTags.map(tag=>{const meta=lifestyleTagMeta(tag);return <li key={tag} className="rounded-lg bg-[#eaf2f0] px-3 py-2">{meta.emoji} {tr(meta.label)}</li>;})}</ul>{!cafe.lifestyleTags.length&&<p>{lang==="th"?"ยังไม่มีข้อมูลยืนยัน":"No verified facilities listed"}</p>}</section>
       <nav className="section-links" aria-label={lang==="th"?"ข้ามไปส่วนต่าง ๆ":"Jump to section"}>{[["menu",lang==="th"?"เมนู":"Menu"],["photos",lang==="th"?"รูปภาพ":"Photos"],["location",t("nav.map")],["reviews",t("reviews.title")]].map(([id,label])=><a key={id} href={`#${id}`}>{label}</a>)}</nav>
       <div id="menu"><LiveMenu slug={cafe.slug} /></div>
       <div id="photos"><CafeCommunity slug={cafe.slug} /></div>

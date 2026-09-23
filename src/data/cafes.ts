@@ -5,16 +5,8 @@ export interface LocalText {
   en: string;
 }
 
-export type CafeTag = "work" | "chill" | "view" | "dessert";
-
-export type LifeStyleTag =
-  | "quiet"
-  | "wifi"
-  | "pet-friendly"
-  | "parking"
-  | "open-late"
-  | "photo"
-  | "family";
+export type CafeTag = string;
+export type LifeStyleTag = string;
 
 export type CafeArea = "lakeside" | "maeka-uni";
 
@@ -45,7 +37,7 @@ export interface Cafe {
   baseRating: number;
 }
 
-export const TAG_META: Record<CafeTag, { label: LocalText; emoji: string }> = {
+export const TAG_META: Record<string, { label: LocalText; emoji: string }> = {
   work: { label: { th: "เหมาะทำงาน", en: "Good for work" }, emoji: "💻" },
   chill: { label: { th: "นั่งชิล", en: "Chill" }, emoji: "🌿" },
   view: { label: { th: "วิวสวย", en: "Scenic view" }, emoji: "🌅" },
@@ -54,7 +46,11 @@ export const TAG_META: Record<CafeTag, { label: LocalText; emoji: string }> = {
 
 export const TAG_ORDER: CafeTag[] = ["work", "chill", "view", "dessert"];
 
-export const LIFESTYLE_META: Record<LifeStyleTag, { label: LocalText; emoji: string }> = {
+export function cafeTagMeta(tag: CafeTag) {
+  return TAG_META[tag] ?? { label: { th: tag, en: tag }, emoji: "☕" };
+}
+
+export const LIFESTYLE_META: Record<string, { label: LocalText; emoji: string }> = {
   quiet: { label: { th: "เงียบสงบ", en: "Quiet" }, emoji: "🤫" },
   wifi: { label: { th: "Wi-Fi แรง", en: "Strong Wi-Fi" }, emoji: "📶" },
   "pet-friendly": { label: { th: "พาสัตว์เลี้ยงได้", en: "Pet friendly" }, emoji: "🐾" },
@@ -73,6 +69,10 @@ export const LIFESTYLE_ORDER: LifeStyleTag[] = [
   "photo",
   "family",
 ];
+
+export function lifestyleTagMeta(tag: LifeStyleTag) {
+  return LIFESTYLE_META[tag] ?? { label: { th: tag, en: tag }, emoji: "✓" };
+}
 
 import enriched from "./cafes.enriched.json";
 import baseRegistry from "./cafes.base.json";

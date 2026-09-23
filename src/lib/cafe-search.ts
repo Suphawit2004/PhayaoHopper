@@ -1,4 +1,4 @@
-import { type Cafe, TAG_META, LIFESTYLE_META } from "@/data/cafes";
+import { type Cafe, cafeTagMeta, lifestyleTagMeta } from "@/data/cafes";
 import { fuzzyMatch } from "./fuzzy";
 
 const intents: [RegExp, string[]][] = [
@@ -15,7 +15,7 @@ export function scoreCafe(cafe: Cafe, query: string): number {
   const q = query.trim().toLowerCase();
   if (!q) return 1;
   const tags = [...cafe.tags, ...cafe.lifestyleTags];
-  const labels = [...cafe.tags.map(t => TAG_META[t].label), ...cafe.lifestyleTags.map(t => LIFESTYLE_META[t].label)];
+  const labels = [...cafe.tags.map(cafeTagMeta).map(meta => meta.label), ...cafe.lifestyleTags.map(lifestyleTagMeta).map(meta => meta.label)];
   const text = [cafe.description.th, cafe.description.en, cafe.address.th, cafe.address.en,
     ...labels.flatMap(l => [l.th, l.en]), ...tags].join(" ").toLowerCase();
   const intent = intents.filter(([re]) => re.test(q)).flatMap(([, names]) => names);

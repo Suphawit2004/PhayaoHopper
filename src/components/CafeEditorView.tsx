@@ -14,7 +14,9 @@ import MapBlock from "./map/MapBlock";
 export default function CafeEditorView({cafe,admin,isActive,menu,error,ownerId,embedded=false}:{cafe:Cafe;admin:boolean;isActive:boolean;menu:EditableMenu[];error:boolean;ownerId:string;embedded?:boolean}){
   const ui=useUi();
  const {tr}=useLang();
- const slug=cafe.slug;
+  const slug=cafe.slug;
+  const customStyles=cafe.tags.filter(tag=>!(tag in TAG_META));
+  const customFacilities=cafe.lifestyleTags.filter(tag=>!(tag in LIFESTYLE_META));
 return <div className={embedded ? "admin-embedded-editor" : "feature-page"}><Link href={embedded ? "/admin?tab=cafes" : admin ? "/admin" : "/owner"}>{ui("← กลับหน้าจัดการ")}</Link><h1 className="mt-4">{tr(cafe.name)}</h1><Link href={`/cafes/${slug}`}>{ui("ดูหน้าร้าน →")}</Link>
     <section className="feature-card"><h2>{ui("ข้อมูลร้าน")}</h2><ActionForm action={saveCafe}>
       <input type="hidden" name="slug" value={slug} />
@@ -40,8 +42,8 @@ return <div className={embedded ? "admin-embedded-editor" : "feature-page"}><Lin
       <MapBlock cafes={[cafe]} className="h-56"/>
       {!admin && <p>{ui("หากพิกัดหรือพื้นที่ไม่ถูกต้อง กรุณาแจ้งแก้ไขผ่านหน้าร้าน")}</p>}
       <fieldset><legend>{ui("วันหยุดประจำ")}</legend><div className="flex flex-wrap gap-4 mt-2">{[ui("อาทิตย์"),ui("จันทร์"),ui("อังคาร"),ui("พุธ"),ui("พฤหัสบดี"),ui("ศุกร์"),ui("เสาร์")].map((day, i) => <label key={day}><span><input name="closedDays" type="checkbox" value={i} defaultChecked={cafe.closedDays.includes(i)} /> {day}</span></label>)}</div></fieldset>
-      <fieldset><legend>{ui("สไตล์ร้าน")}</legend><div className="flex flex-wrap gap-4 mt-2">{Object.entries(TAG_META).map(([key, value]) => <label key={key}><span><input name="tags" type="checkbox" value={key} defaultChecked={cafe.tags.includes(key as CafeTag)} /> {tr(value.label)}</span></label>)}</div></fieldset>
-      <fieldset><legend>{ui("สิ่งอำนวยความสะดวก")}</legend><div className="flex flex-wrap gap-4 mt-2">{Object.entries(LIFESTYLE_META).map(([key, value]) => <label key={key}><span><input name="lifestyleTags" type="checkbox" value={key} defaultChecked={cafe.lifestyleTags.includes(key as LifeStyleTag)} /> {tr(value.label)}</span></label>)}</div></fieldset>
+      <fieldset><legend>{ui("สไตล์ร้าน")}</legend><div className="flex flex-wrap gap-4 mt-2">{Object.entries(TAG_META).map(([key, value]) => <label key={key}><span><input name="tags" type="checkbox" value={key} defaultChecked={cafe.tags.includes(key as CafeTag)} /> {tr(value.label)}</span></label>)}{customStyles.map(tag=><label key={tag}><span><input name="tags" type="checkbox" value={tag} defaultChecked /> {tag}</span></label>)}</div><label className="mt-3 block">{ui("เพิ่มสไตล์อื่น (คั่นแต่ละรายการด้วยจุลภาคหรือขึ้นบรรทัดใหม่)")}<input name="newTags" maxLength={500} placeholder={ui("เช่น มีดนตรีสด, สวนริมน้ำ")} /></label></fieldset>
+      <fieldset><legend>{ui("สิ่งอำนวยความสะดวก")}</legend><div className="flex flex-wrap gap-4 mt-2">{Object.entries(LIFESTYLE_META).map(([key, value]) => <label key={key}><span><input name="lifestyleTags" type="checkbox" value={key} defaultChecked={cafe.lifestyleTags.includes(key as LifeStyleTag)} /> {tr(value.label)}</span></label>)}{customFacilities.map(tag=><label key={tag}><span><input name="lifestyleTags" type="checkbox" value={tag} defaultChecked /> {tag}</span></label>)}</div><label className="mt-3 block">{ui("เพิ่มสิ่งอำนวยความสะดวกอื่น (คั่นแต่ละรายการด้วยจุลภาคหรือขึ้นบรรทัดใหม่)")}<input name="newLifestyleTags" maxLength={500} placeholder={ui("เช่น มีปลั๊กไฟ, รับชำระด้วยบัตร")} /></label></fieldset>
     </ActionForm></section>
     {error && <p role="alert">{ui("โหลดเมนูไม่สำเร็จ กรุณาลองใหม่")}</p>}
     <MenuManager slug={slug} items={menu} />
