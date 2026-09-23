@@ -12,6 +12,8 @@ const favorites = new Map();
 const reviews = [];
 const photos = [];
 const objects = new Map();
+const avatars = new Map();
+const profiles = new Map();
 const adminIds = new Set();
 const asJson = (res, status, body, headers = {}) => { res.writeHead(status, { "content-type": "application/json", ...headers }); res.end(JSON.stringify(body)); };
 const collect = req => new Promise((resolveBody, reject) => { const parts = []; req.on("data", part => parts.push(part)); req.on("end", () => resolveBody(Buffer.concat(parts))); req.on("error", reject); });
@@ -34,6 +36,7 @@ const server = createServer(async (req, res) => {
     const body = JSON.parse((await collect(req)).toString("utf8"));
     const id = userIds.get(body.email) ?? (body.email?.startsWith("admin") ? "00000000-0000-4000-8000-000000000002" : body.email?.startsWith("member") ? "00000000-0000-4000-8000-000000000001" : "00000000-0000-4000-8000-000000000003");
     userIds.set(body.email, id);
+    if (!profiles.has(id)) profiles.set(id, { id, display_name: body.email?.split("@")[0] ?? "Member", avatar_url: null });
     if (id.endsWith("0002")) adminIds.add(id);
     const user = { id, aud: "authenticated", role: "authenticated", email: body.email, app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, created_at: new Date().toISOString() };
     const token = `e2e-${id}`;
@@ -43,9 +46,33 @@ const server = createServer(async (req, res) => {
   if (url.pathname === "/auth/v1/user") {
     const user = userFor(req); return user ? asJson(res, 200, user) : asJson(res, 401, { message: "Invalid token" });
   }
+  if (url.pathname === "/auth/v1/recover" && req.method === "POST") {
+    await collect(req);
+    return asJson(res, 200, { message: "If the email exists, a reset link was sent" });
+  }
   if (url.pathname === "/auth/v1/logout") return asJson(res, 204, null);
 
   const user = userFor(req);
+  const avatarPrefix = "/storage/v1/object/avatars/";
+  const publicAvatarPrefix = "/storage/v1/object/public/avatars/";
+  if (url.pathname.startsWith(avatarPrefix) || url.pathname.startsWith(publicAvatarPrefix)) {
+    const isPublicAvatar = url.pathname.startsWith(publicAvatarPrefix);
+    const path = decodeURIComponent(url.pathname.slice(isPublicAvatar ? publicAvatarPrefix.length : avatarPrefix.length));
+    if (!isPublicAvatar && req.method === "POST") {
+      if (!user || !path.startsWith(`${user.id}/`)) return asJson(res, 403, { message: "Avatar owner mismatch" });
+      avatars.set(path, await collect(req));
+      return asJson(res, 200, { Key: `avatars/${path}` });
+    }
+    if (!isPublicAvatar && req.method === "DELETE") {
+      const body = JSON.parse((await collect(req)).toString("utf8"));
+      for (const prefix of body.prefixes ?? []) if (user && prefix.startsWith(`${user.id}/`)) avatars.delete(prefix);
+      return asJson(res, 200, { message: "Successfully deleted" });
+    }
+    const content = avatars.get(path);
+    if (!content) return asJson(res, 404, { message: "Not found" });
+    res.writeHead(200, { "content-type": path.endsWith(".png") ? "image/png" : path.endsWith(".webp") ? "image/webp" : "image/jpeg" });
+    return res.end(content);
+  }
   if (url.pathname === "/rest/v1/rpc/is_admin" && req.method === "POST") return asJson(res, 200, !!user && adminIds.has(user.id));
   if (url.pathname === "/rest/v1/rpc/check_rate_limit" && req.method === "POST") return asJson(res, 200, true);
   if (url.pathname === "/rest/v1/rpc/submit_review_reward" && req.method === "POST") {
@@ -142,7 +169,25 @@ const server = createServer(async (req, res) => {
     return respondRows(req, res, [row]);
   }
   if (table === "reviews" && req.method === "GET") return respondRows(req, res, reviews.filter(row => filter(url, "cafe_slug", row.cafe_slug)));
-  if (table === "profiles") return respondRows(req, res, [], 1);
+  if (table === "profiles") {
+    if (req.method === "GET") {
+      const profile = user ? profiles.get(user.id) : null;
+      const requestedId = url.searchParams.get("id")?.slice(3);
+      return respondRows(req, res, profile && (!requestedId || requestedId === user.id) ? [profile] : [], profile ? 1 : 0);
+    }
+    if (req.method === "POST" || req.method === "PATCH") {
+      const body = JSON.parse((await collect(req)).toString("utf8"));
+      const rows = Array.isArray(body) ? body : [body];
+      if (!user || rows.some(row => row.id !== user.id)) return asJson(res, 403, { code: "42501", message: "Profile owner mismatch" });
+      const saved = rows.map(row => {
+        const current = profiles.get(user.id) ?? { id: user.id, display_name: null, avatar_url: null };
+        const next = { ...current, ...row };
+        profiles.set(user.id, next);
+        return next;
+      });
+      return respondRows(req, res, saved);
+    }
+  }
   if (["cafe_suggestions", "data_reports"].includes(table)) return respondRows(req, res, [], 0);
   return respondRows(req, res, []);
 });

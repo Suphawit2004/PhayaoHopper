@@ -11,6 +11,6 @@ export default async function OwnerPage() {
   const cafes = (await getCatalog()).filter(c => admin || owners?.some(o => o.cafe_slug === c.slug));
   return <div className="feature-page"><h1><UiText text="ร้านของคุณ"/></h1><p><UiText text="อัปเดตข้อมูลร้าน เมนู และสถานะพร้อมขาย"/></p>
     {error ? <p role="alert" className="feature-card"><UiText text="ระบบจัดการร้านยังไม่พร้อมใช้งาน กรุณาติดต่อผู้ดูแล"/></p> : cafes.length ? <div className="feature-grid">{cafes.map(c => <Link className="feature-card" href={`/owner/${c.slug}`} key={c.slug}><h2>{<UiText text={c.name.th} en={c.name.en}/>}</h2><UiText text="จัดการร้าน →"/></Link>)}</div>
-    : <div className="feature-card"><h2><UiText text="ยังไม่มีร้านที่ได้รับสิทธิ์"/></h2><p><UiText text="ส่งรหัสสมาชิกนี้ให้ผู้ดูแลเพื่อยืนยันและเชื่อมร้านกับบัญชีของคุณ"/></p><code className="break-all">{user.id}</code><p className="mt-4"><Link href="/suggest"><UiText text="แนะนำร้านที่ยังไม่มีในระบบ →"/></Link></p></div>}
+    : <div className="feature-card"><h2><UiText text="ยังไม่มีร้านที่ได้รับสิทธิ์"/></h2><p><UiText text="ส่งรหัสบัญชีนี้ให้ผู้ดูแลเพื่อยืนยันและเชื่อมร้านกับบัญชีของคุณ"/></p><code className="break-all">{user.id}</code><p className="mt-4"><Link href="/suggest"><UiText text="แนะนำร้านที่ยังไม่มีในระบบ →"/></Link></p></div>}
   </div>;
 }
