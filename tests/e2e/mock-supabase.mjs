@@ -91,9 +91,8 @@ const server = createServer(async (req, res) => {
     return respondRows(req, res, slug && user && visits.has(`${user.id}:${slug}`) ? [{ cafe_slug: slug, created_at: new Date().toISOString() }] : []);
   }
   if (table === "cafe_visits" && (req.method === "POST" || req.method === "DELETE")) {
-    const body = req.method === "POST" ? JSON.parse((await collect(req)).toString("utf8")) : null;
-    const slug = req.method === "POST" ? body?.cafe_slug : url.searchParams.get("cafe_slug")?.slice(3);
-    if (req.method === "POST" && user && slug) visits.add(`${user.id}:${slug}`);
+    if (req.method === "POST") return asJson(res, 403, { code: "42501", message: "Photo required" });
+    const slug = url.searchParams.get("cafe_slug")?.slice(3);
     if (req.method === "DELETE" && user && slug) visits.delete(`${user.id}:${slug}`);
     res.writeHead(204); return res.end();
   }
@@ -107,8 +106,10 @@ const server = createServer(async (req, res) => {
   }
   if (table === "cafe_photos" && req.method === "POST") {
     const body = JSON.parse((await collect(req)).toString("utf8"));
+    if (!user || body.user_id !== user.id || !objects.has(body.path)) return asJson(res, 403, { code: "42501", message: "Photo required" });
     const row = { id: crypto.randomUUID(), user_id: user?.id, cafe_slug: body.cafe_slug, path: body.path, caption: body.caption ?? "", is_public: body.is_public ?? false, review_id: null, review_batch: body.review_batch ?? null, created_at: new Date().toISOString() };
     photos.push(row);
+    if (!row.review_batch) visits.add(`${user.id}:${row.cafe_slug}`);
     return respondRows(req, res, [row]);
   }
   if (table === "reviews" && req.method === "GET") return respondRows(req, res, reviews.filter(row => filter(url, "cafe_slug", row.cafe_slug)));

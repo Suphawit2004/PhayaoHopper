@@ -138,7 +138,7 @@ function PhotoComposer({ slug, onUploaded }: { slug: string; onUploaded: () => P
     <h3>{ui("เพิ่มรูปของคุณ")}</h3>
     <ActionForm reset label={ui("โพสต์รูป")} action={async form => {
       const result = await uploadPhoto(form);
-      if (result.ok) { setFile(null); setPreview(""); setIsPublic(true); setError(""); await onUploaded(); }
+      if (result.ok) { setFile(null); setPreview(""); setIsPublic(true); setError(""); window.dispatchEvent(new Event("cafe-visit-changed")); await onUploaded(); }
       return result;
     }}>
       <input type="hidden" name="slug" value={slug} />

@@ -18,10 +18,20 @@ test("guests are sent to login and returned to the cafe page", async ({ page }) 
   await expect(page.locator(".password-login input[name=email]")).toBeVisible();
 });
 
-test("member can mark a visit, post a review photo, and see it in cafe and personal galleries", async ({ page }) => {
+test("member must upload a valid photo to record a visit, then can review and see both photos", async ({ page }) => {
   await signIn(page, "member-e2e@example.test");
-  await page.getByRole("button", { name: "ไปมาแล้ว" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "บันทึกแล้ว" })).toBeVisible();
+  const visitForm = page.locator("form").filter({ has: page.locator('input[name="isPublic"][type="hidden"]') });
+  await visitForm.locator('input[type="file"]').setInputFiles({ name: "bad.png", mimeType: "image/png", buffer: Buffer.from("not a real PNG") });
+  await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
+  await expect(visitForm.getByRole("status")).toContainText("ไฟล์รูปไม่ถูกต้อง");
+  await expect(page.locator(".review-panel form")).toHaveCount(0);
+  await visitForm.locator('input[type="file"]').setInputFiles({
+    name: "visit.png", mimeType: "image/png",
+    buffer: await import("node:fs/promises").then(fs => fs.readFile(resolve("tests/e2e/fixtures/transparent.png"))),
+  });
+  await visitForm.getByRole("button", { name: "อัปโหลดรูป" }).click();
+  await expect(page.getByRole("link", { name: "ดูร้านที่เคยไปแล้ว" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "แกลเลอรีของร้าน" }).getByRole("listitem")).toHaveCount(1, { timeout: 20_000 });
 
   const reviewForm = page.locator(".review-panel form");
   await expect(reviewForm).toBeVisible();
@@ -39,7 +49,7 @@ test("member can mark a visit, post a review photo, and see it in cafe and perso
 
   await page.goto("/photos");
   const gallery = page.getByRole("list", { name: "แกลเลอรีของฉัน" });
-  await expect(gallery).toContainText("ภาพบรรยากาศจากผู้มาเยือน", { timeout: 20_000 });
+  await expect(gallery.getByRole("listitem")).toHaveCount(2, { timeout: 20_000 });
   await expect(gallery.locator("img").first()).toBeVisible();
 });
 

@@ -45,7 +45,7 @@ function VisitList({ userId, compact }: { userId: string; compact: boolean }) {
   }, [userId, retry]);
   if (error) return <div role="alert"><p>{th ? "โหลดประวัติไม่สำเร็จ" : "Could not load visits."}</p><button className="ui-secondary mt-3" onClick={() => { setError(false); setRetry(n => n + 1); }}>{th ? "ลองอีกครั้ง" : "Retry"}</button></div>;
   if (!rows) return <p role="status">{th ? "กำลังโหลดประวัติ…" : "Loading visits…"}</p>;
-  if (!rows.length) return <div className="rounded-xl border border-dashed border-[#ddd6c7] p-6"><p className="font-semibold">{th ? "ยังไม่มีร้านที่บันทึกว่าเคยไป" : "No visits saved yet"}</p><p className="mt-2 text-sm text-espresso/65">{th ? "เปิดหน้าร้านที่คุณเคยไป แล้วกด “ไปมาแล้ว”" : "Open a cafe you have visited and select “I've been here”."}</p><Link href="/cafes" className="ui-secondary mt-4 inline-block">{th ? "ค้นหาร้านคาเฟ่" : "Explore cafes"} →</Link></div>;
+  if (!rows.length) return <div className="rounded-xl border border-dashed border-[#ddd6c7] p-6"><p className="font-semibold">{th ? "ยังไม่มีร้านที่บันทึกว่าเคยไป" : "No visits saved yet"}</p><p className="mt-2 text-sm text-espresso/65">{th ? "เปิดหน้าร้านที่คุณเคยไป แล้วอัปโหลดรูปจากร้านนั้น" : "Open a cafe you visited and upload a photo from there."}</p><Link href="/cafes" className="ui-secondary mt-4 inline-block">{th ? "ค้นหาร้านคาเฟ่" : "Explore cafes"} →</Link></div>;
   return <><p className="mb-4 text-sm text-espresso/65">{th ? `${rows.length} ร้าน` : `${rows.length} cafes`}</p><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
     {(compact ? rows.slice(0, 3) : rows).map(row => {
       const cafe = cafes.find(c => c.slug === row.cafe_slug);
