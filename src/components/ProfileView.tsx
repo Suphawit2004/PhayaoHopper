@@ -34,9 +34,9 @@ function avatarPathFromUrl(url: string): string | null {
   return url.slice(i + marker.length).split("?")[0];
 }
 
-type ProfileViewProps = { inDialog?: boolean; onClose?: () => void };
+type ProfileViewProps = { inPopup?: boolean; onClose?: () => void };
 
-export default function ProfileView({ inDialog = false, onClose }: ProfileViewProps) {
+export default function ProfileView({ inPopup = false, onClose }: ProfileViewProps) {
   const ui=useUi();
   const CAFES = useCatalog();
   const { t, tr, lang } = useLang();
@@ -175,13 +175,13 @@ export default function ProfileView({ inDialog = false, onClose }: ProfileViewPr
     setSaveState(ok ? "saved" : "error");
   };
   return (
-    <div className={inDialog ? "profile-dialog-content mx-auto max-w-4xl px-4 py-6" : "mx-auto max-w-4xl px-4 py-10"}>
-      <header className="profile-dialog-heading">
+    <div className={inPopup ? "profile-popup-content mx-auto max-w-4xl px-4 py-5" : "mx-auto max-w-4xl px-4 py-10"}>
+      <header className="profile-popup-heading">
         <div>
-          <h1 id={inDialog ? "profile-dialog-title" : undefined} className="text-2xl font-bold text-espresso">{t("profile.title")}</h1>
-          {inDialog && <p className="mt-1 text-sm text-espresso/65">{user.email}</p>}
+          <h1 className="text-2xl font-bold text-espresso">{t("profile.title")}</h1>
+          {inPopup && <p className="mt-1 text-sm text-espresso/65">{user.email}</p>}
         </div>
-        {inDialog && <button type="button" className="profile-dialog-close" onClick={onClose} aria-label={lang === "th" ? "ปิดหน้าต่างโปรไฟล์" : "Close profile dialog"}>×</button>}
+        {inPopup && <button type="button" className="profile-popup-close" onClick={onClose} aria-label={lang === "th" ? "ปิดเมนูโปรไฟล์" : "Close profile menu"}>×</button>}
       </header>
 
       <nav className="profile-sections" aria-label={lang==="th"?ui("ส่วนต่าง ๆ ของโปรไฟล์"):"Profile sections"}><a href="#account">{lang==="th"?ui("บัญชี"):"Account"}</a><a href="#visited">{lang==="th"?"เคยไปแล้ว":"Visited cafes"}</a><a href="#my-photos">{lang==="th"?ui("รูปที่โพสต์"):"My photos"}</a><a href="#my-reviews">{t("profile.myReviews")}</a><a href="#security">{lang==="th"?ui("ความปลอดภัย"):"Security"}</a></nav>
@@ -293,6 +293,8 @@ export default function ProfileView({ inDialog = false, onClose }: ProfileViewPr
       {accountError && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{accountError}</p>}
       <nav aria-label={ui("บริการสำหรับสมาชิก")} className="mt-6 flex flex-wrap gap-3">
         <Link href="/membership" className="feature-button">{ui("บัตรสมาชิก")}</Link>
+        <Link href="/chat" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{lang === "th" ? "ผู้ช่วยค้นหาร้าน" : "Cafe assistant"}</Link>
+        <Link href="/suggest" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{lang === "th" ? "แนะนำร้านใหม่" : "Suggest a cafe"}</Link>
         {isOwner && <Link href="/owner" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{ui("จัดการร้านของคุณ")}</Link>}
         {isAdmin && <Link href="/admin" className="rounded-xl border border-[#d9c9ac] px-5 py-3">{ui("สำหรับผู้ดูแลระบบ")}</Link>}
       </nav>
