@@ -21,6 +21,7 @@ export default defineConfig({
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "e2e-publishable-key",
         NEXT_PUBLIC_SITE_URL: baseURL,
         CAFE_ASSISTANT_MODE: "mock",
+        TZ: "UTC",
       },
     },
   ],

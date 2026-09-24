@@ -6,6 +6,7 @@ import { useLang } from "@/i18n/LangProvider";
 import { redeemCoupon } from "@/app/actions/coupons";
 
 type Coupon = { id: string; cafe_slug: string; reward: string; issued_at: string; expires_at: string; used_at: string | null; cancelled_at: string | null };
+const formatCouponDate = (value: string, locale: string) => new Date(value).toLocaleString(locale, { timeZone: "Asia/Bangkok" });
 export default function CouponsView({ coupons, cafes, serverNow, error }: { coupons: Coupon[]; cafes: { slug: string; name: { th: string; en: string } }[]; serverNow: number; error: boolean }) {
   const { lang } = useLang(), router = useRouter();
   const th = lang === "th";
@@ -37,8 +38,8 @@ export default function CouponsView({ coupons, cafes, serverNow, error }: { coup
         const label = { used: th ? "ใช้แล้ว" : "Used", cancelled: th ? "ยกเลิก" : "Cancelled", expired: th ? "หมดอายุ" : "Expired", available: th ? "พร้อมใช้" : "Available" }[state];
         return <li key={c.id} className={`coupon-card coupon-card-${state}`}><div className="coupon-card-heading"><h2 className="text-xl">{cafe ? <Link className="underline underline-offset-4" href={`/cafes/${c.cafe_slug}`}>{cafe.name[lang]}</Link> : c.cafe_slug}</h2><span className={`coupon-state coupon-state-${state}`} role="status">{label}</span></div>
           <p className="coupon-value">{c.reward === "10_percent" ? "10%" : "5 ฿"}<span>{th ? "ส่วนลดทดลอง" : "Demo discount"}</span></p>
-          <p>{th ? "หมดอายุ " : "Expires "}<time dateTime={c.expires_at}>{new Date(c.expires_at).toLocaleString(th ? "th-TH" : "en-GB")}</time></p>
-          {c.used_at && <p>{th ? "ใช้เมื่อ " : "Used "}{new Date(c.used_at).toLocaleString(th ? "th-TH" : "en-GB")}</p>}
+          <p>{th ? "หมดอายุ " : "Expires "}<time dateTime={c.expires_at}>{formatCouponDate(c.expires_at, th ? "th-TH" : "en-GB")}</time></p>
+          {c.used_at && <p>{th ? "ใช้เมื่อ " : "Used "}{formatCouponDate(c.used_at, th ? "th-TH" : "en-GB")}</p>}
           {state === "available" && (confirm === c.id ? <div className="coupon-confirm mt-4"><p>{th ? "ยืนยันใช้คูปองทดลอง? เมื่อยืนยันจะใช้ซ้ำไม่ได้ และไม่มีส่วนลดจริง" : "Confirm demo use? This cannot be used again and provides no real discount."}</p><div className="mt-3 flex flex-wrap gap-3"><button className="feature-button" disabled={busy} onClick={() => handleRedeem(c.id)}>{busy ? "…" : th ? "ยืนยันใช้คูปองทดลอง" : "Confirm demo use"}</button><button className="ui-secondary" disabled={busy} onClick={() => setConfirm(null)}>{th ? "ยกเลิก" : "Cancel"}</button></div></div> : <button className="ui-secondary mt-4" disabled={busy} onClick={() => setConfirm(c.id)}>{th ? "ทดลองใช้คูปอง" : "Use demo coupon"}</button>)}
         </li>;
       })}</ul>}
