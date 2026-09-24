@@ -14,18 +14,14 @@
 
 body { color: var(--ph-body); background: var(--ph-paper); }
 
-/* A narrow woven-water line carries the Lanna reference without becoming a backdrop. */
+/* The same woven divider marks both ends of the page. */
 .site-header { isolation: isolate; border-bottom: 1px solid var(--ph-border); }
 .site-header::after {
-  position: absolute;
-  z-index: -1;
-  right: 0;
-  bottom: -5px;
-  left: 0;
-  height: 5px;
-  background:
-    linear-gradient(135deg, transparent 42%, rgb(221 191 121 / 65%) 45% 53%, transparent 56%) 0 0 / 18px 5px repeat-x,
-    linear-gradient(45deg, transparent 42%, rgb(221 191 121 / 45%) 45% 53%, transparent 56%) 9px 0 / 18px 5px repeat-x;
+  display: block;
+  height: 12px;
+  background-color: var(--ph-ink);
+  background-image: var(--lanna-weave);
+  background-position: center;
   content: "";
   pointer-events: none;
 }
@@ -143,7 +139,7 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .status-message, [role=alert] { border-radius: var(--ph-radius-small); }
 .status-message { animation: ph-feedback-enter 170ms cubic-bezier(.16, 1, .3, 1) both; }
 .site-footer { position: relative; border-top: 1px solid var(--ph-border); background: #eee8dc; }
-.site-footer::before { height: 8px; opacity: .72; }
+.site-footer::before { height: 12px; opacity: 1; }
 .site-footer nav a:hover { color: var(--ph-red); }
 
 @media (max-width: 1000px) {
