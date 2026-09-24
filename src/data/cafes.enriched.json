@@ -58,5 +58,35 @@
     "lat": 19.0463675,
     "lng": 99.9267633,
     "photo": "/images/cafes/mr-handsome-cafe/main.jpg"
+  },
+  "phayao-coffee-roaster": {
+    "lat": 19.1879092,
+    "lng": 99.8867167,
+    "photo": "/images/cafes/phayao-coffee-roaster/main.jpg"
+  },
+  "premm-cafe": {
+    "lat": 19.2096168,
+    "lng": 99.870878,
+    "photo": "/images/cafes/premm-cafe/main.jpg"
+  },
+  "see-u-again": {
+    "lat": 19.173846,
+    "lng": 99.893403,
+    "photo": "/images/cafes/see-u-again/main.jpg"
+  },
+  "baan-ton-tao-coffee-food": {
+    "lat": 19.1474896,
+    "lng": 99.8288788,
+    "photo": "/images/cafes/baan-ton-tao-coffee-food/main.jpg"
+  },
+  "one-pastry-bakery": {
+    "lat": 19.0314609,
+    "lng": 99.9271037,
+    "photo": "/images/cafes/one-pastry-bakery/main.jpg"
+  },
+  "baan-matcha-mae-ka": {
+    "lat": 19.0297366,
+    "lng": 99.9287174,
+    "photo": "/images/cafes/baan-matcha-mae-ka/main.jpg"
   }
 }
