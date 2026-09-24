@@ -53,7 +53,33 @@
 }
 .backLink:hover { border-color: var(--admin-ink); background: #f0eee7; }
 
-.overview { margin-top: 25px; }
+.systemStatus {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 15px;
+  margin-top: 24px;
+  padding: 15px 18px;
+  border: 1px solid var(--admin-line);
+  border-bottom: 2px solid var(--admin-gold);
+  border-radius: 8px;
+  background: var(--admin-paper);
+}
+.statusIcon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: #e4eee8; color: #245e47; }
+.statusIcon svg { width: 20px; height: 20px; }
+.systemStatus[data-level="partial"] .statusIcon { background: #f5ead0; color: #765313; }
+.systemStatus[data-level="failed"] .statusIcon { background: #f4deda; color: #873630; }
+.statusBody { display: grid; min-width: 0; gap: 2px; }
+.statusHeading { color: var(--admin-muted); font-size: 11px; font-weight: 650; }
+.statusBody strong { color: var(--admin-ink); font-size: 16px; font-weight: 720; }
+.statusBody p { color: #7c3530; font-size: 12px; line-height: 1.5; }
+.statusBody small { color: var(--admin-muted); font-size: 11px; }
+.statusActions { display: grid; justify-items: end; gap: 7px; color: var(--admin-muted); font-size: 11px; }
+.statusActions time { color: var(--admin-ink); font-variant-numeric: tabular-nums; }
+.statusActions button { min-height: 38px; padding: 7px 12px; border: 1px solid #b9a980; border-radius: 6px; background: #fffefa; color: var(--admin-ink); font-size: 12px; font-weight: 700; transition: background-color 140ms ease, border-color 140ms ease; }
+.statusActions button:hover { border-color: var(--admin-ink); background: #eee8dc; }
+
+.overview { margin-top: 22px; }
 .sectionHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 12px; }
 .sectionHeading h2 { color: var(--admin-ink); font-size: 18px; font-weight: 720; line-height: 1.35; }
 .sectionHeading > p { margin: 0 0 2px; text-align: right; }
@@ -187,6 +213,8 @@
 @media (max-width: 760px) {
   .dashboard { padding: 24px 16px 48px; }
   .header { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .systemStatus { grid-template-columns: 36px minmax(0, 1fr); }
+  .statusActions { grid-column: 2; justify-items: start; }
   .summary { grid-template-columns: 1fr; }
   .metric { min-height: 80px; }
   .metric + .metric { border-top: 1px solid var(--admin-line); border-left: 0; }
@@ -214,5 +242,5 @@
   .previewDialog { width: 96vw; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .backLink, .navigation button, .pagination > a, .cafeLink { transition: none; }
+  .backLink, .navigation button, .pagination > a, .cafeLink, .statusActions button { transition: none; }
 }

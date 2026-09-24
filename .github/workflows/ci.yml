@@ -43,3 +43,55 @@ jobs:
 
       - name: Browser end-to-end tests
         run: npm run test:e2e
+
+  visual:
+    runs-on: ubuntu-latest
+    env:
+      VISUAL_REGRESSION: "1"
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Render the previous version on the same runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git cat-file -e "${BASE_SHA}:tests/e2e/visual.spec.ts" 2>/dev/null; then
+            git worktree add "$RUNNER_TEMP/visual-baseline" "$BASE_SHA"
+            (
+              cd "$RUNNER_TEMP/visual-baseline"
+              npm ci
+              npx playwright install chromium
+              VISUAL_REGRESSION=1 npx playwright test tests/e2e/visual.spec.ts --update-snapshots
+            )
+            mkdir -p tests/e2e/visual.spec.ts-snapshots
+            cp "$RUNNER_TEMP/visual-baseline/tests/e2e/visual.spec.ts-snapshots/"* tests/e2e/visual.spec.ts-snapshots/
+          else
+            echo "First visual suite run: establish screenshots from this version. Later runs compare with the previous version."
+            npm run test:e2e:visual -- --update-snapshots
+          fi
+
+      - name: Compare key page screenshots
+        continue-on-error: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visual-change-approved') }}
+        run: npm run test:e2e:visual
+
+      - name: Keep screenshot differences for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-differences
+          path: test-results/
+          if-no-files-found: ignore

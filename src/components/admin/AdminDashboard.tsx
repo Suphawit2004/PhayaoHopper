@@ -63,6 +63,11 @@ export interface AdminReview {
 }
 
 type Mode = "ready" | "login" | "forbidden" | "not-configured";
+type SystemStatus = {
+  level: "ready" | "partial" | "failed";
+  issues: Array<"catalog" | "members" | "workQueue" | "currentView">;
+  checkedAt: string;
+};
 
 const REPORT_FIELD_KEY: Record<string, string> = {
   hours: "report.field.hours",
@@ -100,8 +105,10 @@ export default function AdminDashboard({
   selectedCafe,
   pageInfo,
   partialError = false,
+  systemStatus,
 }: {
   mode: Mode;
+  systemStatus?: SystemStatus;
   queueCounts?: { suggestions: number | null; reports: number | null; reviews: number | null };
   itemCounts?: { reports: number | null; reviews: number | null };
   loadError?: boolean;
@@ -198,6 +205,17 @@ export default function AdminDashboard({
   const visibleCafes = searchTerm
     ? cafeLinks.filter(cafe => `${cafe.nameTh} ${cafe.nameEn} ${cafe.slug}`.toLocaleLowerCase().includes(searchTerm))
     : cafeLinks;
+  const statusCopy = lang === "th" ? {
+    heading: "สถานะข้อมูลบนเว็บ", ready: "พร้อมใช้งาน", partial: "ข้อมูลบางส่วนมีปัญหา", failed: "โหลดข้อมูลไม่สำเร็จ",
+    checked: "ตรวจล่าสุด", retry: "ตรวจอีกครั้ง", issues: "ส่วนที่มีปัญหา",
+    catalog: "ข้อมูลร้าน", members: "ข้อมูลสมาชิก", workQueue: "คิวงาน", currentView: "รายการที่กำลังดู",
+    note: "แสดงผลจากข้อมูลที่ dashboard โหลดครั้งนี้",
+  } : {
+    heading: "Website data status", ready: "Available", partial: "Some data is unavailable", failed: "Data could not be loaded",
+    checked: "Last checked", retry: "Check again", issues: "Affected areas",
+    catalog: "Cafe data", members: "Member data", workQueue: "Work queue", currentView: "Current view",
+    note: "Based on data loaded by this dashboard",
+  };
 
   return (
     <div className={styles.dashboard}>
@@ -209,6 +227,23 @@ export default function AdminDashboard({
         </div>
         <Link href="/" className={styles.backLink}>{copy.back} <span aria-hidden>↗</span></Link>
       </header>
+      {systemStatus && <section className={styles.systemStatus} data-level={systemStatus.level} aria-label={statusCopy.heading}>
+        <span className={styles.statusIcon} aria-hidden="true">
+          {systemStatus.level === "ready"
+            ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 4 4L19 6" /></svg>
+            : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 7v6m0 4h.01" /><circle cx="12" cy="12" r="9" /></svg>}
+        </span>
+        <div className={styles.statusBody}>
+          <span className={styles.statusHeading}>{statusCopy.heading}</span>
+          <strong role="status">{statusCopy[systemStatus.level]}</strong>
+          {systemStatus.issues.length > 0 && <p>{statusCopy.issues}: {systemStatus.issues.map(issue => statusCopy[issue]).join(" · ")}</p>}
+          <small>{statusCopy.note}</small>
+        </div>
+        <div className={styles.statusActions}>
+          <span>{statusCopy.checked} <time dateTime={systemStatus.checkedAt}>{fmt(systemStatus.checkedAt)}</time></span>
+          <button type="button" onClick={() => router.refresh()}>{statusCopy.retry}</button>
+        </div>
+      </section>}
       {overview && <section className={styles.overview} aria-label={copy.overview}>
         <div className={styles.sectionHeading}>
           <h2>{copy.overview}</h2>

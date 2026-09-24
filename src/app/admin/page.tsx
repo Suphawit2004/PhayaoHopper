@@ -29,19 +29,27 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const { data: isAdmin } = await sb.rpc("is_admin");
   if (!isAdmin) return <AdminDashboard mode="forbidden" />;
 
-  let sq = sb.from("cafe_suggestions").select("*", { count: "exact" });
-  let rq = sb.from("data_reports").select("*", { count: "exact" });
-  let vq = sb.from("reviews").select("*", { count: "exact" });
-  // Apply queue filters before pagination so older pending items remain reachable.
-  if (pendingOnly) { sq = sq.eq("status", "pending"); rq = rq.eq("status", "pending"); vq = vq.lte("rating", 2); }
+  // Fetch the full records only for the visible tab; the other tabs use count-only queries below.
   const [suggestions, reports, reviews] = await Promise.all([
-    sq.order("created_at", { ascending: !pendingOnly }).order("id").range(page * 50, page * 50 + 49),
-    rq.order("created_at", { ascending: !pendingOnly }).order("id").range(page * 50, page * 50 + 49),
-    vq.order("created_at", { ascending: false }).order("id").range(page * 50, page * 50 + 49),
+    tab === "suggestions" ? (() => {
+      let query = sb.from("cafe_suggestions").select("*", { count: "exact" });
+      if (pendingOnly) query = query.eq("status", "pending");
+      return query.order("created_at", { ascending: !pendingOnly }).order("id").range(page * 50, page * 50 + 49);
+    })() : null,
+    tab === "reports" ? (() => {
+      let query = sb.from("data_reports").select("*", { count: "exact" });
+      if (pendingOnly) query = query.eq("status", "pending");
+      return query.order("created_at", { ascending: !pendingOnly }).order("id").range(page * 50, page * 50 + 49);
+    })() : null,
+    tab === "reviews" ? (() => {
+      let query = sb.from("reviews").select("*", { count: "exact" });
+      if (pendingOnly) query = query.lte("rating", 2);
+      return query.order("created_at", { ascending: false }).order("id").range(page * 50, page * 50 + 49);
+    })() : null,
   ]);
 
   const statusRank: Record<string, number> = { pending: 0, approved: 1, rejected: 2 };
-  const suggestionRows: AdminSuggestion[] = (suggestions.data ?? [])
+  const suggestionRows: AdminSuggestion[] = (suggestions?.data ?? [])
     .map((r) => ({
       id: r.id as string,
       name: r.name as string,
@@ -64,7 +72,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     );
 
   const reportRank: Record<string, number> = { pending: 0, resolved: 1, dismissed: 2 };
-  const reportRows: AdminReport[] = (reports.data ?? [])
+  const reportRows: AdminReport[] = (reports?.data ?? [])
     .map((r) => ({
       id: r.id as string,
       cafeSlug: r.cafe_slug as string,
@@ -81,7 +89,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         (pendingOnly ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt))
     );
 
-  const reviewRows: AdminReview[] = (reviews.data ?? []).map((r) => ({
+  const reviewRows: AdminReview[] = (reviews?.data ?? []).map((r) => ({
     id: r.id as string,
     cafe_slug: r.cafe_slug as string,
     author_name: r.author_name as string,
@@ -104,12 +112,23 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     sb.from("menu_items").select("id,name:name_th,nameEn:name_en,price,available:is_available,photo_url").eq("cafe_slug", selectedCafeRow.slug).order("created_at"),
     sb.from("cafe_owners").select("user_id").eq("cafe_slug", selectedCafeRow.slug).maybeSingle(),
   ]) : [null, null];
-  const selected = tab === "cafes" ? null : tab === "reports" ? reports : tab === "reviews" ? reviews : suggestions;
+  const selected = tab === "reports" ? reports : tab === "reviews" ? reviews : suggestions;
   const totalPages = Math.max(1, Math.ceil((selected?.count ?? 0) / 50));
   if (selected && !selected.error && page >= totalPages) redirect(`/admin?page=${totalPages - 1}&${viewQuery}`);
+  const statusIssues: Array<"catalog" | "members" | "workQueue" | "currentView"> = [];
+  if (catalog.error) statusIssues.push("catalog");
+  if (profiles.error) statusIssues.push("members");
+  if (pendingS.error || pendingR.error || lowReviews.error || allReports.error || allReviews.error) {
+    statusIssues.push("workQueue");
+  }
+  const currentViewFailed = !!(selected?.error || (tab === "cafes" && (catalog.error || selectedMenu?.error || selectedOwner?.error)));
+  if (currentViewFailed) statusIssues.push("currentView");
+  const statusLevel = currentViewFailed || (statusIssues.includes("catalog") && statusIssues.includes("members") && statusIssues.includes("workQueue"))
+    ? "failed" : statusIssues.length > 0 ? "partial" : "ready";
   return (
     <AdminDashboard
       mode="ready"
+      systemStatus={{ level: statusLevel, issues: statusIssues, checkedAt: new Date().toISOString() }}
       queueCounts={{ suggestions: pendingS.error ? null : pendingS.count ?? 0, reports: pendingR.error ? null : pendingR.count ?? 0, reviews: lowReviews.error ? null : lowReviews.count ?? 0 }}
       itemCounts={{ reports: allReports.error ? null : allReports.count ?? 0, reviews: allReviews.error ? null : allReviews.count ?? 0 }}
       loadError={tab === "cafes" ? !!catalog.error : !!selected?.error}
@@ -131,7 +150,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         menuError: !!selectedMenu?.error,
         ownerId: selectedOwner?.data?.user_id ?? "",
       } : undefined}
-      partialError={!!(suggestions.error || reports.error || reviews.error || catalog.error || profiles.error || pendingS.error || pendingR.error || lowReviews.error || allReports.error || allReviews.error)}
+      partialError={!!(selected?.error || catalog.error || profiles.error || pendingS.error || pendingR.error || lowReviews.error || allReports.error || allReviews.error)}
     />
   );
 }
