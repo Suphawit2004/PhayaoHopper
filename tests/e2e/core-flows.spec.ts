@@ -3,6 +3,37 @@ import { resolve } from "node:path";
 
 const cafePath = "/cafes/baan-baann";
 
+test("cafe explorer filters fit mobile screens", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const route of ["/cafes", "/map"]) {
+      await page.goto(route);
+      const bounds = await page.locator("body").evaluate(element => ({
+        width: element.clientWidth,
+        scroll: element.scrollWidth,
+      }));
+      expect(bounds.scroll, `${route} at ${width}px should not scroll horizontally`).toBeLessThanOrEqual(bounds.width);
+    }
+  }
+  expect(pageErrors).toEqual([]);
+});
+
+test("my photos page exposes its title as the main heading", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, "photos-heading-e2e@example.test");
+  await page.goto("/photos");
+
+  await expect(page.getByRole("heading", { level: 1, name: "รูปของฉัน" })).toBeVisible();
+  const bounds = await page.locator("body").evaluate(element => ({
+    width: element.clientWidth,
+    scroll: element.scrollWidth,
+  }));
+  expect(bounds.scroll).toBeLessThanOrEqual(bounds.width);
+});
+
 test("navbar keeps search within reach on mobile and marks the active section", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(cafePath);
