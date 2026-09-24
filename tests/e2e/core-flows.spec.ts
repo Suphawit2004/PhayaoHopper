@@ -108,8 +108,8 @@ test("cafe assistant is a primary navbar link and completes a catalogue search",
   await expect(page.locator(".chat-user-message")).toHaveText("แนะนำคาเฟ่");
   await expect(page.locator(".chat-recommendation")).toHaveCount(5);
   await expect(page.locator(".chat-fallback-note")).toBeVisible();
-  await expect(page.locator(".chat-fallback-note")).toContainText("โหมดทดสอบจำลอง");
-  await expect(page.locator(".chat-answer-source")).toContainText("โหมดจำลอง");
+  await expect(page.locator(".chat-fallback-note")).toContainText("ตอบจากข้อมูลร้านโดยตรง");
+  await expect(page.locator(".chat-answer-source")).toContainText("ข้อมูลร้าน");
   await expect(page.locator(".chat-recommendation").first()).toHaveAttribute("href", /^\/cafes\//);
 
   await page.locator(".chat-reset").click();

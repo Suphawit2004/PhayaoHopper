@@ -5,7 +5,7 @@ vi.mock("@/lib/catalog", () => ({ getCatalog: mock.catalog }));
 vi.mock("@/lib/supabase-server", () => ({ getSupabaseServer: mock.server }));
 import { POST } from "./route";
 import { validatedAnswer } from "@/lib/cafe-assistant";
-const cafe = { slug: "test", name: { th: "ร้านทดสอบ", en: "Test Cafe" }, description: { th: "เงียบ", en: "Quiet" }, address: { th: "เมืองพะเยา", en: "Phayao" }, tags: ["work"], lifestyleTags: ["wifi"], openTime: "08:00", closeTime: "17:00", closedDays: [1] } as Cafe;
+const cafe = { slug: "test", name: { th: "ร้านทดสอบ", en: "Test Cafe" }, description: { th: "เงียบ", en: "Quiet" }, address: { th: "เมืองพะเยา", en: "Phayao" }, tags: ["work"], lifestyleTags: ["wifi"], openTime: "08:00", closeTime: "17:00", closedDays: [1], baseRating: 4 } as Cafe;
 const makeCafes = (count: number) => Array.from({ length: count }, (_, i) => ({ ...cafe, slug: `cafe-${i + 1}`, name: { th: `ร้าน ${i + 1}`, en: `Cafe ${i + 1}` } }));
 const memberServer = (quota: boolean) => ({ auth: { getUser: async () => ({ data: { user: { id: "member" } } }) }, rpc: async (name: string) => ({ data: name === "is_admin" ? false : quota, error: null }) });
 beforeEach(() => { vi.clearAllMocks(); mock.catalog.mockResolvedValue([cafe]); vi.stubEnv("GEMINI_API_KEY", ""); vi.stubEnv("GEMINI_MODEL", ""); vi.stubEnv("CAFE_ASSISTANT_MODE", ""); vi.stubEnv("VERCEL_ENV", ""); });
@@ -21,6 +21,27 @@ it.each(["", "preview", "development", "production"])("defaults to quota-free si
 it("uses catalogue search when live Gemini is explicitly selected but not configured", async () => {
   enableLiveGemini();
   const result = await (await ask()).json(); expect(result.mode).toBe("catalog"); expect(result.fallbackReason).toBe("not_configured");
+});
+it("answers a broad recommendation immediately from top-rated catalogue entries without spending quota", async () => {
+  enableLiveGemini();
+  vi.stubEnv("GEMINI_API_KEY", "test-only"); vi.stubEnv("GEMINI_MODEL", "configured-model");
+  mock.catalog.mockResolvedValue(makeCafes(6).map((item, index) => ({ ...item, baseRating: index + 1 })));
+  const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+  const result = await (await POST(new Request("http://localhost/api/cafe-assistant", { method: "POST", body: JSON.stringify({ query: "แนะนำคาเฟ่", lang: "th" }) }))).json();
+  expect(result).toMatchObject({ mode: "catalog", fallbackReason: "catalog_answer", provider: null });
+  expect(result.cafes.map((item: { slug: string }) => item.slug)).toEqual(["cafe-6", "cafe-5", "cafe-4", "cafe-3", "cafe-2"]);
+  expect(fetcher).not.toHaveBeenCalled(); expect(mock.server).not.toHaveBeenCalled();
+});
+it("answers a named cafe's recorded hours when Gemini times out", async () => {
+  enableLiveGemini();
+  vi.stubEnv("GEMINI_API_KEY", "test-only"); vi.stubEnv("GEMINI_MODEL", "configured-model");
+  mock.server.mockResolvedValue(memberServer(true));
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("Timed out", "TimeoutError")));
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  const result = await (await ask()).json();
+  expect(result).toMatchObject({ mode: "catalog-fallback", fallbackReason: "provider_timeout" });
+  expect(result.message).toContain("08:00–17:00");
+  expect(result.message).toContain("Monday");
 });
 it("does not spend AI calls for guests or an exhausted quota", async () => {
   enableLiveGemini();

@@ -81,6 +81,7 @@ export default function CafeChat() {
     : ["Cafe recommendations", "What time does Baan Baann open?", "Where can I work for a while?"];
 
   function fallbackDescription(reason?: string) {
+    if (reason === "catalog_answer") return thai ? "ตอบจากข้อมูลร้านโดยตรง ไม่ใช้โควตา Gemini" : "Answered directly from the cafe catalogue without using Gemini quota.";
     if (reason === "simulation") return thai ? "โหมดทดสอบจำลอง: ใช้ข้อมูลร้านในระบบ โดยไม่เรียก Gemini หรือใช้โควตา" : "Simulation mode: uses the cafe catalogue without calling Gemini or consuming quota.";
     if (reason === "not_configured") return thai ? "Gemini ยังไม่พร้อม ระบบจึงค้นจากข้อมูลร้านที่มี" : "Gemini is not configured, so this uses the cafe catalogue.";
     if (reason === "sign_in_required") return thai ? "เข้าสู่ระบบเพื่อใช้ Gemini เมื่อเปิดให้บริการ · คำตอบนี้ค้นจากข้อมูลร้าน" : "Sign in for Gemini when available · this answer uses the cafe catalogue.";
@@ -162,7 +163,7 @@ export default function CafeChat() {
                   <div className="chat-answer-source">
                     <span className="chat-answer-avatar"><Icon name="coffee" width={16} height={16} /></span>
                     <strong>{turn.reply.mode === "mock" ? (thai ? "โหมดจำลอง · ข้อมูลร้าน" : "Simulation · Cafe catalogue") : turn.reply.mode === "ai" ? (thai ? "Gemini · ข้อมูลร้านในระบบ" : "Gemini · Cafe catalogue") : (thai ? "ค้นจากข้อมูลร้าน" : "Cafe catalogue search")}</strong>
-                    {turn.reply.mode !== "ai" && <span className="chat-source-note">{turn.reply.mode === "mock" ? (thai ? "โหมดทดสอบ" : "Test mode") : (thai ? "ระบบสำรอง" : "Fallback")}</span>}
+                    {turn.reply.mode !== "ai" && <span className="chat-source-note">{turn.reply.fallbackReason === "catalog_answer" ? (thai ? "ข้อมูลร้าน" : "Catalogue") : turn.reply.mode === "mock" ? (thai ? "โหมดทดสอบ" : "Test mode") : (thai ? "ระบบสำรอง" : "Fallback")}</span>}
                   </div>
                   {turn.reply.mode !== "ai" && <p className="chat-fallback-note">{fallbackDescription(turn.reply.fallbackReason)}</p>}
                   <p className="chat-answer-copy">{turn.reply.message}</p>
