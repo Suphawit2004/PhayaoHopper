@@ -13,7 +13,7 @@ import { useProfile } from "@/lib/use-profile";
 import Icon from "./Icon";
 import Image from "next/image";
 export default function Navbar() {
-  const { t, toggle, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady, slugs, visits } = useFavorites(); const pathname = usePathname();
+  const { t, setLang, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady, slugs, visits } = useFavorites(); const pathname = usePathname();
   const wantedCount = wantedReady ? wantedSlugs.length : 0;
   const myCafeCount = wantedReady && visits ? visits.length + wantedCount : 0;
   const visitedOnlyCount = visits?.filter(row => !slugs.includes(row.cafe_slug)).length ?? 0;
@@ -66,7 +66,10 @@ export default function Navbar() {
           <span><strong>{t("brand.name")}</strong><small>{t("brand.sub")}</small></span>
         </Link>
         <div className="nav-search"><CafeSearch variant="navbar" /></div>
-        <button className="ui-secondary language-toggle" onClick={toggle}>{t("lang.switchTo")}</button>
+        <div className="language-toggle" role="group" aria-label={t("lang.label")}>
+          <button type="button" lang="th" aria-pressed={lang === "th"} onClick={() => setLang("th")}>{t("lang.th")}</button>
+          <button type="button" lang="en" aria-pressed={lang === "en"} onClick={() => setLang("en")}>{t("lang.en")}</button>
+        </div>
         <button ref={trigger} className="ui-secondary nav-toggle" aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}>
           <Icon name={open ? "close" : "menu"} width={18} height={18} />
           {open ? (lang === "th" ? "ปิดเมนู" : "Close menu") : (lang === "th" ? "เมนู" : "Menu")}

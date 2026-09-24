@@ -146,6 +146,11 @@ button.bg-coffee:hover, a.bg-coffee:hover { background-color: #162e38; }
 button.text-xs, label.text-xs, .feature-form label, .feature-form p { font-size: 14px; }
 .ui-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 14px; border: 1px solid var(--ui-border); border-radius: 10px; background: white; color: #203e4a; font-weight: 600; }
 .ui-secondary:hover { background: #edf1f2; }
+.language-toggle { display:inline-flex; align-items:center; gap:2px; min-height:48px; padding:2px; border:1px solid var(--ui-border); border-radius:11px; background:#edf1f2; }
+.language-toggle button { min-width:42px; min-height:42px; padding:0 9px; border:1px solid transparent; border-radius:8px; color:#203e4a; font-size:13px; font-weight:700; transition:background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
+.language-toggle button[aria-pressed=true] { border-color:#203e4a; background:#203e4a; color:white; }
+.language-toggle button:not([aria-pressed=true]):hover { border-color:#cbd3d5; background:white; }
+.language-toggle button:focus-visible { outline:3px solid var(--lanna-indigo); outline-offset:2px; }
 .feature-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
 .feature-card h3 { font-weight: 600; }
 p, dd, h1, h2, h3, figcaption { overflow-wrap: anywhere; }
@@ -243,7 +248,7 @@ section[id], div[id] { scroll-margin-top: 100px; }
   .brand { min-width:0; flex-shrink:1; }
   .brand strong { font-size:14px; }
   .brand > span:first-child { padding:6px; }
-  .nav-toggle, .language-toggle { flex-shrink:0; padding-inline:10px; }
+  .nav-toggle { flex-shrink:0; padding-inline:10px; }
 }
 .mobile-selected-cafe { display:none; }
 @media(max-width:640px) {
