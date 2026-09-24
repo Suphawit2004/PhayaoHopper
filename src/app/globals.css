@@ -24,14 +24,14 @@ body {
 
 .pin-wrap {
   position: relative;
-  width: 32px;
+  width: 44px;
   height: 44px;
   filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.35));
 }
 
 .pin-head {
   position: absolute;
-  inset: 0 0 auto 0;
+  inset: 0 6px auto;
   height: 32px;
   display: flex;
   align-items: center;
@@ -68,6 +68,14 @@ body {
 
 .leaflet-popup-content {
   margin: 10px 14px;
+}
+
+@media (max-width: 640px) {
+  .leaflet-control-zoom a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+  }
 }
 /* Shared forms for cafe management and member services. */
 .feature-page { max-width: 1120px; margin: auto; padding: 32px 20px 64px; color: #3e2c23; }

@@ -18,8 +18,8 @@ function makeIcon(color: string): L.DivIcon {
     icon = L.divIcon({
       className: "coffee-marker",
       html: `<div class="pin-wrap" style="--pin:${color}"><div class="pin-head"><span>☕</span></div><div class="pin-tail"></div></div>`,
-      iconSize: [32, 44],
-      iconAnchor: [16, 44],
+      iconSize: [44, 44],
+      iconAnchor: [22, 44],
       popupAnchor: [0, -42],
     });
     iconCache.set(color, icon);

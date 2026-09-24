@@ -289,7 +289,7 @@ function SuggestionForm() {
         <h2 className="form-section text-xl font-bold">{lang==="th"?"ข้อมูลเพิ่มเติม (ไม่บังคับ)":"Additional information (optional)"}</h2>
         <div>
           <span className="block text-sm font-semibold text-espresso">{t("suggest.hours")}</span>
-          <div className="mt-1.5 grid grid-cols-2 gap-3">
+          <div className="suggest-hours-grid mt-1.5 grid grid-cols-2 gap-3">
             <TimeInput label={t("suggest.openLabel")} value={form.openTime} onChange={(openTime) => patch({ openTime })} />
             <TimeInput label={t("suggest.closeLabel")} value={form.closeTime} onChange={(closeTime) => patch({ closeTime })} />
           </div>

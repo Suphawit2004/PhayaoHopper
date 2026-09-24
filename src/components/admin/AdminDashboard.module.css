@@ -195,9 +195,10 @@
   .workspace { grid-template-columns: 1fr; }
   .sidebar { padding: 14px; }
   .sidebarEyebrow, .sidebar h2, .sidebar > p { display: none; }
-  .navigation { flex-direction: row; gap: 5px; }
-  .navigation button { min-height: 54px; flex: 1; justify-content: center; padding: 8px 6px; font-size: 11px; text-align: center; }
-  .navigation button.manageTab { min-height: 54px; margin-top: 0; padding-top: 8px; border-top: 0; }
+  .navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .navigation button { min-width: 0; min-height: 60px; width: auto; justify-content: space-between; gap: 7px; padding: 9px; font-size: 12px; line-height: 1.45; text-align: left; }
+  .navigation button > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .navigation button.manageTab { min-height: 60px; margin-top: 0; padding-top: 9px; border-top: 0; border-radius: 6px; }
   .count { min-width: 24px; }
   .content { padding: 18px 14px 20px; }
   .toolbar { align-items: flex-start; flex-direction: column; }
