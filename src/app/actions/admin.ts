@@ -15,8 +15,11 @@ export async function saveSuggestionDetails(form: FormData) {
   const name = String(form.get("name") ?? "").trim();
   const address = String(form.get("address") ?? "").trim();
   const open_time = String(form.get("openTime") ?? ""), close_time = String(form.get("closeTime") ?? "");
-  const lat = Number(form.get("lat"));
-  const lng = Number(form.get("lng"));
+  const rawLat = String(form.get("lat") ?? "").trim();
+  const rawLng = String(form.get("lng") ?? "").trim();
+  if (!rawLat || !rawLng) return { ok: false, message: "กรุณาเลือกตำแหน่งร้านบนแผนที่" };
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
   if (!name || name.length > 120 || !address || address.length > 300 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(open_time) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(close_time)) return { ok: false, message: "ตรวจชื่อร้าน ที่อยู่ และเวลาเปิดปิด" };
   if (!isSupportedCafeCoordinate(lat, lng)) return { ok: false, message: "พิกัดต้องอยู่ในพื้นที่อำเภอเมืองพะเยาที่ระบบรองรับ" };
   const { data, error } = await sb.from("cafe_suggestions").update({ name, address, open_time, close_time, lat, lng }).eq("id", id).neq("status", "approved").select("id").single();

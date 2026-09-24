@@ -7,7 +7,6 @@ import dynamic from "next/dynamic";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { submitSuggestion } from "@/app/actions/suggestions";
-import { CAFE_COORDINATE_BOUNDS, isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
 import TimeInput from "@/components/TimeInput";
 
 const MapPicker = dynamic(() => import("./map/MapPicker"), {
@@ -64,7 +63,6 @@ function SuggestionForm() {
 
   const coordsRef = useRef<HTMLFieldSetElement>(null);
   const [saved] = useState(readDraft);
-  const [coordDraft, setCoordDraft] = useState({lat:saved.coords?String(saved.coords[0]):"",lng:saved.coords?String(saved.coords[1]):""});
   const [form, setForm] = useState<FormState>(saved.form);
   const [coords, setCoords] = useState<[number, number] | null>(saved.coords);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -241,8 +239,6 @@ function SuggestionForm() {
 
         <fieldset ref={coordsRef} tabIndex={-1} className="form-section">
           <legend>{t("suggest.location")}</legend>
-          <div className="grid grid-cols-2 gap-3"><label>{lang==="th"?"ละติจูด":"Latitude"}<input type="number" step="any" min={CAFE_COORDINATE_BOUNDS.minLat} max={CAFE_COORDINATE_BOUNDS.maxLat} value={coordDraft.lat} onChange={e=>setCoordDraft(v=>({...v,lat:e.target.value}))} className={inputClass}/></label><label>{lang==="th"?"ลองจิจูด":"Longitude"}<input type="number" step="any" min={CAFE_COORDINATE_BOUNDS.minLng} max={CAFE_COORDINATE_BOUNDS.maxLng} value={coordDraft.lng} onChange={e=>setCoordDraft(v=>({...v,lng:e.target.value}))} className={inputClass}/></label></div>
-          <button type="button" className="ui-secondary mt-3" onClick={()=>{const lat=Number(coordDraft.lat),lng=Number(coordDraft.lng);if(coordDraft.lat&&coordDraft.lng&&isSupportedCafeCoordinate(lat,lng)){setCoords([lat,lng]);setShowCoordError(false);}else{setShowCoordError(true);coordsRef.current?.focus();}}}>{lang==="th"?"ใช้พิกัดที่กรอก":"Use these coordinates"}</button>
           <p className="mt-0.5 text-xs text-espresso/60">
             🖱️ {t("suggest.locationHint")}
             {coords && (
@@ -256,7 +252,6 @@ function SuggestionForm() {
               value={coords}
               onChange={(lat, lng) => {
                 setCoords([lat, lng]);
-                setCoordDraft({lat:String(lat),lng:String(lng)});
                 setShowCoordError(false);
               }}
               className="h-full w-full"
