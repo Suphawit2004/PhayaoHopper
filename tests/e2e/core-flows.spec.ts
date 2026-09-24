@@ -116,6 +116,20 @@ test("guests are sent to login and returned to the cafe page", async ({ page }) 
   await expect(page.locator(".password-login input[name=email]")).toBeVisible();
 });
 
+test("manual cafe coordinates update the map pin and reject points outside Phayao", async ({ page }) => {
+  await signIn(page, "member-coordinates-e2e@example.test");
+  await page.goto("/suggest");
+
+  await page.getByLabel("ละติจูด", { exact: true }).fill("19.123456");
+  await page.getByLabel("ลองจิจูด", { exact: true }).fill("99.890720");
+  await expect(page.getByText("19.123456, 99.890720", { exact: true })).toBeVisible();
+  await expect(page.locator(".coffee-marker")).toBeVisible();
+
+  await page.getByLabel("ลองจิจูด", { exact: true }).fill("98.661210");
+  await expect(page.getByRole("alert").filter({ hasText: "พิกัดอยู่นอกพื้นที่ที่รองรับ" })).toBeVisible();
+  await expect(page.getByText("ยังไม่ได้เลือกตำแหน่ง", { exact: true })).toBeVisible();
+});
+
 test("member must upload a valid photo to record a visit, then can review and see both photos", async ({ page }) => {
   await signIn(page, "member-e2e@example.test");
   const visitForm = page.locator("form").filter({ has: page.locator('input[name="isPublic"][type="hidden"]') });
