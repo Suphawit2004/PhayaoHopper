@@ -57,12 +57,14 @@ export async function saveCafe(form: FormData) {
     const { data: row, error: readError } = await sb.from("cafes").select("*").eq("slug", slug).single();
     if (readError || !row) throw new Error("ไม่พบข้อมูลร้าน");
     const current = cafeFromRow(row);
+    const rawLat = String(form.get("lat") ?? "").trim(), rawLng = String(form.get("lng") ?? "").trim();
+    if (admin && (!rawLat || !rawLng)) throw new Error("กรุณาเลือกตำแหน่งร้านบนแผนที่");
     const data: Cafe = { ...current, slug,
       name: { th: text(form, "name", 160), en: text(form, "nameEn", 160) },
       description: { th: text(form, "description", 2000), en: text(form, "descriptionEn", 2000) },
       address: { th: text(form, "address"), en: text(form, "addressEn") },
       phone: text(form, "phone", 40), openTime: text(form, "openTime", 5), closeTime: text(form, "closeTime", 5),
-      lat: admin ? Number(form.get("lat")) : current.lat, lng: admin ? Number(form.get("lng")) : current.lng,
+      lat: admin ? Number(rawLat) : current.lat, lng: admin ? Number(rawLng) : current.lng,
       area: admin ? text(form, "area") as Cafe["area"] : current.area, priceRange: Number(form.get("priceRange")) as 1 | 2,
       closedDays: form.getAll("closedDays").map(Number), tags: attributeValues(form, "tags", "newTags"),
       lifestyleTags: attributeValues(form, "lifestyleTags", "newLifestyleTags"),

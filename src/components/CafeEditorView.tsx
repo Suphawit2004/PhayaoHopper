@@ -11,7 +11,7 @@ import MediaPicker from "./MediaPicker";
 import MenuManager,{type EditableMenu} from "./MenuManager";
 import OwnerAssignment from "./OwnerAssignment";
 import MapBlock from "./map/MapBlock";
-import { CAFE_COORDINATE_BOUNDS } from "@/lib/cafe-coordinates";
+import CafeCoordinatePicker from "./CafeCoordinatePicker";
 import TimeInput from "@/components/TimeInput";
 export default function CafeEditorView({cafe,admin,isActive,menu,error,ownerId,embedded=false}:{cafe:Cafe;admin:boolean;isActive:boolean;menu:EditableMenu[];error:boolean;ownerId:string;embedded?:boolean}){
   const ui=useUi();
@@ -36,12 +36,11 @@ return <div className={embedded ? "admin-embedded-editor" : "feature-page"}><Lin
       </div></details><details open><summary className="font-semibold">{ui("เวลาเปิด ราคา และพื้นที่")}</summary><div className="feature-grid mt-4">
         <TimeInput label={ui("เวลาเปิด")} name="openTime" defaultValue={cafe.openTime} required chooseLabel={lang === "th" ? "เลือก" : "Select"} />
         <TimeInput label={ui("เวลาปิด")} name="closeTime" defaultValue={cafe.closeTime} required chooseLabel={lang === "th" ? "เลือก" : "Select"} />
-        <label>{ui("ละติจูด")}<input type="number" step="any" name="lat" defaultValue={cafe.lat} readOnly={!admin} required min={CAFE_COORDINATE_BOUNDS.minLat} max={CAFE_COORDINATE_BOUNDS.maxLat} /></label>
-        <label>{ui("ลองจิจูด")}<input type="number" step="any" name="lng" defaultValue={cafe.lng} readOnly={!admin} required min={CAFE_COORDINATE_BOUNDS.minLng} max={CAFE_COORDINATE_BOUNDS.maxLng} /></label>
         <label>{ui("พื้นที่")}<select name="area" defaultValue={cafe.area} disabled={!admin}>{Object.entries(AREA_META).map(([key, value]) => <option value={key} key={key}>{tr(value.label)}</option>)}</select></label>
         <label>{ui("ระดับราคา")}<select name="priceRange" defaultValue={cafe.priceRange}><option value="1">฿</option><option value="2">฿฿</option></select></label>
       </div></details>
-      <MapBlock cafes={[cafe]} className="h-56"/>
+      {admin && <CafeCoordinatePicker key={`${cafe.slug}-${cafe.lat}-${cafe.lng}`} initialLat={cafe.lat} initialLng={cafe.lng} />}
+      {!admin && <MapBlock cafes={[cafe]} className="h-56"/>}
       {!admin && <p>{ui("หากพิกัดหรือพื้นที่ไม่ถูกต้อง กรุณาแจ้งแก้ไขผ่านหน้าร้าน")}</p>}
       <fieldset><legend>{ui("วันหยุดประจำ")}</legend><div className="flex flex-wrap gap-4 mt-2">{[ui("อาทิตย์"),ui("จันทร์"),ui("อังคาร"),ui("พุธ"),ui("พฤหัสบดี"),ui("ศุกร์"),ui("เสาร์")].map((day, i) => <label key={day}><span><input name="closedDays" type="checkbox" value={i} defaultChecked={cafe.closedDays.includes(i)} /> {day}</span></label>)}</div></fieldset>
       <fieldset className="cafe-tag-fieldset"><legend>{ui("สไตล์ร้าน")}</legend><div className="cafe-tag-picker">{Object.entries(TAG_META).map(([key, value]) => <label className="cafe-tag-chip" key={key}><input name="tags" type="checkbox" value={key} defaultChecked={cafe.tags.includes(key as CafeTag)} /><span>{tr(value.label)}</span></label>)}{customStyles.map(tag=><label className="cafe-tag-chip" key={tag}><input name="tags" type="checkbox" value={tag} defaultChecked /><span>{tag}</span></label>)}</div><label className="cafe-tag-add">{ui("เพิ่มสไตล์อื่น (คั่นแต่ละรายการด้วยจุลภาคหรือขึ้นบรรทัดใหม่)")}<input name="newTags" maxLength={500} placeholder={ui("เช่น มีดนตรีสด, สวนริมน้ำ")} /></label></fieldset>
