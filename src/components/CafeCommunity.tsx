@@ -13,12 +13,12 @@ export default function CafeCommunity({ slug, admin = false }: { slug: string; a
   const { user } = useAuth();
   return <PhotoGallery key={`${slug}:${user?.id ?? "guest"}`} slug={slug} admin={admin} />;
 }
-export function MyPhotos() {
+export function MyPhotos({ headingLevel = 2 }: { headingLevel?: 1 | 2 } = {}) {
   const { user } = useAuth();
   if (!user) return null;
-  return <PhotoGallery key={user.id} admin={false} />;
+  return <PhotoGallery key={user.id} admin={false} headingLevel={headingLevel} />;
 }
-function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
+function PhotoGallery({ slug, admin, headingLevel = 2 }: { slug?: string; admin: boolean; headingLevel?: 1 | 2 }) {
   const ui=useUi();
   const { user, loading, isAdmin } = useAuth();
   const cafes = useCatalog();
@@ -64,9 +64,10 @@ function PhotoGallery({ slug, admin }: { slug?: string; admin: boolean }) {
     (!cafeFilter || photo.cafe_slug === cafeFilter) &&
     (visibilityFilter === "all" || photo.is_public === (visibilityFilter === "public")));
   const publicCount = photos.filter(photo => photo.is_public).length;
+  const GalleryHeading = headingLevel === 1 ? "h1" : "h2";
   return <section className={`feature-card ${styles.section} ${slug ? "" : styles.personalGallery}`}>
     <header className={styles.header}>
-      <div><h2>{slug ? ui("ภาพจากผู้มาเยือน") : ui("รูปของฉัน")}</h2>
+      <div><GalleryHeading>{slug ? ui("ภาพจากผู้มาเยือน") : ui("รูปของฉัน")}</GalleryHeading>
         <p>{slug ? ui("แบ่งปันมุมโปรด เครื่องดื่ม และบรรยากาศของร้าน") : ui("เก็บภาพคาเฟ่ที่คุณแบ่งปันไว้ในที่เดียว")}</p></div>
       {!slug && <Link href="/cafes" className="feature-button">{ui("เลือกร้านเพื่อเพิ่มรูป")}</Link>}
     </header>

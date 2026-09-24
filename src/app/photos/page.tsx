@@ -13,5 +13,5 @@ export default async function PhotosPage() {
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
   if (!user) redirect("/login?next=/photos");
 
-  return <div className="feature-page"><MyPhotos /></div>;
+  return <div className="feature-page"><MyPhotos headingLevel={1} /></div>;
 }
