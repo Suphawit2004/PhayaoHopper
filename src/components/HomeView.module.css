@@ -16,7 +16,7 @@
   grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
   align-items: center;
   gap: clamp(32px, 6vw, 84px);
-  padding: clamp(42px, 6vw, 78px) 0 64px;
+  padding: clamp(38px, 4vw, 56px) 0 44px;
 }
 .intro { min-width: 0; }
 .eyebrow {
@@ -55,7 +55,7 @@
 .slideTrack { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 150px 150px 8px 8px; background: #e3e9e5; }
 .slideTrack::-webkit-scrollbar { display: none; }
 .lead { position: relative; min-width: 0; flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; }
-.leadImage { position: relative; display: block; aspect-ratio: 6 / 5; overflow: hidden; background: #e3e9e5; }
+.leadImage { position: relative; display: block; aspect-ratio: 7 / 5; overflow: hidden; background: #e3e9e5; }
 .leadImage img { transition: transform 450ms ease; }
 .leadImage:hover img { transform: scale(1.025); }
 .lead figcaption {
@@ -99,7 +99,7 @@
 .categoryArrow { grid-column: 3; grid-row: 1 / span 2; color: #9d8760; font-size: 15px; }
 .catalogNote { margin-top: 14px; font-size: 12px; }
 
-.recommendations { padding: 64px 0; }
+.recommendations { padding: 48px 0; }
 .sectionHeading { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; }
 .sectionHeading h2, .mapSection h2 { color: var(--ink); font-size: clamp(26px, 3vw, 36px); font-weight: 600; line-height: 1.35; letter-spacing: -.02em; }
 .sectionHeading > p { max-width: 52ch; color: var(--muted); font-size: 14px; }
@@ -125,7 +125,7 @@
 .allCafes { display: table; margin: 30px auto 0; padding: 10px 22px; border: 1px solid var(--ink); border-radius: 7px; color: var(--ink); font-size: 14px; font-weight: 650; }
 .allCafes:hover { background: #e8edef; }
 
-.mapSection { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); align-items: center; gap: 42px; padding: 42px 0 64px; border-top: 1px solid var(--line); }
+.mapSection { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); align-items: center; gap: 42px; padding: 32px 0 48px; border-top: 1px solid var(--line); }
 .mapSection p { max-width: 38ch; margin: 14px 0 22px; color: var(--muted); font-size: 14px; }
 .mapSection a { display: inline-flex; min-height: 44px; align-items: center; }
 .map { height: 360px; overflow: hidden; border: 1px solid var(--line); border-radius: 4px 36px 4px 4px; }
