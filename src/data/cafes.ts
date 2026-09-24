@@ -406,7 +406,7 @@ const RAW_CAFES: Omit<Cafe, "lat" | "lng">[] = [
       { th: "ข้าวซอยไก่เปรม", en: "Premm chicken khao soi" },
       { th: "บลูเบอร์รีชีสเค้ก", en: "Blueberry cheesecake" },
     ],
-    baseRating: 5,
+    baseRating: 0,
   },
   {
     slug: "see-u-again",
@@ -428,7 +428,7 @@ const RAW_CAFES: Omit<Cafe, "lat" | "lng">[] = [
       { th: "บิงซู", en: "Bingsu" },
       { th: "ฮันนี่โทสต์", en: "Honey toast" },
     ],
-    baseRating: 3.9,
+    baseRating: 0,
   },
   {
     slug: "baan-ton-tao-coffee-food",
@@ -450,7 +450,7 @@ const RAW_CAFES: Omit<Cafe, "lat" | "lng">[] = [
       { th: "น้ำผึ้งมะนาวโซดา", en: "Honey lime soda" },
       { th: "อาหารเหนือและเค้ก", en: "Northern Thai dishes and cake" },
     ],
-    baseRating: 4.2,
+    baseRating: 0,
   },
   {
     slug: "one-pastry-bakery",

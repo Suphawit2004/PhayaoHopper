@@ -25,7 +25,7 @@ values
     '088-318-9669', '09:00', '17:00', '{}', 2, '{chill,dessert}', '{photo,wifi,pet-friendly,parking}',
     'lakeside', 19.209616775779324, 99.87087802961469,
     '[{"th":"ข้าวซอยไก่เปรม","en":"Premm chicken khao soi"},{"th":"บลูเบอร์รีชีสเค้ก","en":"Blueberry cheesecake"}]'::jsonb,
-    5, true
+    0, true
   ),
   (
     'see-u-again', 'ซียูอะเกน', 'See U Again',
@@ -35,7 +35,7 @@ values
     '093-150-5001', '10:30', '20:00', '{}', 1, '{chill,dessert}', '{}',
     'lakeside', 19.173846, 99.893403,
     '[{"th":"บิงซู","en":"Bingsu"},{"th":"ฮันนี่โทสต์","en":"Honey toast"}]'::jsonb,
-    3.9, true
+    0, true
   ),
   (
     'baan-ton-tao-coffee-food', 'บ้านต้นเต๊า Coffee&food', 'Baan Ton Tao Coffee & Food',
@@ -46,7 +46,7 @@ values
     '094-719-2653', '10:00', '18:00', '{}', 2, '{chill,view,dessert}', '{family}',
     'lakeside', 19.147489580965104, 99.82887879755322,
     '[{"th":"น้ำผึ้งมะนาวโซดา","en":"Honey lime soda"},{"th":"อาหารเหนือและเค้ก","en":"Northern Thai dishes and cake"}]'::jsonb,
-    4.2, true
+    0, true
   ),
   (
     'one-pastry-bakery', 'One Pastry Bakery Homemade', 'One Pastry Bakery Homemade',
