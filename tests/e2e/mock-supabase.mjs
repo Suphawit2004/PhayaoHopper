@@ -188,6 +188,19 @@ const server = createServer(async (req, res) => {
       return respondRows(req, res, saved);
     }
   }
+  if (table === "review_coupons" && req.method === "GET") {
+    const rows = user ? [{
+      id: "00000000-0000-4000-8000-000000000099",
+      user_id: user.id,
+      cafe_slug: "baan-baann",
+      reward: "5_baht",
+      issued_at: "2026-09-24T00:00:00.000Z",
+      expires_at: "2026-10-22T18:32:05.175897Z",
+      used_at: null,
+      cancelled_at: null,
+    }] : [];
+    return respondRows(req, res, rows);
+  }
   if (["cafe_suggestions", "data_reports"].includes(table)) return respondRows(req, res, [], 0);
   return respondRows(req, res, []);
 });
