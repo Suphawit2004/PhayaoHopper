@@ -3,20 +3,11 @@
 import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
-import dynamic from "next/dynamic";
 import { useLang } from "@/i18n/LangProvider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { submitSuggestion } from "@/app/actions/suggestions";
 import TimeInput from "@/components/TimeInput";
-
-const MapPicker = dynamic(() => import("./map/MapPicker"), {
-  ssr: false,
-  loading: () => (
-    <div className="grid h-full w-full place-items-center rounded-xl bg-sand text-sm font-medium text-espresso/70">
-      ⏳ …
-    </div>
-  ),
-});
+import CafeCoordinatePicker from "@/components/CafeCoordinatePicker";
 
 interface FormState {
   name: string;
@@ -239,24 +230,7 @@ function SuggestionForm() {
 
         <fieldset ref={coordsRef} tabIndex={-1} className="form-section">
           <legend>{t("suggest.location")}</legend>
-          <p className="mt-0.5 text-xs text-espresso/60">
-            🖱️ {t("suggest.locationHint")}
-            {coords && (
-              <span className="ml-1 font-mono font-semibold text-coffee">
-                [{coords[0]}, {coords[1]}]
-              </span>
-            )}
-          </p>
-          <div className="mt-2 h-72 overflow-hidden rounded-xl border border-[#e8dcc8]">
-            <MapPicker
-              value={coords}
-              onChange={(lat, lng) => {
-                setCoords([lat, lng]);
-                setShowCoordError(false);
-              }}
-              className="h-full w-full"
-            />
-          </div>
+          <CafeCoordinatePicker value={coords} onChange={(value) => { setCoords(value); setShowCoordError(false); }} includeHiddenInputs={false} className="h-72" />
           {showCoordError && (
             <p className="mt-1.5 text-xs font-semibold text-rose-700">⚠️ {t("suggest.pickFirst")}</p>
           )}
