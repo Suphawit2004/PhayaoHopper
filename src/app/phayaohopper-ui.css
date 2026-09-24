@@ -160,6 +160,9 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
   .section-links a { justify-content: center; text-align: center; }
   .map-results { gap: 14px; }
 }
+@media (max-width: 380px) {
+  .suggest-hours-grid { grid-template-columns: minmax(0, 1fr); }
+}
 @media (prefers-reduced-motion: reduce) {
   .main-navigation > a, .account-menu > summary, .account-chevron, .feature-button, .ui-secondary, .cafe-card { transition: none; }
   .cafe-card:hover { transform: none; }

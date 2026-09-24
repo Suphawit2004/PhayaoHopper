@@ -10,8 +10,8 @@ import { CAFE_COORDINATE_BOUNDS, isSupportedCafeCoordinate } from "@/lib/cafe-co
 const pinIcon = L.divIcon({
   className: "coffee-marker",
   html: `<div class="pin-wrap" style="--pin:#3f6c72"><div class="pin-head"><span>📍</span></div><div class="pin-tail"></div></div>`,
-  iconSize: [32, 44],
-  iconAnchor: [16, 44],
+  iconSize: [44, 44],
+  iconAnchor: [22, 44],
 });
 
 function ClickCapture({ onPick }: { onPick: (lat: number, lng: number) => void }) {

@@ -76,10 +76,10 @@
 .lead figcaption > span:last-child { color: #f1eee5; font-size: 13px; font-variant-numeric: tabular-nums; }
 .lead .slideEyebrow { color: var(--lanna-gold, #ddbf79); font-size: 11px; font-weight: 700; letter-spacing: .12em; }
 .slideControls { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 2px 0; }
-.slideControls > button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); font-size: 19px; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.slideControls > button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); font-size: 19px; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
 .slideControls > button:hover { border-color: var(--ink); background: var(--ink); color: #fffefa; }
 .slideDots { display: flex; }
-.slideDots button { display: grid; width: 36px; height: 44px; place-items: center; }
+.slideDots button { display: grid; width: 44px; height: 44px; place-items: center; }
 .slideDots span { width: 7px; height: 7px; border-radius: 50%; background: #9aabae; }
 .slideDots button[aria-pressed=true] span { width: 20px; border-radius: 4px; background: var(--lanna-red, #923e3c); }
 .slideCount { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -173,10 +173,16 @@
   .categories strong { font-size: 14px; }
   .categoryIndex { font-size: 11px; }
   .categories a { gap: 4px 7px; }
+  .slideControls { gap: 8px; }
+  .slideCount { flex: 0 0 auto; }
   .story:not(:first-child) { grid-template-columns: 1fr; gap: 10px; }
   .story:not(:first-child) .storyImage { aspect-ratio: 16 / 9; }
   .story:not(:first-child) .storyBody { padding-top: 0; }
   .story:not(:first-child) .description { display: none; }
+}
+@media (max-width: 380px) {
+  .slideDots { display: none; }
+  .slideCount { margin-inline: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   .primaryLink, .slideControls > button, .leadImage img, .storyImage img, .categories a { transition: none; }
