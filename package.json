@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:visual": "playwright test tests/e2e/visual.spec.ts",
     "test:db": "node scripts/test-feature-db.mjs",
     "cafes:pins": "node scripts/apply-pins.mjs",
     "sync-suggestions": "node scripts/sync-suggestions.mjs"

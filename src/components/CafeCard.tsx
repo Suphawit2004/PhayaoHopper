@@ -15,7 +15,7 @@ export default function CafeCard({ cafe }: { cafe: Cafe }) {
 
   return (
     <article
-      className="cafe-card relative group flex flex-col overflow-hidden rounded-2xl border border-[#eee3d2] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="cafe-card relative group flex flex-col overflow-hidden rounded-2xl border border-[#eee3d2] bg-white shadow-sm transition"
     >
       <div className="relative flex h-52 items-center justify-center overflow-hidden">
         <FavoriteButton slug={cafe.slug} variant="overlay" />

@@ -76,10 +76,10 @@ body { color: var(--ph-body); background: var(--ph-paper); }
   white-space: nowrap;
 }
 .feature-form .cafe-tag-add { display: grid; gap: 6px; margin-top: 4px; }
-.feature-button { border-radius: var(--ph-radius-small); background: var(--ph-ink); transition: background-color 160ms ease, transform 160ms ease; }
+.feature-button { border-radius: var(--ph-radius-small); background: var(--ph-ink); transition: background-color 140ms ease, transform 140ms ease; }
 .feature-button:hover:not(:disabled) { background: #162e38; }
 .feature-button:active:not(:disabled), .ui-secondary:active { transform: translateY(1px); }
-.ui-secondary { border-color: #c9d0d0; border-radius: var(--ph-radius-small); color: var(--ph-ink); background: var(--ph-surface); transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease; }
+.ui-secondary { border-color: #c9d0d0; border-radius: var(--ph-radius-small); color: var(--ph-ink); background: var(--ph-surface); transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease; }
 .ui-secondary:hover { border-color: #9babad; background: #edf1f2; }
 .section-links { gap: 8px; padding-block: 12px; border-block: 1px solid var(--ph-border); }
 .section-links a { border-color: #d4c9b7; border-radius: var(--ph-radius-small); color: var(--ph-ink); background: var(--ph-surface); }
@@ -114,7 +114,12 @@ main > div.max-w-4xl > h1::after { left: 50%; transform: translateX(-50%); }
 
 /* Cafe catalogue and detail pages keep photography prominent and key facts easy to scan. */
 .cafe-card { border-color: var(--ph-border); border-radius: var(--ph-radius); background: var(--ph-surface); box-shadow: 0 3px 12px rgb(32 62 74 / 4%); transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
-.cafe-card:hover { border-color: #b78e70; box-shadow: 0 9px 24px rgb(32 62 74 / 9%); transform: translateY(-2px); }
+@media (hover: hover) and (pointer: fine) {
+  .cafe-card:hover { border-color: #b78e70; box-shadow: 0 9px 24px rgb(32 62 74 / 9%); transform: translateY(-2px); }
+}
+@media (hover: none) {
+  .cafe-card:hover { border-color: var(--ph-border); box-shadow: 0 3px 12px rgb(32 62 74 / 4%); transform: none; }
+}
 .visited-cafe-entry { display: flex; flex-direction: column; }
 .visited-cafe-entry > .cafe-card { flex: 1; }
 .my-cafes-tabs { display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid var(--ph-border); }
@@ -136,6 +141,7 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 
 /* Semantic feedback colors stay distinct; only their shape and spacing follow the theme. */
 .status-message, [role=alert] { border-radius: var(--ph-radius-small); }
+.status-message { animation: ph-feedback-enter 170ms cubic-bezier(.16, 1, .3, 1) both; }
 .site-footer { position: relative; border-top: 1px solid var(--ph-border); background: #eee8dc; }
 .site-footer::before { height: 8px; opacity: .72; }
 .site-footer nav a:hover { color: var(--ph-red); }
@@ -160,6 +166,7 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
   .section-links a { justify-content: center; text-align: center; }
   .map-results { gap: 14px; }
 }
+@keyframes ph-filter-enter-mobile { from { opacity: .7; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
 @media (max-width: 380px) {
   .suggest-hours-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -184,7 +191,7 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 
 /* Compact navbar search: one pill with a distinct, icon-only submit button. */
 .nav-search { max-width: 340px; }
-.cafe-search-navbar form { gap: 0; min-height: 44px; padding: 3px; border-color: #85999d; border-radius: 999px; background: var(--ph-ink); }
+.nav-search .cafe-search-navbar form { gap: 0; min-height: 44px; padding: 3px; border-color: #85999d; border-radius: 999px; background: var(--ph-ink); }
 .cafe-search-navbar form:focus-within { border-color: var(--ph-gold); box-shadow: 0 0 0 3px rgb(221 191 121 / 22%); }
 .cafe-search-navbar input { min-height: 36px; padding-inline: 14px; border: 0; border-radius: 999px 0 0 999px; background: transparent; color: #fffefa; }
 .cafe-search-navbar input::placeholder { color: #d6dedc; }
@@ -200,6 +207,8 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .account-chevron { width: 16px; height: 16px; transition: transform 160ms ease; }
 .account-menu[open] .account-chevron { transform: rotate(180deg); }
 .account-menu-panel { z-index: 30; width: min(350px, calc(100vw - 32px)); max-height: min(75dvh, 720px); overflow-y: auto; padding: 14px !important; border-radius: 12px !important; box-shadow: 0 16px 38px rgb(32 62 74 / 16%) !important; }
+.account-menu[open] .account-menu-panel { animation: ph-menu-enter 190ms cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes ph-menu-enter { from { opacity: .65; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
 .account-identity { display: flex; align-items: flex-start; gap: 10px; padding: 4px 2px 14px; border-bottom: 1px solid var(--ph-border); }
 .account-avatar-large { width: 46px; height: 46px; font-size: 18px; }
 .account-avatar-edit-button { position: relative; flex: 0 0 46px; padding: 0; cursor: pointer; }
@@ -257,7 +266,9 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .results-toolbar nav a[aria-current] { background: var(--ph-ink); color: var(--ph-surface); }
 .rounded-chip { min-height: 32px; border-color: #d4c9b7; background: #f4efe5; color: var(--ph-ink); }
 .rounded-chip:hover { border-color: var(--ph-red); background: #f1e7df; }
-.filter-dialog .filter-chip { min-height: 42px; border: 1px solid #d4c9b7; background: #f4efe5; color: var(--ph-ink); cursor: pointer; white-space: nowrap; }
+.filter-dialog { animation: ph-filter-enter 200ms cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes ph-filter-enter { from { opacity: .7; translate: 0 -7px; } to { opacity: 1; translate: 0 0; } }
+.filter-dialog .filter-chip { min-height: 42px; border: 1px solid #d4c9b7; background: #f4efe5; color: var(--ph-ink); cursor: pointer; white-space: nowrap; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease; }
 .filter-dialog .filter-chip:hover { border-color: #9a7450; background: #eee8dc; }
 .filter-dialog .filter-chip[aria-pressed="true"] { border-color: var(--ph-ink); background: var(--ph-ink); color: #fffefa; }
 .filter-dialog .filter-chip[data-filter-tone="status"][aria-pressed="true"] { border-color: #246347; background: #246347; color: #fffefa; }
@@ -266,6 +277,7 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .filter-dialog > .flex:first-child h2 { color: var(--ph-ink); font-size: 18px; font-weight: 700; }
 .filter-dialog > .feature-button { position: sticky; z-index: 1; bottom: 0; width: calc(100% + 48px); margin-inline: -24px; margin-bottom: -24px; padding: 12px 24px max(12px, env(safe-area-inset-bottom)); border-radius: 0 0 14px 14px; box-shadow: 0 -8px 18px rgb(250 248 243 / 90%); }
 @media (max-width: 640px) {
+  .filter-dialog { animation-name: ph-filter-enter-mobile; }
   .filter-dialog > .flex:first-child { margin: -20px -20px 14px; padding: 14px 20px 10px; }
   .filter-dialog > .feature-button { width: calc(100% + 40px); margin-inline: -20px; margin-bottom: -20px; padding: 11px 20px max(11px, env(safe-area-inset-bottom)); border-radius: 0; }
 }
@@ -405,6 +417,8 @@ main > div.max-w-6xl > .mt-4.grid > div.flex.flex-col > div.rounded-2xl { border
 .chat-empty-state h2 { margin: 0; color: var(--ph-ink); font-size: clamp(20px, 2.4vw, 25px); font-weight: 650; line-height: 1.4; }
 .chat-empty-state > p:last-child { max-width: 44ch; margin: 7px 0 0; color: var(--ph-muted); font-size: 13px; }
 .chat-turn { display: grid; gap: 13px; }
+.chat-turn:last-child { animation: ph-feedback-enter 170ms cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes ph-feedback-enter { from { opacity: .7; translate: 0 5px; } to { opacity: 1; translate: 0 0; } }
 .chat-user-message { max-width: min(78%, 620px); margin: 0 0 0 auto; padding: 11px 15px; border-radius: 13px 13px 3px 13px; background: var(--ph-ink); color: #fffefa; font-size: 14px; line-height: 1.65; white-space: pre-wrap; }
 .chat-answer { min-width: 0; padding: 17px 18px 19px; border: 1px solid #e5ded1; border-radius: 3px 13px 13px 13px; background: #fffefa; }
 .chat-answer-source { display: flex; min-height: 28px; align-items: center; gap: 8px; color: var(--ph-ink); font-size: 12px; }

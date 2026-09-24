@@ -70,6 +70,8 @@ test("mobile filter dialog stays on-screen and applies a selected cafe style", a
 
   const dialog = page.getByRole("dialog", { name: "ตัวกรอง" });
   await expect(dialog).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(dialog).toHaveCSS("animation-name", "none");
   const bounds = await dialog.boundingBox();
   expect(bounds?.x).toBeGreaterThanOrEqual(0);
   expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBeLessThanOrEqual(320);

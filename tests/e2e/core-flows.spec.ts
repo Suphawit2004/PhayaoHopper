@@ -355,6 +355,12 @@ test("administrator can open the moderation dashboard", async ({ page }) => {
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "จัดการข้อมูล", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "งานที่ควรจัดการ" })).toBeVisible();
+  const systemStatus = page.getByRole("region", { name: "สถานะข้อมูลบนเว็บ" });
+  await expect(systemStatus).toContainText("ข้อมูลบางส่วนมีปัญหา");
+  await expect(systemStatus).toContainText("ข้อมูลร้าน");
+  await expect(systemStatus).toContainText("ตรวจล่าสุด");
+  await systemStatus.getByRole("button", { name: "ตรวจอีกครั้ง" }).click();
+  await expect(systemStatus).toContainText("ข้อมูลบางส่วนมีปัญหา");
   await expect(page.locator("#admin-workspace")).toBeVisible();
   await page.getByRole("button", { name: /จัดการข้อมูลและรูปภาพร้าน/ }).click();
   await expect(page).toHaveURL(/\/admin\?tab=cafes/);
