@@ -47,6 +47,21 @@ test("navbar keeps search within reach on mobile and marks the active section", 
   expect(narrowHeader.scrollWidth).toBeLessThanOrEqual(narrowHeader.clientWidth);
 });
 
+test("language selector marks the current language and switches without leaving the page", async ({ page }) => {
+  await page.goto("/cafes");
+  const language = page.locator(".language-toggle");
+  const thai = language.locator("button[lang='th']");
+  const english = language.locator("button[lang='en']");
+  await expect(thai).toHaveAttribute("aria-pressed", "true");
+  await english.click();
+  await expect(page).toHaveURL(/\/cafes$/);
+  await expect(english).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".main-navigation a[href='/cafes']")).toContainText("All cafes");
+  await thai.click();
+  await expect(thai).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".main-navigation a[href='/cafes']")).toContainText("คาเฟ่ทั้งหมด");
+});
+
 test("cafe assistant is a primary navbar link and completes a catalogue search", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
