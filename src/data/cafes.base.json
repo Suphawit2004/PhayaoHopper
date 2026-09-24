@@ -10,5 +10,11 @@
   "the-lake-cafe": { "label": "The Lake Cafe", "lat": 19.1697566, "lng": 99.895029 },
   "baan-ing-kwan": { "label": "บ้านอิงกว๊าน", "lat": 19.1609654, "lng": 99.9136072 },
   "norbulingka-coffee": { "label": "Norbulingka Coffee", "lat": 19.1665, "lng": 99.917 },
-  "mr-handsome-cafe": { "label": "Mr. Handsome Cafe", "lat": 19.0463675, "lng": 99.9267633 }
+  "mr-handsome-cafe": { "label": "Mr. Handsome Cafe", "lat": 19.0463675, "lng": 99.9267633 },
+  "phayao-coffee-roaster": { "label": "Phayao Coffee Roaster", "lat": 19.1879092, "lng": 99.8867167 },
+  "premm-cafe": { "label": "PREMM CAFE", "lat": 19.2096168, "lng": 99.870878 },
+  "see-u-again": { "label": "See U Again", "lat": 19.173846, "lng": 99.893403 },
+  "baan-ton-tao-coffee-food": { "label": "บ้านต้นเต๊า Coffee&food", "lat": 19.1474896, "lng": 99.8288788 },
+  "one-pastry-bakery": { "label": "One Pastry Bakery Homemade", "lat": 19.0314609, "lng": 99.9271037 },
+  "baan-matcha-mae-ka": { "label": "Baan Matcha หน้า ม.พะเยา", "lat": 19.0297366, "lng": 99.9287174 }
 }
