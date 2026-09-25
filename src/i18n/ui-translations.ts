@@ -102,6 +102,7 @@ export const uiTranslations: Record<string,string> = {
   "เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่": "Connection failed. Please retry.",
   "กำลังบันทึก…": "Saving…",
   "บันทึกรหัสผ่าน": "Save password",
+  "ตั้งรหัสผ่านใหม่": "Set new password",
   "ตั้งหรือเปลี่ยนรหัสผ่าน": "Set or change your password",
   "บัญชีที่เข้าด้วยลิงก์อีเมลสามารถตั้งรหัสผ่านเพื่อใช้เข้าสู่ระบบได้": "Accounts using email links can set a password to sign in",
   "รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)": "New password (at least 8 characters)",
