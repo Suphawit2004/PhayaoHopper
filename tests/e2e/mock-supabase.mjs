@@ -34,11 +34,12 @@ const server = createServer(async (req, res) => {
   if (url.pathname === "/health") return asJson(res, 200, { ok: true });
   if (url.pathname === "/auth/v1/token" && req.method === "POST") {
     const body = JSON.parse((await collect(req)).toString("utf8"));
-    const id = userIds.get(body.email) ?? (body.email?.startsWith("admin") ? "00000000-0000-4000-8000-000000000002" : body.email?.startsWith("member") ? "00000000-0000-4000-8000-000000000001" : "00000000-0000-4000-8000-000000000003");
-    userIds.set(body.email, id);
-    if (!profiles.has(id)) profiles.set(id, { id, display_name: body.email?.split("@")[0] ?? "Member", avatar_url: null });
+    const email = body.email ?? (body.auth_code === "e2e-recovery-code" ? "recovered-e2e@example.test" : undefined);
+    const id = userIds.get(email) ?? (email?.startsWith("admin") ? "00000000-0000-4000-8000-000000000002" : email?.startsWith("member") ? "00000000-0000-4000-8000-000000000001" : "00000000-0000-4000-8000-000000000003");
+    userIds.set(email, id);
+    if (!profiles.has(id)) profiles.set(id, { id, display_name: email?.split("@")[0] ?? "Member", avatar_url: null });
     if (id.endsWith("0002")) adminIds.add(id);
-    const user = { id, aud: "authenticated", role: "authenticated", email: body.email, app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, created_at: new Date().toISOString() };
+    const user = { id, aud: "authenticated", role: "authenticated", email, app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, created_at: new Date().toISOString() };
     const token = `e2e-${id}`;
     users.set(token, user);
     return asJson(res, 200, { access_token: token, token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: `refresh-${token}`, user });

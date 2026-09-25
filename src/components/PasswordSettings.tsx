@@ -17,6 +17,6 @@ export default function PasswordSettings() {
         if (error) setMessage(ui("เปลี่ยนรหัสผ่านไม่สำเร็จ กรุณาเข้าสู่ระบบใหม่แล้วลองอีกครั้ง หรือใช้รหัสผ่านที่รัดกุมขึ้น"));
         else { setMessage(ui("บันทึกรหัสผ่านใหม่แล้ว")); form.reset(); }
       } catch { setMessage(ui("เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่")); } finally { setPending(false); }
-    }}><label>{ui("รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)")}<PasswordField name="password" autoComplete="new-password" minLength={8} maxLength={128} required disabled={pending} /></label><label>{ui("ยืนยันรหัสผ่าน")}<PasswordField name="confirm" autoComplete="new-password" minLength={8} maxLength={128} required disabled={pending} /></label><button className="feature-button" disabled={pending}>{pending ? ui("กำลังบันทึก…") : ui("บันทึกรหัสผ่าน")}</button><p role="status">{message}</p></form>
+    }}><label>{ui("รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)")}<PasswordField name="password" autoComplete="new-password" minLength={8} maxLength={128} required disabled={pending} /></label><label>{ui("ยืนยันรหัสผ่าน")}<PasswordField name="confirm" autoComplete="new-password" minLength={8} maxLength={128} required disabled={pending} /></label><button className="feature-button" disabled={pending}>{pending ? ui("กำลังบันทึก…") : ui("ตั้งรหัสผ่านใหม่")}</button><p role="status">{message}</p></form>
   </section>;
 }

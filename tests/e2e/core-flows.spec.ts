@@ -3,6 +3,50 @@ import { resolve } from "node:path";
 
 const cafePath = "/cafes/baan-baann";
 
+test("reset-password page lets a guest request a recovery email", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/auth/reset-password");
+  await expect(page).toHaveURL(/\/auth\/reset-password$/);
+  await expect(page.getByRole("heading", { level: 1, name: "ตั้งรหัสผ่านใหม่" })).toBeVisible();
+  await page.getByRole("textbox", { name: "อีเมล" }).fill("reset-page-e2e@example.test");
+  const recoveryRequest = page.waitForRequest(request => request.url().includes("/auth/v1/recover"));
+  await page.getByRole("button", { name: "ส่งลิงก์ตั้งรหัสผ่าน" }).click();
+  const redirectTo = new URL((await recoveryRequest).url()).searchParams.get("redirect_to");
+  expect(redirectTo).toBe(`${new URL(page.url()).origin}/auth/callback?next=%2Fauth%2Freset-password`);
+  await expect(page.getByRole("status")).toContainText("หากอีเมลนี้มีบัญชี");
+  const bounds = await page.locator("body").evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));
+  expect(bounds.scroll).toBeLessThanOrEqual(bounds.width);
+});
+
+test("reset-password page explains the email send cooldown", async ({ page }) => {
+  await page.route("**/auth/v1/recover**", route => route.fulfill({
+    status: 429,
+    contentType: "application/json",
+    body: JSON.stringify({ code: "over_email_send_rate_limit", message: "Too many requests" }),
+  }));
+  await page.goto("/auth/reset-password");
+  await page.getByRole("textbox", { name: "อีเมล" }).fill("reset-page-e2e@example.test");
+  await page.getByRole("button", { name: "ส่งลิงก์ตั้งรหัสผ่าน" }).click();
+  await expect(page.getByRole("status")).toContainText("ส่งบ่อยเกินไป");
+});
+
+test("recovery callback opens the new-password form and saves a new password", async ({ page }) => {
+  await page.goto("/auth/reset-password");
+  await page.getByRole("textbox", { name: "อีเมล" }).fill("recovered-e2e@example.test");
+  await page.getByRole("button", { name: "ส่งลิงก์ตั้งรหัสผ่าน" }).click();
+  await expect(page.getByRole("status")).toContainText("หากอีเมลนี้มีบัญชี");
+
+  await page.goto("/auth/callback?code=e2e-recovery-code&next=%2Fauth%2Freset-password");
+  await expect(page).toHaveURL(/\/auth\/reset-password$/);
+  await expect(page.getByRole("heading", { name: "ตั้งหรือเปลี่ยนรหัสผ่าน" })).toBeVisible();
+  await page.locator('input[name="password"]').fill("new-password-e2e");
+  await page.locator('input[name="confirm"]').fill("new-password-e2e");
+  const updateRequest = page.waitForRequest(request => request.url().includes("/auth/v1/user") && request.method() === "PUT");
+  await page.getByRole("button", { name: "ตั้งรหัสผ่านใหม่" }).click();
+  expect((await updateRequest).postDataJSON()).toMatchObject({ password: "new-password-e2e" });
+  await expect(page.getByRole("status")).toContainText("บันทึกรหัสผ่านใหม่แล้ว");
+});
+
 test("forgot-password email returns to the new-password form", async ({ page }) => {
   await page.goto("/login");
   await page.locator(".password-login").getByRole("button", { name: "ลืมรหัสผ่าน?" }).click();
@@ -380,7 +424,8 @@ test("profile popup edits name and photo, sends password reset, removes membersh
   await expect(page.getByRole("link", { name: "เข้าสู่ระบบ" })).toBeVisible();
 
   await page.goto("/auth/reset-password");
-  await expect(page).toHaveURL(/\/login\?next=/);
+  await expect(page).toHaveURL(/\/auth\/reset-password$/);
+  await expect(page.getByRole("textbox", { name: "อีเมล" })).toBeVisible();
   await page.goto("/membership");
   await expect(page).toHaveURL(/\/$/);
 });
