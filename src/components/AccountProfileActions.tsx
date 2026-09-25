@@ -123,7 +123,10 @@ export default function AccountProfileActions({
       const callback = new URL("/auth/callback", window.location.origin);
       callback.searchParams.set("next", "/auth/reset-password");
       const { error } = await supabase.auth.resetPasswordForEmail(accountUser.email, { redirectTo: callback.toString() });
-      if (error) throw error;
+      if (error) {
+        setMessage(ui(error.status === 429 ? "ส่งบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง" : "ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"));
+        return;
+      }
       setMessage(ui("ส่งลิงก์ตั้งรหัสผ่านไปยังอีเมลแล้ว หากบัญชีนี้ใช้งานได้กรุณาตรวจกล่องจดหมาย"));
     } catch {
       setMessage(ui("ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"));

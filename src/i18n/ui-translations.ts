@@ -12,6 +12,7 @@ export const uiTranslations: Record<string,string> = {
   "กำลังส่งลิงก์รีเซ็ตรหัสผ่าน…": "Sending password reset link…",
   "ส่งลิงก์ตั้งรหัสผ่านไปยังอีเมลแล้ว หากบัญชีนี้ใช้งานได้กรุณาตรวจกล่องจดหมาย": "If this account exists, a password reset link has been sent. Check your inbox.",
   "ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง": "Could not send the link. Please try again.",
+  "ส่งบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง": "Too many emails sent. Please wait and try again.",
   "ออกจากระบบไม่สำเร็จ กรุณาลองใหม่": "Could not log out. Please try again.",
   "กรุณาเข้าสู่ระบบใหม่แล้วลองอีกครั้ง": "Please sign in again and retry.",
   "กรุณาใส่ชื่อที่แสดงไม่เกิน 60 ตัวอักษร": "Enter a display name of up to 60 characters.",
