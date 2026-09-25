@@ -19,3 +19,13 @@ it("does not redirect a recovery callback to an untrusted Host header", async ()
   const response = await GET(request);
   expect(response.headers.get("location")).toBe("https://phayaohopper.vercel.app/login?error=auth");
 });
+
+it("keeps the password recovery session on the public PhayaoHopper domain", async () => {
+  vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://thiao-nai-dee-final.vercel.app");
+  const request = new NextRequest("https://phayaohopper.vercel.app/auth/callback", {
+    headers: { host: "phayaohopper.vercel.app" },
+  });
+  const response = await GET(request);
+  expect(response.headers.get("location")).toBe("https://phayaohopper.vercel.app/login?error=auth");
+});
