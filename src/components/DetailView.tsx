@@ -1,7 +1,7 @@
 "use client";
 import Icon from "./Icon";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import BackToResults from "./BackToResults";
 import { lifestyleTagMeta } from "@/data/cafes";
 import type { Cafe } from "@/data/cafes";
@@ -26,7 +26,6 @@ import photoCredits from "@/data/photo-credits.json";
 export default function DetailView({ cafe }: { cafe: Cafe }) {
   const { t, tr, lang } = useLang();
   const [reportOpen, setReportOpen] = useState(false);
-  const photoDialog = useRef<HTMLDialogElement>(null);
   const now = useNowTick();
   const today = now ? getOpenStatus(cafe, new Date(now)) : null;
   const credit = cafe.photo === `/images/cafes/${cafe.slug}/main.jpg` ? (photoCredits as Record<string, { source: string; credit: string }>)[cafe.slug] : undefined;
@@ -43,7 +42,6 @@ export default function DetailView({ cafe }: { cafe: Cafe }) {
             preload
             sizes="(max-width: 1024px) 100vw, 55vw"
           />
-          {cafe.photo && <button type="button" onClick={() => photoDialog.current?.showModal()} className="absolute top-3 right-3 rounded-lg bg-white/95 px-3 py-2 text-sm font-semibold">{lang === "th" ? "ดูรูปเต็ม" : "View full photo"}</button>}
           {credit && <a href={credit.source} target="_blank" rel="noopener noreferrer" className="absolute bottom-3 left-3 right-3 rounded-lg bg-black/70 px-3 py-2 text-xs text-white underline">{lang==="th"?"ภาพ:":"Photo:"} {credit.credit}</a>}
         </div>
 
@@ -144,12 +142,6 @@ export default function DetailView({ cafe }: { cafe: Cafe }) {
         <ReviewSection key={cafe.slug} slug={cafe.slug} baseRating={cafe.baseRating} />
       </div>
 
-      {cafe.photo && <dialog ref={photoDialog} className="m-auto max-h-[90dvh] w-[min(94vw,1100px)] rounded-xl p-4 backdrop:bg-black/70" aria-label={tr(cafe.name)}>
-        <form method="dialog" className="mb-3 flex justify-end"><button className="rounded-lg border px-4 py-2">{lang === "th" ? "ปิดรูป" : "Close photo"}</button></form>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cafe.photo} alt={tr(cafe.name)} className="max-h-[72dvh] w-full object-contain" />
-        {credit && <a href={credit.source} target="_blank" rel="noopener noreferrer" className="mt-3 block underline">{credit.credit}</a>}
-      </dialog>}
       <ReportDialog cafeName={tr(cafe.name)} slug={cafe.slug} open={reportOpen} onClose={() => setReportOpen(false)} />
     </div>
   );
