@@ -2,7 +2,7 @@
 
 เว็บค้นหาคาเฟ่ในอำเภอเมืองพะเยา ตั้งแต่ริมกว๊านถึงโซนมหาวิทยาลัย พร้อมแผนที่ เวลาเปิด-ปิด รีวิว และรายการร้านที่บันทึกไว้
 
-**เว็บจริง:** [phayaohopper.vercel.app](https://phayaohopper.vercel.app/) · **ซอร์สโค้ด:** [Suphawit2004/PhayaoHopper](https://github.com/Suphawit2004/PhayaoHopper)
+**เว็บจริง:** [phayaohopper.vercel.app](https://phayaohopper.vercel.app/) 
 
 ## Features
 
