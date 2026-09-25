@@ -3,6 +3,44 @@ import { resolve } from "node:path";
 
 const cafePath = "/cafes/baan-baann";
 
+test("forgot-password email returns to the new-password form", async ({ page }) => {
+  await page.goto("/login");
+  await page.locator(".password-login").getByRole("button", { name: "ลืมรหัสผ่าน?" }).click();
+  await page.locator('.password-login input[name="email"]').fill("reset-e2e@example.test");
+  const recoveryRequest = page.waitForRequest(request => request.url().includes("/auth/v1/recover"));
+  await page.locator(".password-login").getByRole("button", { name: "ส่งลิงก์ตั้งรหัสผ่าน" }).click();
+  const request = await recoveryRequest;
+  const redirectTo = new URL(request.url()).searchParams.get("redirect_to");
+  expect(redirectTo).toBe(`${new URL(page.url()).origin}/auth/callback?next=%2Fauth%2Freset-password`);
+  await expect(page.locator(".password-login [role=status]")).toContainText("หากอีเมลนี้มีบัญชี");
+});
+
+test("forgot-password form explains the email send cooldown", async ({ page }) => {
+  await page.route("**/auth/v1/recover**", route => route.fulfill({
+    status: 429,
+    contentType: "application/json",
+    body: JSON.stringify({ code: "over_email_send_rate_limit", message: "Too many requests" }),
+  }));
+  await page.goto("/login");
+  await page.locator(".password-login").getByRole("button", { name: "ลืมรหัสผ่าน?" }).click();
+  await page.locator('.password-login input[name="email"]').fill("reset-e2e@example.test");
+  await page.locator(".password-login").getByRole("button", { name: "ส่งลิงก์ตั้งรหัสผ่าน" }).click();
+  await expect(page.locator(".password-login [role=status]")).toContainText("ส่งบ่อยเกินไป");
+});
+
+test("profile password reset explains the email send cooldown", async ({ page }) => {
+  await signIn(page, "member-reset-e2e@example.test");
+  await page.route("**/auth/v1/recover**", route => route.fulfill({
+    status: 429,
+    contentType: "application/json",
+    body: JSON.stringify({ code: "over_email_send_rate_limit", message: "Too many requests" }),
+  }));
+  await page.locator("details.account-menu summary").click();
+  const panel = page.locator(".account-menu-panel");
+  await panel.getByRole("button", { name: "ส่งลิงก์รีเซ็ตรหัสผ่าน" }).click();
+  await expect(panel.getByRole("status")).toContainText("ส่งบ่อยเกินไป");
+});
+
 test("cafe explorer filters fit mobile screens", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(error.message));
