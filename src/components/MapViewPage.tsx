@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import Link from "./ResultLink";
-import RestoreResults from "./RestoreResults";
+import { ResultLink as Link, RestoreResults } from "./ResultsNavigation";
 import { useCatalog } from "./CatalogProvider";
 import { useSearch } from "./SearchProvider";
 import { useNowTick } from "./OpenBadge";

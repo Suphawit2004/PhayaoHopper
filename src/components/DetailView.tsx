@@ -2,18 +2,17 @@
 import Icon from "./Icon";
 
 import { useState } from "react";
-import BackToResults from "./BackToResults";
+import { BackToResults } from "./ResultsNavigation";
 import { lifestyleTagMeta } from "@/data/cafes";
 import type { Cafe } from "@/data/cafes";
 import { mapsUrl } from "@/data/cafes";
 import { DAY_KEYS } from "@/i18n/dictionaries";
 import { useLang } from "@/i18n/LangProvider";
 import CafeThumb from "./CafeThumb";
-import AreaChip from "./AreaChip";
+import { AreaChip, TagChip } from "./CafeChips";
 import OpenBadge, { useNowTick } from "./OpenBadge";
 import { getOpenStatus } from "@/lib/hours";
 import RatingStars from "./RatingStars";
-import TagChip from "./TagChip";
 import ReviewSection from "./ReviewSection";
 import MapBlock from "./map/MapBlock";
 import FavoriteButton from "./FavoriteButton";

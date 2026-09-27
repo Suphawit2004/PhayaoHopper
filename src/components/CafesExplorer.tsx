@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCatalog } from "@/components/CatalogProvider";
 import { filtersToQuery } from "@/lib/filters-url";
 import { filterCafes } from "@/lib/filter-cafes";
-import RestoreResults from "./RestoreResults";
+import { RestoreResults } from "./ResultsNavigation";
 import ExplorerControls from "./ExplorerControls";
 
 import { useLang } from "@/i18n/LangProvider";
