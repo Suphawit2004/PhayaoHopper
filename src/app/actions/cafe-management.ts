@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { Cafe } from "@/data/cafes";
 import { cafeFromRow, cafeToRow } from "@/lib/cafe-row";
 import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
+import { validateImageUpload } from "@/lib/image-upload-validation";
 
 export type MutationResult = { ok: boolean; message: string };
 const done = (): MutationResult => ({ ok: true, message: "บันทึกเรียบร้อยแล้ว" });
@@ -41,11 +42,11 @@ function attributeValues(form: FormData, selectedField: string, customField: str
 
 async function uploadMedia(sb: NonNullable<Awaited<ReturnType<typeof getSupabaseServer>>>, slug: string, form: FormData) {
   const file = form.get("photo");
-  if (!(file instanceof File) || !file.size) return undefined;
-  const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type];
-  if (!ext || file.size > 5 * 1024 * 1024) throw new Error("ใช้รูป JPG, PNG หรือ WebP ขนาดไม่เกิน 5 MB");
-  const path = `${slug}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await sb.storage.from("cafe-media").upload(path, file, { contentType: file.type });
+  if (!(file instanceof File) || (!file.size && !file.name)) return undefined;
+  const image = await validateImageUpload(file);
+  if (!image) throw new Error("ใช้ไฟล์รูป JPG, PNG หรือ WebP ที่ถูกต้อง ขนาดไม่เกิน 5 MB");
+  const path = `${slug}/${crypto.randomUUID()}.${image.extension}`;
+  const { error } = await sb.storage.from("cafe-media").upload(path, file, { contentType: image.contentType });
   if (error) throw new Error("อัปโหลดรูปไม่สำเร็จ");
   return { path, url: sb.storage.from("cafe-media").getPublicUrl(path).data.publicUrl };
 }

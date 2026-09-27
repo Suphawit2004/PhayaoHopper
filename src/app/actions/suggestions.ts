@@ -6,20 +6,13 @@ import { getSupabaseServer } from "@/lib/supabase-server";
 import { checkSuggestionRateLimit } from "@/lib/rate-limit-supabase";
 import { resolveClientIp } from "@/lib/client-ip";
 import { isSupportedCafeCoordinate } from "@/lib/cafe-coordinates";
+import { validateImageUpload } from "@/lib/image-upload-validation";
 
 export type SuggestionResult =
   | { ok: true }
   | { ok: false; error: "not_authenticated" | "not_configured" | "rate_limited" | "invalid" | "photo_too_big" | "photo_wrong_type" | "upload_failed" | "failed" };
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
-const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-
-function extFor(type: string): string {
-  if (type === "image/jpeg") return "jpg";
-  if (type === "image/png") return "png";
-  if (type === "image/webp") return "webp";
-  return "gif";
-}
 
 function optionalText(value: string | null | undefined, max: number): string | null {
   const trimmed = value?.trim() ?? "";
@@ -70,14 +63,16 @@ export async function submitSuggestion(input: {
   let photoUrl: string | null = null;
   let photoPath: string | null = null;
 
-  if (input.photo && input.photo.size > 0) {
-    if (!PHOTO_TYPES.has(input.photo.type)) return { ok: false, error: "photo_wrong_type" };
+  if (input.photo) {
+    if (!(input.photo instanceof File)) return { ok: false, error: "photo_wrong_type" };
     if (input.photo.size > MAX_PHOTO_BYTES) return { ok: false, error: "photo_too_big" };
+    const image = await validateImageUpload(input.photo);
+    if (!image) return { ok: false, error: "photo_wrong_type" };
 
-    photoPath = `uploads/${randomUUID()}.${extFor(input.photo.type)}`;
+    photoPath = `uploads/${randomUUID()}.${image.extension}`;
     const { error: upErr } = await sb.storage
       .from("cafe-suggestions")
-      .upload(photoPath, input.photo, { contentType: input.photo.type });
+      .upload(photoPath, input.photo, { contentType: image.contentType });
     if (upErr) {
       console.error("photo upload failed:", upErr);
       return { ok: false, error: "upload_failed" };
