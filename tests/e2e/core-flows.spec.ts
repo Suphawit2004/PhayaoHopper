@@ -426,8 +426,10 @@ test("profile popup edits name and photo, sends password reset, removes membersh
   await page.goto("/auth/reset-password");
   await expect(page).toHaveURL(/\/auth\/reset-password$/);
   await expect(page.getByRole("textbox", { name: "อีเมล" })).toBeVisible();
-  await page.goto("/membership");
-  await expect(page).toHaveURL(/\/$/);
+  const profileResponse = await page.goto("/profile");
+  expect(profileResponse?.status()).toBe(404);
+  const membershipResponse = await page.goto("/membership");
+  expect(membershipResponse?.status()).toBe(404);
 });
 
 test("administrator can open the moderation dashboard", async ({ page }) => {
