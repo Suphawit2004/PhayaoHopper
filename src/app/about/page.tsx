@@ -1,4 +1,4 @@
-import AboutView from "@/components/AboutView";
+import AboutView from "@/features/about/AboutView";
 
 export const metadata = {
   title: "เกี่ยวกับโครงการ — About",

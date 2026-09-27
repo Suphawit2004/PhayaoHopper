@@ -4,14 +4,14 @@ import "./globals.css";
 import "./lanna.css";
 import "./phayaohopper-ui.css";
 import { LangProvider } from "@/i18n/LangProvider";
-import { AuthProvider } from "@/components/AuthProvider";
-import { FavoritesProvider } from "@/components/FavoritesProvider";
-import { SearchProvider } from "@/components/SearchProvider";
-import Navbar from "@/components/Navbar";
-import { getCatalog } from "@/lib/catalog";
-import { CatalogProvider } from "@/components/CatalogProvider";
+import { AuthProvider } from "@/features/account/AuthProvider";
+import { FavoritesProvider } from "@/features/saved-cafes/FavoritesProvider";
+import { SearchProvider } from "@/features/discovery/SearchProvider";
+import Navbar from "@/components/layout/Navbar";
+import { getCatalog } from "@/features/cafes/catalog";
+import { CatalogProvider } from "@/features/cafes/CatalogProvider";
 
-import Footer from "@/components/Footer";
+import Footer from "@/components/layout/Footer";
 import { getSiteUrl } from "@/lib/site-url";
 
 const plexThai = IBM_Plex_Sans_Thai({

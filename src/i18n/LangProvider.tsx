@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, useEffect } from "react";
 import type { ReactNode } from "react";
-import type { Lang, LocalText } from "@/data/cafes";
+import type { Lang, LocalText } from "@/features/cafes/data/cafes";
 import { dictionaries } from "./dictionaries";
 import type { DictKey } from "./dictionaries";
 

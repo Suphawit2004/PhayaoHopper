@@ -29,6 +29,15 @@
 - Leaflet / react-leaflet
 - Vitest + Playwright + GitHub Actions CI
 
+## โครงสร้างโค้ด
+
+- `src/app/` เก็บเฉพาะ route, layout, metadata และ CSS กลางของ Next.js
+- `src/features/` เก็บ UI, Server Actions, logic และ tests ตามฟีเจอร์ เช่น `cafes/`, `discovery/`, `map/`, `saved-cafes/`, `community/`, `account/`, `assistant/`, `submissions/`, `owner/` และ `admin/`
+- `src/features/cafes/data/` เก็บแคตตาล็อก seed และข้อมูลประกอบรูป; ฐานข้อมูล Supabase ยังคงเป็นแหล่งข้อมูลหลัก
+- `src/components/ui/` เก็บองค์ประกอบที่ใช้ร่วมกัน และ `src/components/layout/` เก็บ navbar กับ footer
+- `src/lib/` เก็บส่วนกลางที่ใช้ข้ามฟีเจอร์ เช่น Supabase, rate limit และการตรวจไฟล์รูป; `src/i18n/` เก็บภาษา
+- `supabase/migrations/` และ `tests/e2e/` เก็บ migration กับ browser tests ตามเดิม
+
 ## Getting Started
 
 ```sh
@@ -78,7 +87,7 @@ on conflict do nothing;
 3. การอนุมัติเพิ่มร้านใน `cafes` และเปลี่ยนสถานะใน transaction เดียว ร้านปรากฏบนเว็บโดยไม่ต้อง deploy ใหม่
 4. Admin เปิดหน้าจัดการร้านเพื่อแก้ข้อมูล/รูป/เมนู หรือให้สิทธิ์เจ้าของร้านด้วยรหัสสมาชิก
 
-ข้อมูลหลักมาจาก Supabase; `src/data/cafes.ts` ใช้เป็น seed และโหมดที่ยังไม่ตั้งค่า Supabase เท่านั้น
+ข้อมูลหลักมาจาก Supabase; `src/features/cafes/data/cafes.ts` ใช้เป็น seed และโหมดที่ยังไม่ตั้งค่า Supabase เท่านั้น
 AI แนะนำเฉพาะร้านที่มีในแคตตาล็อก จำกัดสมาชิกทั่วไป 30 ครั้งต่อวัน ส่วนแอดมินไม่ติดโควตาระดับบัญชี หากไม่มี key หรือบริการขัดข้องจะค้นหาจากข้อมูลร้านและแสดงโหมดให้ผู้ใช้เห็น
 รูปส่วนตัวใช้ private bucket และ signed URL อายุ 60 วินาที หลังซ่อนรูป URL ที่ออกไปแล้วอาจยังเปิดได้จนหมดอายุ
 

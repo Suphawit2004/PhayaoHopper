@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import { MyPhotos } from "@/components/CafeCommunity";
+import { MyPhotos } from "@/features/community/photos/CafeCommunity";
 
 export const metadata = {
   title: "รูปของฉัน — My photos",

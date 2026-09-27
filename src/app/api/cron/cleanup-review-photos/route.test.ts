@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 const mock = vi.hoisted(() => ({ createClient: vi.fn(), cleanup: vi.fn() }));
 vi.mock("@supabase/supabase-js", () => ({ createClient: mock.createClient }));
-vi.mock("@/lib/cleanup-review-photos", () => ({ cleanupAbandonedReviewPhotos: mock.cleanup }));
+vi.mock("@/features/community/photos/cleanup-review-photos", () => ({ cleanupAbandonedReviewPhotos: mock.cleanup }));
 import { GET } from "./route";
 
 beforeEach(() => { vi.clearAllMocks(); process.env.CRON_SECRET = "cron-test-secret"; process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co"; process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-secret"; });

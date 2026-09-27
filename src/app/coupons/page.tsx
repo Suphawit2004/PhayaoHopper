@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import CouponsView from "@/components/CouponsView";
-import { getCatalog } from "@/lib/catalog";
+import CouponsView from "@/features/community/coupons/CouponsView";
+import { getCatalog } from "@/features/cafes/catalog";
 
 async function serverTimestamp() { return Date.now(); }
 

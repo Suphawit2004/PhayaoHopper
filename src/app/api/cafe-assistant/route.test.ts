@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { Cafe } from "@/data/cafes";
+import type { Cafe } from "@/features/cafes/data/cafes";
 const mock = vi.hoisted(() => ({ catalog: vi.fn(), server: vi.fn() }));
-vi.mock("@/lib/catalog", () => ({ getCatalog: mock.catalog }));
+vi.mock("@/features/cafes/catalog", () => ({ getCatalog: mock.catalog }));
 vi.mock("@/lib/supabase-server", () => ({ getSupabaseServer: mock.server }));
 import { POST } from "./route";
-import { validatedAnswer } from "@/lib/cafe-assistant";
+import { validatedAnswer } from "@/features/assistant/cafe-assistant";
 const cafe = { slug: "test", name: { th: "ร้านทดสอบ", en: "Test Cafe" }, description: { th: "เงียบ", en: "Quiet" }, address: { th: "เมืองพะเยา", en: "Phayao" }, tags: ["work"], lifestyleTags: ["wifi"], openTime: "08:00", closeTime: "17:00", closedDays: [1], baseRating: 4 } as Cafe;
 const makeCafes = (count: number) => Array.from({ length: count }, (_, i) => ({ ...cafe, slug: `cafe-${i + 1}`, name: { th: `ร้าน ${i + 1}`, en: `Cafe ${i + 1}` } }));
 const memberServer = (quota: boolean) => ({ auth: { getUser: async () => ({ data: { user: { id: "member" } } }) }, rpc: async (name: string) => ({ data: name === "is_admin" ? false : quota, error: null }) });

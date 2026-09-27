@@ -1,4 +1,4 @@
-import CafesExplorer from "@/components/CafesExplorer";
+import CafesExplorer from "@/features/discovery/CafesExplorer";
 
 export const metadata = {
   title: "คาเฟ่ในเมืองพะเยา — Cafes in Phayao",

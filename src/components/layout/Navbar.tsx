@@ -1,0 +1,115 @@
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useLang } from "@/i18n/LangProvider";
+import { useAuth } from "@/features/account/AuthProvider";
+import { useFavorites } from "@/features/saved-cafes/FavoritesProvider";
+import CafeSearch from "@/features/discovery/CafeSearch";
+import BrandMark from "@/components/layout/BrandMark";
+import FeatureNav from "@/components/layout/FeatureNav";
+import AccountProfileActions from "@/features/account/AccountProfileActions";
+import { useProfile } from "@/features/account/use-profile";
+import Icon from "@/components/ui/Icon";
+import Image from "next/image";
+export default function Navbar() {
+  const { t, setLang, lang } = useLang(); const { user, loading, signOut } = useAuth(); const { wantedSlugs, wantedReady, slugs, visits } = useFavorites(); const pathname = usePathname();
+  const wantedCount = wantedReady ? wantedSlugs.length : 0;
+  const myCafeCount = wantedReady && visits ? visits.length + wantedCount : 0;
+  const visitedOnlyCount = visits?.filter(row => !slugs.includes(row.cafe_slug)).length ?? 0;
+  const favoriteVisitedCount = visits?.filter(row => slugs.includes(row.cafe_slug)).length ?? 0;
+  const { profile } = useProfile();
+  const [open,setOpen] = useState(false); const trigger = useRef<HTMLButtonElement>(null); const accountMenu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (accountMenu.current?.open) {
+        accountMenu.current.open = false;
+        accountMenu.current.querySelector("summary")?.focus();
+      } else if (open) {
+        setOpen(false);
+        trigger.current?.focus();
+      }
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (open && !document.getElementById("main-navigation")?.contains(target) && !trigger.current?.contains(target)) {
+        setOpen(false);
+      }
+      if (accountMenu.current?.open && !accountMenu.current.contains(event.target as Node)) {
+        accountMenu.current.open = false;
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [open]);
+  const links = [
+    { href: "/cafes", label: t("nav.cafes"), icon: "coffee" as const },
+    { href: "/chat", label: t("nav.assistant"), icon: "search" as const },
+    { href: "/map", label: t("nav.map"), icon: "map" as const },
+    { href: user ? "/visited" : "/favorites", label: user
+      ? `${lang === "th" ? "คาเฟ่ที่บันทึกไว้" : "Saved cafes"}${myCafeCount ? ` (${myCafeCount})` : ""}`
+      : `${t("nav.favorites")}${wantedCount ? ` (${wantedCount})` : ""}`, icon: "heart" as const },
+  ];
+  const close = () => setOpen(false);
+  const initials = (profile?.display_name || user?.email || "?").trim().slice(0, 1).toUpperCase();
+
+  return (
+    <header className="site-header">
+      <div className="nav-main">
+        <Link href="/" onClick={close} className="brand">
+          <span className="brand-symbol"><BrandMark /></span>
+          <span><strong>{t("brand.name")}</strong><small>{t("brand.sub")}</small></span>
+        </Link>
+        <div className="nav-search"><CafeSearch variant="navbar" /></div>
+        <div className="language-toggle" role="group" aria-label={t("lang.label")}>
+          <button type="button" lang="th" aria-pressed={lang === "th"} onClick={() => setLang("th")}>{t("lang.th")}</button>
+          <button type="button" lang="en" aria-pressed={lang === "en"} onClick={() => setLang("en")}>{t("lang.en")}</button>
+        </div>
+        <button ref={trigger} className="ui-secondary nav-toggle" aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}>
+          <Icon name={open ? "close" : "menu"} width={18} height={18} />
+          {open ? (lang === "th" ? "ปิดเมนู" : "Close menu") : (lang === "th" ? "เมนู" : "Menu")}
+        </button>
+        <nav id="main-navigation" className={`main-navigation ${open ? "is-open" : ""}`} aria-label={t("nav.main")}>
+          {links.map(({ href, label, icon }) => <Link key={href} href={href} onClick={close} aria-current={pathname === href || pathname.startsWith(`${href}/`) || (user && href === "/visited" && (pathname === "/favorites" || pathname === "/favorite-cafes")) ? "page" : undefined}>
+            <Icon name={icon} width={17} height={17} />
+            <span>{label}</span>
+          </Link>)}
+          {!loading && (user ? (
+            <details ref={accountMenu} className="account-menu">
+              <summary aria-label={lang === "th" ? "เปิดเมนูโปรไฟล์" : "Open profile menu"}>
+                <span className="account-avatar">
+                  {profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={36} height={36} unoptimized /> : <span aria-hidden="true">{initials}</span>}
+                </span>
+                <span className="account-summary-label">{lang === "th" ? "โปรไฟล์" : "Profile"}</span>
+                <Icon name="chevronDown" className="account-chevron" />
+              </summary>
+              <div className="account-menu-panel" onClick={event => {
+                if ((event.target as HTMLElement).closest("a")) {
+                  accountMenu.current?.removeAttribute("open");
+                  close();
+                }
+              }}>
+                <AccountProfileActions user={user} profile={profile} signOut={signOut} />
+                <Link className="account-favorites-link" href="/visited">
+                  {lang === "th" ? `ร้านที่เคยไป${visitedOnlyCount ? ` (${visitedOnlyCount})` : ""}` : `Visited cafes${visitedOnlyCount ? ` (${visitedOnlyCount})` : ""}`}
+                </Link>
+                <Link className="account-favorites-link" href="/favorites">
+                  {lang === "th" ? `ร้านที่อยากไป${wantedCount ? ` (${wantedCount})` : ""}` : `Want to visit${wantedCount ? ` (${wantedCount})` : ""}`}
+                </Link>
+                <Link className="account-favorites-link" href="/favorite-cafes">
+                  {lang === "th" ? `ร้านโปรด${favoriteVisitedCount ? ` (${favoriteVisitedCount})` : ""}` : `Favorites${favoriteVisitedCount ? ` (${favoriteVisitedCount})` : ""}`}
+                </Link>
+                <FeatureNav />
+              </div>
+            </details>
+          ) : <Link href="/login" onClick={close}>{t("nav.login")}</Link>)}
+        </nav>
+      </div>
+    </header>
+  );
+}

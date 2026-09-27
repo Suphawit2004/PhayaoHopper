@@ -1,4 +1,4 @@
-import MapViewPage from "@/components/MapViewPage";
+import MapViewPage from "@/features/map/MapViewPage";
 
 export const metadata = {
   title: "แผนที่คาเฟ่เมืองพะเยา — Cafe Map",

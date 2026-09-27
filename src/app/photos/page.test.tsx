@@ -7,7 +7,7 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 vi.mock("next/navigation", () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`); } }));
-vi.mock("@/components/CafeCommunity", () => ({ MyPhotos: () => null }));
+vi.mock("@/features/community/photos/CafeCommunity", () => ({ MyPhotos: () => null }));
 
 import PhotosPage from "./page";
 

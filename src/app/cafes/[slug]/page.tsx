@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { CAFES, type Cafe } from "@/data/cafes";
-import { getCafe } from "@/lib/catalog";
-import DetailView from "@/components/DetailView";
+import { CAFES, type Cafe } from "@/features/cafes/data/cafes";
+import { getCafe } from "@/features/cafes/catalog";
+import DetailView from "@/features/cafes/DetailView";
 
 interface Params {
   params: Promise<{ slug: string }>;

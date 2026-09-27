@@ -1,5 +1,5 @@
-import PasswordSettings from "@/components/PasswordSettings";
-import PasswordResetRequest from "@/components/PasswordResetRequest";
+import PasswordSettings from "@/features/account/PasswordSettings";
+import PasswordResetRequest from "@/features/account/PasswordResetRequest";
 import UiText from "@/i18n/UiText";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import Link from "next/link";
