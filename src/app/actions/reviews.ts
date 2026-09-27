@@ -76,7 +76,6 @@ export async function submitReview(formData: {
   }
 
   revalidatePath(`/cafes/${slug}`);
-  revalidatePath("/profile");
   revalidatePath("/coupons");
   return { ok: true, data: data.review, reward: data.coupon?.reward ?? null };
 }
@@ -103,6 +102,5 @@ export async function deleteOwnReview(id: string): Promise<{ ok: boolean }> {
     return { ok: false };
   }
   revalidatePath("/coupons");
-  revalidatePath("/profile");
   return { ok: true };
 }
