@@ -13,7 +13,7 @@ function redirectOrigin(request: NextRequest): string {
     configured.host.toLowerCase(),
     // The public Vercel domain is stable even when the configured canonical
     // URL still points at the original project name. Keeping the callback on
-    // this host preserves the recovery session cookie for the next page.
+    // this host preserves the sign-in session cookie for the next page.
     "phayaohopper.vercel.app",
     process.env.VERCEL_PROJECT_PRODUCTION_URL?.toLowerCase(),
     process.env.VERCEL_URL?.toLowerCase(),

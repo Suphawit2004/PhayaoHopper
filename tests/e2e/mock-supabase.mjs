@@ -34,7 +34,7 @@ const server = createServer(async (req, res) => {
   if (url.pathname === "/health") return asJson(res, 200, { ok: true });
   if (url.pathname === "/auth/v1/token" && req.method === "POST") {
     const body = JSON.parse((await collect(req)).toString("utf8"));
-    const email = body.email ?? (body.auth_code === "e2e-recovery-code" ? "recovered-e2e@example.test" : undefined);
+    const email = body.email;
     const id = userIds.get(email) ?? (email?.startsWith("admin") ? "00000000-0000-4000-8000-000000000002" : email?.startsWith("member") ? "00000000-0000-4000-8000-000000000001" : "00000000-0000-4000-8000-000000000003");
     userIds.set(email, id);
     if (!profiles.has(id)) profiles.set(id, { id, display_name: email?.split("@")[0] ?? "Member", avatar_url: null });
@@ -46,10 +46,6 @@ const server = createServer(async (req, res) => {
   }
   if (url.pathname === "/auth/v1/user") {
     const user = userFor(req); return user ? asJson(res, 200, user) : asJson(res, 401, { message: "Invalid token" });
-  }
-  if (url.pathname === "/auth/v1/recover" && req.method === "POST") {
-    await collect(req);
-    return asJson(res, 200, { message: "If the email exists, a reset link was sent" });
   }
   if (url.pathname === "/auth/v1/logout") return asJson(res, 204, null);
 

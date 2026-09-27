@@ -12,7 +12,7 @@ it("returns to the browser's loopback host during local development", async () =
   expect(response.headers.get("location")).toBe("http://127.0.0.1:3017/login?error=auth");
 });
 
-it("does not redirect a recovery callback to an untrusted Host header", async () => {
+it("does not redirect an auth callback to an untrusted Host header", async () => {
   vi.stubEnv("NODE_ENV", "production");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://phayaohopper.vercel.app");
   const request = new NextRequest("https://internal.test/auth/callback", { headers: { host: "attacker.example" } });
@@ -20,7 +20,7 @@ it("does not redirect a recovery callback to an untrusted Host header", async ()
   expect(response.headers.get("location")).toBe("https://phayaohopper.vercel.app/login?error=auth");
 });
 
-it("keeps the password recovery session on the public PhayaoHopper domain", async () => {
+it("keeps the sign-in session on the public PhayaoHopper domain", async () => {
   vi.stubEnv("NODE_ENV", "production");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://thiao-nai-dee-final.vercel.app");
   const request = new NextRequest("https://phayaohopper.vercel.app/auth/callback", {

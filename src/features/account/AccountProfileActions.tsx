@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { updateMyProfile } from "@/features/account/actions";
 import { useUi } from "@/i18n/UiText";
 import type { User } from "@supabase/supabase-js";
@@ -110,31 +109,6 @@ export default function AccountProfileActions({
     }
   }
 
-  async function sendPasswordReset() {
-    if (!accountUser.email) {
-      setMessage(ui("ไม่พบอีเมลของบัญชีนี้"));
-      return;
-    }
-    setPending(true);
-    setMessage("");
-    try {
-      const supabase = getSupabaseBrowser();
-      if (!supabase) throw new Error("Supabase is not configured");
-      const callback = new URL("/auth/callback", window.location.origin);
-      callback.searchParams.set("next", "/auth/reset-password");
-      const { error } = await supabase.auth.resetPasswordForEmail(accountUser.email, { redirectTo: callback.toString() });
-      if (error) {
-        setMessage(ui(error.status === 429 ? "ส่งบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง" : "ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"));
-        return;
-      }
-      setMessage(ui("ส่งลิงก์ตั้งรหัสผ่านไปยังอีเมลแล้ว หากบัญชีนี้ใช้งานได้กรุณาตรวจกล่องจดหมาย"));
-    } catch {
-      setMessage(ui("ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"));
-    } finally {
-      setPending(false);
-    }
-  }
-
   async function logout() {
     setPending(true);
     setMessage("");
@@ -227,9 +201,6 @@ export default function AccountProfileActions({
       </div>
 
       <div className="account-security-actions">
-        <button className="account-action-link" type="button" onClick={sendPasswordReset} disabled={pending}>
-          {pending ? ui("กำลังส่งลิงก์รีเซ็ตรหัสผ่าน…") : ui("ส่งลิงก์รีเซ็ตรหัสผ่าน")}
-        </button>
         <button className="account-logout-button" type="button" onClick={logout} disabled={pending}>
           {ui("ออกจากระบบ")}
         </button>
