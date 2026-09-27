@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "./ResultLink";
+import { ResultLink as Link } from "./ResultsNavigation";
 import type { Cafe } from "@/data/cafes";
 import { useLang } from "@/i18n/LangProvider";
 import CafeThumb from "./CafeThumb";
-import AreaChip from "./AreaChip";
+import { AreaChip, TagChip } from "./CafeChips";
 import RatingStars from "./RatingStars";
 import OpenBadge from "./OpenBadge";
-import TagChip from "./TagChip";
 import FavoriteButton from "./FavoriteButton";
 
 export default function CafeCard({ cafe }: { cafe: Cafe }) {
