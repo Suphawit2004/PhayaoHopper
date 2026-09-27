@@ -3,8 +3,8 @@ import { join } from "node:path";
 
 const ROOT = process.cwd();
 const PINS_FILE = join(ROOT, "pins.txt");
-const OUT_FILE = join(ROOT, "src", "data", "cafes.enriched.json");
-const BASE_FILE = join(ROOT, "src", "data", "cafes.base.json");
+const OUT_FILE = join(ROOT, "src", "features", "cafes", "data", "cafes.enriched.json");
+const BASE_FILE = join(ROOT, "src", "features", "cafes", "data", "cafes.base.json");
 const PHOTOS_DIR = join(ROOT, "public", "images", "cafes");
 
 const DRY_RUN = process.argv.includes("--dry-run");
@@ -14,7 +14,7 @@ let CAFES;
 try {
   CAFES = JSON.parse(readFileSync(BASE_FILE, "utf8"));
 } catch (err) {
-  fail(`อ่าน src/data/cafes.base.json ไม่สำเร็จ: ${err instanceof Error ? err.message : err}`);
+  fail(`อ่าน src/features/cafes/data/cafes.base.json ไม่สำเร็จ: ${err instanceof Error ? err.message : err}`);
 }
 
 const BBOX = { latMin: 19.0, latMax: 19.4, lngMin: 99.7, lngMax: 100.1 };
@@ -42,7 +42,7 @@ if (existsSync(OUT_FILE)) {
     previous = JSON.parse(readFileSync(OUT_FILE, "utf8"));
   } catch (err) {
     fail(
-      `src/data/cafes.enriched.json parse ไม่ได้ (${err instanceof Error ? err.message : err}) ` +
+      `src/features/cafes/data/cafes.enriched.json parse ไม่ได้ (${err instanceof Error ? err.message : err}) ` +
         `— แก้หรือลบไฟล์ทิ้งก่อนรันซ้ำ เพื่อกันข้อมูลพิกัดเดิมถูกเขียนทับ`
     );
   }
@@ -168,6 +168,6 @@ if (DRY_RUN) {
 try {
   writeFileSync(OUT_FILE, JSON.stringify(overrides, null, 2) + "\n", "utf8");
 } catch (err) {
-  fail(`เขียน src/data/cafes.enriched.json ไม่สำเร็จ: ${err instanceof Error ? err.message : err}`);
+  fail(`เขียน src/features/cafes/data/cafes.enriched.json ไม่สำเร็จ: ${err instanceof Error ? err.message : err}`);
 }
-console.log(`\n✅ บันทึกแล้ว: src/data/cafes.enriched.json`);
+console.log(`\n✅ บันทึกแล้ว: src/features/cafes/data/cafes.enriched.json`);

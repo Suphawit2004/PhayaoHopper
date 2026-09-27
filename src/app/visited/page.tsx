@@ -1,4 +1,4 @@
-import SavedCafesView from "@/components/SavedCafesView";
+import SavedCafesView from "@/features/saved-cafes/SavedCafesView";
 
 export const metadata = { title: "ร้านที่เคยไป — Visited cafes", robots: { index: false, follow: false } };
 

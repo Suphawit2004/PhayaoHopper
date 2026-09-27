@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getCatalog } from "@/lib/catalog";
+import { getCatalog } from "@/features/cafes/catalog";
 import { getSiteUrl } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

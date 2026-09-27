@@ -1,4 +1,4 @@
-import SuggestView from "@/components/SuggestView";
+import SuggestView from "@/features/submissions/SuggestView";
 
 export const metadata = {
   title: "แนะนำคาเฟ่ใหม่ — Suggest a cafe",

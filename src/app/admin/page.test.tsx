@@ -20,7 +20,7 @@ vi.mock("@/lib/supabase-server", () => ({ getSupabaseServer: async () => ({
   },
 }) }));
 vi.mock("next/navigation", () => ({ redirect: (url: string) => { throw new Error(`redirect:${url}`); } }));
-vi.mock("@/components/admin/AdminDashboard", () => ({ default: () => null }));
+vi.mock("@/features/admin/AdminDashboard", () => ({ default: () => null }));
 vi.mock("@/i18n/UiText", () => ({ default: () => null }));
 import AdminPage from "./page";
 

@@ -1,12 +1,12 @@
 
 import { notFound, redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import { cafeFromRow } from "@/lib/cafe-row";
+import { cafeFromRow } from "@/features/cafes/cafe-row";
 
 
 
 
-import CafeEditorView from "@/components/CafeEditorView";
+import CafeEditorView from "@/features/owner/CafeEditorView";
 
 export default async function CafeEditor({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

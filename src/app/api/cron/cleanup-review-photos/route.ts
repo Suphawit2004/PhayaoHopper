@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { cleanupAbandonedReviewPhotos } from "@/lib/cleanup-review-photos";
+import { cleanupAbandonedReviewPhotos } from "@/features/community/photos/cleanup-review-photos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

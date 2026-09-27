@@ -1,4 +1,4 @@
-import type { Lang } from "@/data/cafes";
+import type { Lang } from "@/features/cafes/data/cafes";
 
 const th = {
   "brand.name": "PhayaoHopper",

@@ -1,4 +1,4 @@
-import LoginView from "@/components/LoginView";
+import LoginView from "@/features/account/LoginView";
 
 export const metadata = {
   title: "เข้าสู่ระบบ — Log in",

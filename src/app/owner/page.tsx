@@ -1,7 +1,7 @@
 import UiText from "@/i18n/UiText";
 import Link from "next/link";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import { getCatalog } from "@/lib/catalog";
+import { getCatalog } from "@/features/cafes/catalog";
 export default async function OwnerPage() {
   const sb = await getSupabaseServer();
   const user = sb ? (await sb.auth.getUser()).data.user : null;

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import AdminDashboard, { type AdminReport, type AdminReview, type AdminSuggestion } from "@/components/admin/AdminDashboard";
+import AdminDashboard, { type AdminReport, type AdminReview, type AdminSuggestion } from "@/features/admin/AdminDashboard";
 import { redirect } from "next/navigation";
-import { cafeFromRow } from "@/lib/cafe-row";
-import { suggestionPublication } from "@/lib/suggestion-publication";
-import type { EditableMenu } from "@/components/MenuManager";
+import { cafeFromRow } from "@/features/cafes/cafe-row";
+import { suggestionPublication } from "@/features/submissions/suggestion-publication";
+import type { EditableMenu } from "@/features/owner/MenuManager";
 
 export const metadata: Metadata = {
   title: "Admin",

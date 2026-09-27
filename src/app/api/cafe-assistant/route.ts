@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCatalog } from "@/lib/catalog";
-import { catalogueFactAnswer, isGeneralRecommendation, localRecommendations, validatedAnswer } from "@/lib/cafe-assistant";
+import { getCatalog } from "@/features/cafes/catalog";
+import { catalogueFactAnswer, isGeneralRecommendation, localRecommendations, validatedAnswer } from "@/features/assistant/cafe-assistant";
 import { getSupabaseServer } from "@/lib/supabase-server";
 
 export async function POST(request: Request) {
