@@ -30,7 +30,7 @@ const INITIAL_FORM: FormState = {
 };
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
-const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const subscribeHydration = () => () => {};
 export default function SuggestView() {
